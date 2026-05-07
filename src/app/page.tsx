@@ -10,43 +10,43 @@ const sourceCards = [
   {
     title: "Portfolio + operating systems",
     note: "Connect Property Management Software, Accounting Software, rent rolls, models, IC memos, and internal benchmarks.",
-    cost: "Included",
+    cost: "Free trial",
     status: "Ready",
   },
   {
     title: "Market subscription tools",
-    note: "Bring in the expensive market-data tools the team already pays for so results get saved and reused.",
-    cost: "Customer-owned APIs",
+    note: "Bring in market-data tools the team already uses so results get saved and reused.",
+    cost: "Use your login",
     status: "Connect",
   },
   {
     title: "Listing scraper",
     note: "Track broker/listing sites by market, asset type, fields, and scrape frequency.",
-    cost: "$180/mo compute est.",
+    cost: "Setup guide",
     status: "Configure",
   },
   {
     title: "Email + Google Drive",
     note: "Capture broker emails, attachments, addresses, OMs, T12s, rent rolls, and development files.",
-    cost: "Included",
+    cost: "Free trial",
     status: "Connect",
   },
   {
     title: "Deal rooms + NDAs",
     note: "Approval-gated CA/NDA signing and document extraction from protected rooms.",
-    cost: "$95/mo compute est.",
+    cost: "Approval step",
     status: "Approval required",
   },
   {
     title: "Cactus enrichment",
     note: "Activate parcel, market, flood, traffic, ownership, supply, comps, incentives, and funding endpoints.",
-    cost: "Per market / deal / mo",
+    cost: "Sample data",
     status: "Preview",
   },
   {
     title: "Premium providers",
-    note: "Add Green Street, HelloData, ATTOM, or other paid sources only when needed.",
-    cost: "Usage based",
+    note: "Add Green Street, HelloData, ATTOM, or other paid sources later when needed.",
+    cost: "Connect later",
     status: "Later",
   },
 ];
@@ -259,19 +259,48 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
 
 function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
   return (
-    <div className="p-8">
-      <SectionHeader eyebrow="Onboarding · Step 02" title="Set up your company workspace" subtitle="Capture the basics before users configure data sources: team, markets, asset focus, buy box, and budget guardrails." />
-      <div className="grid grid-cols-[1fr_360px] gap-5">
-        <div className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="grid grid-cols-2 gap-4">
-            {['Company name', 'Primary market', 'Asset focus', 'Typical unit range', 'Target vintage', 'Monthly data budget'].map((label) => <label key={label} className="text-sm font-medium text-neutral-700">{label}<div className="mt-2 rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-400">Set {label.toLowerCase()}</div></label>)}
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef7f2,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_42%,#eceff3_100%)] p-8">
+      <div className="mx-auto max-w-6xl">
+        <SectionHeader eyebrow="Onboarding · Step 02" title="Configure your Cactus engine" subtitle="Tell Cactus what your team owns, where you invest, and what decisions you want the engine to support. You can start free with up to 50 documents." />
+        <div className="grid grid-cols-[1fr_340px] gap-5">
+          <div className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+            <div className="mb-6 rounded-[1.5rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-emerald-900">Free trial access</p>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-800/75">Start by adding up to 50 documents. Deleted documents still count toward the trial limit, so teams can test the engine without a timer or payment step.</p>
+                </div>
+                <div className="rounded-2xl bg-white px-4 py-3 text-right shadow-sm">
+                  <p className="text-2xl font-semibold tracking-[-0.05em] text-emerald-950">50</p>
+                  <p className="text-xs text-emerald-700">documents</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                ["Company name", "Cactus Capital"],
+                ["Primary markets", "Dallas, Austin, Nashville"],
+                ["Main use case", "Portfolio, acquisitions, development"],
+                ["Asset types", "Multifamily, affordable, self storage"],
+              ].map(([label, placeholder]) => (
+                <label key={label} className="text-sm font-medium text-neutral-700">{label}
+                  <div className="mt-2 rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm text-neutral-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(15,23,42,0.04)]">{placeholder}</div>
+                </label>
+              ))}
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {["Asset management", "Acquisitions", "New development"].map((item) => <button key={item} className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-emerald-200 hover:bg-emerald-50">{item}</button>)}
+            </div>
+            <button onClick={() => go(3)} className="mt-8 rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.18)]">Continue configuring The Vault</button>
           </div>
-          <button onClick={() => go(3)} className="mt-8 rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white">Continue to Vault setup</button>
-        </div>
-        <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
-          <p className="text-sm text-neutral-400">Setup outcome</p>
-          <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">A workspace calibrated to portfolio, acquisition, and development decisions.</h3>
-          <p className="mt-4 text-sm leading-6 text-neutral-400">Cactus uses these defaults to recommend sources, comps, enrichments, hitlists, and cost guardrails.</p>
+          <div className="rounded-[2rem] border border-neutral-900 bg-neutral-950 p-6 text-white shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
+            <p className="text-sm text-emerald-300">What you are configuring</p>
+            <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">Your always-on Cactus engine.</h3>
+            <p className="mt-4 text-sm leading-6 text-neutral-400">The engine uses these defaults to organize data, recommend sources, flag opportunities, and prepare analysis for the right type of decision.</p>
+            <div className="mt-6 space-y-2 text-xs text-neutral-300">
+              {['Save the data your team already uses', 'Adapt insight by asset type and use case', 'Reduce grunt work before reporting or review'].map((item) => <div key={item} className="rounded-xl bg-white/10 px-3 py-2">{item}</div>)}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -281,7 +310,7 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
 function VaultSetup({ go }: { go: (screenIndex: number) => void }) {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Onboarding · Step 03" title="Create The Vault" subtitle="A guided source setup that shows what each connector captures, what it costs, and what rows/columns it will add to the customer dataset." />
+      <SectionHeader eyebrow="Onboarding · Step 03" title="Create The Vault" subtitle="Choose the first sources for your Cactus engine. Start with documents, Google Drive, operating systems, APIs, or scrapers — Cactus will organize what it finds and show what needs review." />
       <div className="grid grid-cols-3 gap-4">
         {sourceCards.map((card) => (
           <div key={card.title} className="min-h-[210px] rounded-[1.6rem] border border-neutral-200 bg-white p-5 shadow-sm">
@@ -323,13 +352,13 @@ function LiveExtraction({ go }: { go: (screenIndex: number) => void }) {
         </div>
       </div>
       <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
-        <p className="text-sm text-neutral-400">Monthly cost guardrail</p>
-        <p className="mt-4 text-5xl font-semibold tracking-[-0.06em]">$275</p>
-        <p className="mt-2 text-sm text-neutral-400">Estimated scraper compute for active sources.</p>
+        <p className="text-sm text-emerald-300">Trial progress</p>
+        <p className="mt-4 text-5xl font-semibold tracking-[-0.06em]">48 / 50</p>
+        <p className="mt-2 text-sm text-neutral-400">Documents scanned in your free trial. Deleted documents still count toward the trial limit.</p>
         <div className="mt-8 space-y-3 text-sm">
-          <div className="flex justify-between"><span className="text-neutral-400">Listing scrapers</span><span>$180</span></div>
-          <div className="flex justify-between"><span className="text-neutral-400">Deal-room access</span><span>$95</span></div>
-          <div className="flex justify-between"><span className="text-neutral-400">Premium data</span><span>Not active</span></div>
+          <div className="flex justify-between"><span className="text-neutral-400">Documents uploaded</span><span>48</span></div>
+          <div className="flex justify-between"><span className="text-neutral-400">Documents remaining</span><span>2</span></div>
+          <div className="flex justify-between"><span className="text-neutral-400">Time limit</span><span>None</span></div>
         </div>
         <button onClick={() => go(5)} className="mt-10 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Enter Cactus app</button>
       </div>
