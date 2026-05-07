@@ -130,16 +130,16 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
             <Pill tone="green">Private beta</Pill>
           </div>
           <h1 className="max-w-4xl text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-neutral-950">
-            Turn every file, feed, and market signal into your real estate edge.
+            Your market and asset brain, with a team that never sleeps.
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-neutral-500">
-            Cactus builds The Vault: a living customer brain for portfolio asset management, acquisitions, and new development. It saves the portfolio data, market subscriptions, Property Management Software, Accounting Software, Google Drive files, broker emails, listing scrapers, deal rooms, and provider APIs your team already relies on — then makes that information usable so each customer builds a proprietary edge.
+            Cactus builds The Vault: a living customer brain for portfolio asset management, acquisitions, and new development. It gives investors a data analyst, underwriter, deal sourcer, and asset manager that never sleep — saving the portfolio data, market subscriptions, Property Management Software, Accounting Software, Google Drive files, broker emails, listing scrapers, deal rooms, and provider APIs your team already relies on so every customer builds a proprietary edge.
           </p>
           <div className="mt-8 grid max-w-3xl grid-cols-3 gap-3">
             {[
               ["Connect", "Operating systems, market subscriptions, documents, APIs, listing sites"],
-              ["Remember", "save one-off research into a reusable customer brain"],
-              ["Act", "asset management, acquisitions, development, outputs, hitlists"],
+              ["Think", "a data analyst, underwriter, deal sourcer, and asset manager working continuously"],
+              ["Act", "portfolio management, acquisitions, development, outputs, hitlists"],
             ].map(([title, note]) => (
               <div key={title} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                 <p className="text-sm font-medium text-neutral-950">{title}</p>
@@ -420,9 +420,14 @@ function Automations() {
         </div>
       </div>
       <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
-        <p className="text-sm text-neutral-400">Future broker product</p>
-        <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">Owner selling-signal hitlists</h3>
-        <p className="mt-4 text-sm leading-6 text-neutral-400">Detect loan maturity, long hold periods, tax pressure, under-managed assets, below-market rents, and recent nearby sales to recommend BOV/listing pitches.</p>
+        <p className="text-sm text-neutral-400">Broker product direction</p>
+        <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">CRM-connected owner intelligence</h3>
+        <p className="mt-4 text-sm leading-6 text-neutral-400">For brokers, the message shifts from investor brain to pipeline engine: connect Cactus data to CRM and outbound workflows, detect owner selling signals, prioritize pitch targets, generate BOV angles, and keep listing pursuits moving.</p>
+        <div className="mt-6 space-y-2 text-xs text-neutral-300">
+          <div className="rounded-xl bg-white/10 px-3 py-2">CRM sync + owner history</div>
+          <div className="rounded-xl bg-white/10 px-3 py-2">Outbound sequences + pitch timing</div>
+          <div className="rounded-xl bg-white/10 px-3 py-2">BOV targets + listing pipeline</div>
+        </div>
       </div>
     </div>
   );
