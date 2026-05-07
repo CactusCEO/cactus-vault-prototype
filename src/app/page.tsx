@@ -137,15 +137,21 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
       </div>
       <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4">
         <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium">First experience</p>
-          <div className="mt-4 space-y-3">
-            {sourceCards.slice(0, 4).map((card, index) => (
-              <div key={card.title} className="rounded-2xl border border-neutral-200 bg-white p-4">
+          <p className="text-sm font-medium">How setup works</p>
+          <p className="mt-2 text-xs leading-5 text-neutral-500">This should explain the onboarding path before users enter the app.</p>
+          <div className="mt-5 space-y-3">
+            {[
+              ["Sign up", "Create a secure account with Google, Microsoft, SSO, or email."],
+              ["Set up workspace", "Confirm company, markets, asset focus, buy box, and budget guardrails."],
+              ["Create The Vault", "Connect portfolio files, listing scrapers, email, Drive, deal rooms, and Cactus data."],
+              ["Enter the app", "Watch extraction populate rows, then explore the table, map, chat, comps, and outputs."],
+            ].map(([title, note], index) => (
+              <div key={title} className="rounded-2xl border border-neutral-200 bg-white p-4">
                 <div className="flex items-start gap-3">
                   <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-neutral-100 text-xs text-neutral-500">{index + 1}</div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-900">{card.title}</p>
-                    <p className="mt-1 text-xs leading-5 text-neutral-500">{card.note}</p>
+                    <p className="text-sm font-medium text-neutral-900">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-neutral-500">{note}</p>
                   </div>
                 </div>
               </div>
@@ -153,11 +159,14 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           </div>
         </div>
         <div className="mt-4 rounded-[1.5rem] border border-neutral-200 bg-white p-5">
-          <p className="text-sm font-medium">Weekly hitlist preview</p>
-          <div className="mt-4 rounded-2xl bg-neutral-950 p-4 text-white">
-            <p className="text-xs text-neutral-400">Next Monday</p>
-            <p className="mt-2 text-2xl font-semibold tracking-[-0.04em]">12 deals screened</p>
-            <p className="mt-1 text-sm text-neutral-400">3 recommended for analyst review</p>
+          <p className="text-sm font-medium">What The Vault creates</p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {[["31", "property records"], ["612", "data points"], ["7", "review items"], ["5", "buy-box matches"]].map(([value, label]) => (
+              <div key={label} className="rounded-2xl bg-neutral-950 p-4 text-white">
+                <p className="text-2xl font-semibold tracking-[-0.05em]">{value}</p>
+                <p className="mt-1 text-xs text-neutral-400">{label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
