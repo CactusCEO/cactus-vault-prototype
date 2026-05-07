@@ -287,20 +287,24 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
   const [helpOpen, setHelpOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef3ee,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_48%,#eceff3_100%)] p-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef3ee,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_48%,#eceff3_100%)] p-6">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-7 flex items-end justify-between gap-6">
-          <SectionHeader eyebrow="Onboarding · Step 02" title="Create your corporate account" subtitle="Set the company defaults Cactus will use for your proprietary data ingestion." />
+        <div className="mb-3 flex items-end justify-between gap-6">
+          <div>
+            <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Onboarding · Step 02</p>
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-neutral-950">Create your corporate account</h2>
+            <p className="mt-1.5 max-w-2xl text-sm text-neutral-500">Set the company defaults Cactus will use for your proprietary data ingestion.</p>
+          </div>
           <button onClick={() => setHelpOpen(!helpOpen)} className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm">{helpOpen ? "Close help" : "Ask a question"}</button>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/80 bg-white/88 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="grid grid-cols-[1fr_260px] gap-6">
+        <div className="rounded-[1.5rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="grid grid-cols-[1fr_250px] gap-5">
             <div>
               <p className="text-sm font-semibold text-neutral-950">Company settings</p>
               <p className="mt-1 text-sm text-neutral-500">Edit the defaults your org will use for reporting and Vault ingestion.</p>
 
-              <div className="mt-6 grid grid-cols-3 gap-4">
+              <div className="mt-4 grid grid-cols-3 gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
                   ["Default currency", "USD", "⌄"],
@@ -315,7 +319,7 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                 ))}
               </div>
 
-              <div className="mt-7 rounded-2xl border border-neutral-200 bg-neutral-50/80 p-4">
+              <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50/80 p-3.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-neutral-900">Team access</p>
@@ -323,7 +327,7 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                   </div>
                   <button className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm">+ Add member</button>
                 </div>
-                <div className="mt-4 grid grid-cols-[1.2fr_0.7fr_0.9fr] gap-3 px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+                <div className="mt-3 grid grid-cols-[1.2fr_0.7fr_0.9fr] gap-3 px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
                   <span>Member</span><span>Role</span><span>Access</span>
                 </div>
                 <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
@@ -332,7 +336,7 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                     ["Acquisitions Analyst", "analyst@company.com", "Editor", "Deals + comps"],
                     ["Asset Manager", "assetmanager@company.com", "Viewer", "Portfolio only"],
                   ].map(([name, email, role, access]) => (
-                    <div key={email} className="grid grid-cols-[1.2fr_0.7fr_0.9fr] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0">
+                    <div key={email} className="grid grid-cols-[1.2fr_0.7fr_0.9fr] items-center gap-3 border-b border-neutral-100 px-4 py-2.5 last:border-b-0">
                       <div>
                         <p className="text-sm font-medium text-neutral-900">{name}</p>
                         <p className="text-xs text-neutral-500">{email}</p>
@@ -344,19 +348,19 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-5">
                 <p className="text-sm font-semibold text-neutral-900">Asset classes</p>
                 <p className="mt-1 text-xs text-neutral-500">Select every asset class this organization works with.</p>
-                <div className="mt-3 grid grid-cols-3 gap-3">
+                <div className="mt-2.5 grid grid-cols-3 gap-2.5">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-300">
+                    <button key={item} className="rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-300">
                       <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <button onClick={() => go(3)} className="mt-8 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]">Save and continue to Vault setup</button>
+              <button onClick={() => go(3)} className="mt-5 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]">Save and continue to Vault setup</button>
             </div>
 
             <div className="space-y-3 text-xs">
