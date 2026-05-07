@@ -284,47 +284,64 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
 }
 
 function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
+  const [helpOpen, setHelpOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef7f2,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_42%,#eceff3_100%)] p-8">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeader eyebrow="Onboarding · Step 02" title="Configure your Cactus engine" subtitle="Tell Cactus what your team owns, where you invest, and what decisions you want the engine to support. You can start free with up to 50 documents." />
-        <div className="grid grid-cols-[1fr_340px] gap-5">
-          <div className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-            <div className="mb-6 rounded-[1.5rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-emerald-900">Free trial access</p>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-800/75">Start by adding up to 50 documents. Deleted documents still count toward the trial limit, so teams can test the engine without a timer or payment step.</p>
-                </div>
-                <div className="rounded-2xl bg-white px-4 py-3 text-right shadow-sm">
-                  <p className="text-2xl font-semibold tracking-[-0.05em] text-emerald-950">50</p>
-                  <p className="text-xs text-emerald-700">documents</p>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef3ee,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_48%,#eceff3_100%)] p-8">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-7 flex items-end justify-between gap-6">
+          <SectionHeader eyebrow="Onboarding · Step 02" title="Create your corporate account" subtitle="Set the company defaults Cactus will use for your proprietary data ingestion." />
+          <button onClick={() => setHelpOpen(!helpOpen)} className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm">{helpOpen ? "Close help" : "Ask a question"}</button>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-white/80 bg-white/88 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="grid grid-cols-[1fr_260px] gap-6">
+            <div>
+              <p className="text-sm font-medium text-neutral-950">Company settings</p>
+              <p className="mt-1 text-sm text-neutral-500">These settings become the defaults for your org, team access, reporting, and Vault ingestion.</p>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                {[
+                  ["Company legal name", "Cactus Capital Partners"],
+                  ["Team members", "tyler@company.com, analyst@company.com"],
+                  ["Default currency", "USD"],
+                  ["Measurement", "$ / sq.ft"],
+                ].map(([label, placeholder]) => (
+                  <label key={label} className="text-sm font-medium text-neutral-700">{label}
+                    <div className="mt-2 rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm text-neutral-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(15,23,42,0.04)]">{placeholder}</div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <p className="text-sm font-medium text-neutral-700">Asset classes</p>
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
+                    <button key={item} className={`rounded-xl border px-4 py-3 text-left text-sm font-medium shadow-sm ${index < 3 ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}>{item}</button>
+                  ))}
                 </div>
               </div>
+
+              <button onClick={() => go(3)} className="mt-8 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]">Continue to Vault setup</button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                ["Company name", "Cactus Capital"],
-                ["Primary markets", "Dallas, Austin, Nashville"],
-                ["Main use case", "Portfolio, acquisitions, development"],
-                ["Asset types", "Multifamily, affordable, self storage"],
-              ].map(([label, placeholder]) => (
-                <label key={label} className="text-sm font-medium text-neutral-700">{label}
-                  <div className="mt-2 rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm text-neutral-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(15,23,42,0.04)]">{placeholder}</div>
-                </label>
-              ))}
-            </div>
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {["Asset management", "Acquisitions", "New development"].map((item) => <button key={item} className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-emerald-200 hover:bg-emerald-50">{item}</button>)}
-            </div>
-            <button onClick={() => go(3)} className="mt-8 rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.18)]">Continue configuring The Vault</button>
-          </div>
-          <div className="rounded-[2rem] border border-neutral-900 bg-neutral-950 p-6 text-white shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
-            <p className="text-sm text-emerald-300">What you are configuring</p>
-            <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">Your always-on Cactus engine.</h3>
-            <p className="mt-4 text-sm leading-6 text-neutral-400">The engine uses these defaults to organize data, recommend sources, flag opportunities, and prepare analysis for the right type of decision.</p>
-            <div className="mt-6 space-y-2 text-xs text-neutral-300">
-              {['Save the data your team already uses', 'Adapt insight by asset type and use case', 'Reduce grunt work before reporting or review'].map((item) => <div key={item} className="rounded-xl bg-white/10 px-3 py-2">{item}</div>)}
+
+            <div className="space-y-3">
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                <p className="text-sm font-medium text-neutral-900">Security + model training</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">Documents uploaded to your Vault stay inside your organization. Cactus does not train shared models on your documents outside your org.</p>
+                <button className="mt-3 text-xs font-medium text-neutral-900 underline underline-offset-4">Learn about security</button>
+              </div>
+              <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                <p className="text-sm font-medium text-neutral-900">Trial access</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">50 documents to start. Deleted documents still count. No payment before setup.</p>
+              </div>
+              {helpOpen && (
+                <div className="rounded-xl border border-neutral-200 bg-neutral-950 p-4 text-white">
+                  <p className="text-sm font-medium">Cactus help</p>
+                  <p className="mt-2 text-xs leading-5 text-neutral-400">Ask about team roles, security, data ingestion, or which settings matter for your first Vault.</p>
+                  <div className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs text-neutral-300">How should we set this up for a multifamily investor?</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
