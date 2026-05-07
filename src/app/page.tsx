@@ -206,51 +206,74 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
 
 function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
   const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const isSignup = mode === "signup";
+  const isDark = theme === "dark";
+
+  const pageClass = isDark
+    ? "grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#1f2a23,transparent_34%),linear-gradient(135deg,#050505,#111312_45%,#171a18)] p-6 text-white"
+    : "grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#f2f7f3,transparent_34%),linear-gradient(135deg,#f6f5f1,#eef0f3)] p-6 text-neutral-950";
+  const panelClass = isDark
+    ? "w-full max-w-4xl rounded-[1.5rem] border border-white/10 bg-[#0b0d0c]/92 p-6 shadow-[0_34px_110px_rgba(0,0,0,0.55)] backdrop-blur"
+    : "w-full max-w-4xl rounded-[1.5rem] border border-white/80 bg-white/85 p-6 shadow-[0_28px_90px_rgba(15,23,42,0.10)] backdrop-blur";
+  const muted = isDark ? "text-neutral-400" : "text-neutral-500";
+  const softSurface = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50/90";
+  const activeTab = isDark ? "bg-white text-neutral-950 shadow-[0_10px_30px_rgba(255,255,255,0.08)]" : "bg-white text-neutral-950 shadow-sm";
+  const inactiveTab = isDark ? "text-neutral-500 hover:text-white" : "text-neutral-500 hover:text-neutral-900";
+  const authButton = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100 hover:bg-white/[0.09]" : "border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50";
+  const inputClass = isDark ? "border-white/10 bg-black/30 text-white placeholder:text-neutral-600 focus:border-emerald-400/70" : "border-neutral-200 bg-gradient-to-b from-white to-neutral-50 text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-400";
 
   return (
-    <div className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#f2f7f3,transparent_34%),linear-gradient(135deg,#f6f5f1,#eef0f3)] p-6">
-      <div className="w-full max-w-4xl rounded-[1.5rem] border border-white/80 bg-white/85 p-5 shadow-[0_28px_90px_rgba(15,23,42,0.10)] backdrop-blur">
-        <div className="mb-5 flex items-center justify-between">
+    <div className={pageClass}>
+      <div className={panelClass}>
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-neutral-950 text-sm font-semibold text-white">C</div>
-            <div><p className="font-medium">Cactus</p><p className="text-xs text-neutral-400">Secure access</p></div>
+            <div className={`grid h-9 w-9 place-items-center rounded-lg text-sm font-semibold ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>C</div>
+            <div><p className="font-medium">Cactus</p><p className={`text-xs ${muted}`}>Secure access</p></div>
           </div>
-          <Pill tone="green">Step 1 of 4</Pill>
+          <div className="flex items-center gap-2">
+            <div className={`rounded-xl border p-1 text-xs ${softSurface}`}>
+              <button onClick={() => setTheme("light")} className={`rounded-lg px-3 py-1.5 ${!isDark ? activeTab : inactiveTab}`}>Light</button>
+              <button onClick={() => setTheme("dark")} className={`rounded-lg px-3 py-1.5 ${isDark ? activeTab : inactiveTab}`}>Dark</button>
+            </div>
+            <Pill tone="green">Step 1 of 4</Pill>
+          </div>
         </div>
 
-        <div className="mx-auto max-w-xl text-center">
-          <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.06em] text-neutral-950">{isSignup ? "Create your Cactus account." : "Sign in to Cactus."}</h1>
-          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-neutral-500">
+        <div className="mx-auto mt-10 max-w-md text-center">
+          <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.06em]">{isSignup ? "Create your Cactus account." : "Sign in to Cactus."}</h1>
+          <p className={`mx-auto mt-4 max-w-sm text-sm leading-6 ${muted}`}>
             {isSignup ? "Start configuring your Cactus engine with a free 50-document trial. No payment step before setup." : "Welcome back. Sign in to continue managing your Cactus engine."}
           </p>
         </div>
 
-        <div className="mx-auto mt-7 max-w-md rounded-2xl border border-neutral-200 bg-neutral-50/90 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setMode("signup")} className={`rounded-xl px-4 py-3 text-sm font-medium transition ${isSignup ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:text-neutral-900"}`}>Sign up</button>
-            <button onClick={() => setMode("signin")} className={`rounded-xl px-4 py-3 text-sm font-medium transition ${!isSignup ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:text-neutral-900"}`}>Sign in</button>
+        <div className="mx-auto mt-7 max-w-md">
+          <div className={`rounded-2xl border p-1.5 ${softSurface}`}>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button onClick={() => setMode("signup")} className={`rounded-xl px-4 py-3 text-sm font-medium transition ${isSignup ? activeTab : inactiveTab}`}>Sign up</button>
+              <button onClick={() => setMode("signin")} className={`rounded-xl px-4 py-3 text-sm font-medium transition ${!isSignup ? activeTab : inactiveTab}`}>Sign in</button>
+            </div>
           </div>
-        </div>
 
-        <div className="mx-auto mt-4 max-w-md rounded-[1.25rem] border border-neutral-200 bg-white p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <button onClick={() => go(2)} className="flex w-full items-center justify-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-800 shadow-sm hover:bg-neutral-50">
-            <span className="text-base">G</span>{isSignup ? "Sign up with Google" : "Sign in with Google"}
-          </button>
-          <button onClick={() => go(2)} className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-800 shadow-sm hover:bg-neutral-50">
-            <span className="grid grid-cols-2 gap-0.5">
-              <span className="h-2 w-2 bg-[#f25022]" /><span className="h-2 w-2 bg-[#7fba00]" /><span className="h-2 w-2 bg-[#00a4ef]" /><span className="h-2 w-2 bg-[#ffb900]" />
-            </span>{isSignup ? "Sign up with Microsoft" : "Sign in with Microsoft"}
-          </button>
-          <div className="my-5 flex items-center gap-3 text-xs text-neutral-400"><div className="h-px flex-1 bg-neutral-200" />or use work email<div className="h-px flex-1 bg-neutral-200" /></div>
-          <label className="text-xs font-medium text-neutral-500">Work email</label>
-          <input className="mt-2 w-full rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm outline-none shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:border-neutral-400" placeholder="you@company.com" />
-          <button onClick={() => go(2)} className="mt-3 w-full rounded-xl bg-neutral-950 px-4 py-3 text-sm font-medium text-white shadow-[0_12px_28px_rgba(0,0,0,0.16)]">{isSignup ? "Create account" : "Email me a sign-in link"}</button>
-        </div>
+          <div className="mt-5 space-y-3">
+            <button onClick={() => go(2)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+              <span className="text-base">G</span>{isSignup ? "Sign up with Google" : "Sign in with Google"}
+            </button>
+            <button onClick={() => go(2)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+              <span className="grid grid-cols-2 gap-0.5">
+                <span className="h-2 w-2 bg-[#f25022]" /><span className="h-2 w-2 bg-[#7fba00]" /><span className="h-2 w-2 bg-[#00a4ef]" /><span className="h-2 w-2 bg-[#ffb900]" />
+              </span>{isSignup ? "Sign up with Microsoft" : "Sign in with Microsoft"}
+            </button>
+          </div>
 
-        <div className="mx-auto mt-4 grid max-w-md grid-cols-2 gap-3 text-xs leading-5 text-neutral-500">
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-emerald-800"><span className="font-medium">Free trial:</span> add up to 50 documents.</div>
-          <div className="rounded-xl border border-neutral-200 bg-white px-3 py-3"><span className="font-medium text-neutral-700">No timer:</span> document-based access, not time-based.</div>
+          <div className={`my-5 flex items-center gap-3 text-xs ${muted}`}><div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} />or use work email<div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} /></div>
+          <label className={`text-xs font-medium ${muted}`}>Work email</label>
+          <input className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] ${inputClass}`} placeholder="you@company.com" />
+          <button onClick={() => go(2)} className="mt-3 w-full rounded-xl bg-emerald-300 px-4 py-3 text-sm font-medium text-neutral-950 shadow-[0_16px_40px_rgba(110,231,183,0.18)]">{isSignup ? "Create account" : "Email me a sign-in link"}</button>
+
+          <div className={`mt-5 rounded-xl border px-4 py-3 text-center text-xs leading-5 ${isDark ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100" : "border-emerald-100 bg-emerald-50 text-emerald-800"}`}>
+            Free 50-document trial · No payment before setup · No time limit
+          </div>
         </div>
       </div>
     </div>
