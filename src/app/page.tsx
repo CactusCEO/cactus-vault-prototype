@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-const onboardingSteps = ["Sign up", "Account setup", "Create Vault", "Live Extraction"];
-
 const appScreens = ["Vault Table", "Vault Map", "Deal Analysis", "Comps + Data", "Outputs", "Automations"];
 
 const sourceCards = [
@@ -291,7 +289,14 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
       <div className="mx-auto max-w-5xl">
         <div className="mb-3 flex items-end justify-between gap-6">
           <div>
-            <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Onboarding · Step 02</p>
+            <div className="mb-2 flex items-center gap-2 text-[11px] text-neutral-500">
+              <span className="font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
+              <span>✓ Sign up</span>
+              <span className="text-neutral-300">/</span>
+              <span className="font-medium text-neutral-900">Account setup</span>
+              <span className="text-neutral-300">/</span>
+              <span>Create Vault locked until saved</span>
+            </div>
             <h2 className="text-2xl font-semibold tracking-[-0.03em] text-neutral-950">Create your corporate account</h2>
             <p className="mt-1.5 max-w-2xl text-sm text-neutral-500">Set the company defaults Cactus will use for your proprietary data ingestion.</p>
           </div>
@@ -571,10 +576,9 @@ export default function Home() {
 
   if (active === 0) return <Homepage go={setActive} />;
   if (active === 1) return <SignupScreen go={setActive} />;
-
-  const isOnboarding = active < 5;
-  const shellTitle = isOnboarding ? "Onboarding" : "Cactus";
-  const shellSubtitle = isOnboarding ? "Setup before app" : "Vault workspace";
+  if (active === 2) return <AccountSetup go={setActive} />;
+  if (active === 3) return <VaultSetup go={setActive} />;
+  if (active === 4) return <LiveExtraction go={setActive} />;
 
   return (
     <main className="min-h-screen bg-neutral-100 text-neutral-950">
@@ -582,45 +586,22 @@ export default function Home() {
         <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 p-3">
           <button onClick={() => setActive(0)} className="mb-7 flex items-center gap-2 rounded-xl px-2 py-2 text-left hover:bg-white">
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-950 text-xs font-semibold text-white">C</div>
-            <div><p className="text-xl font-light tracking-[-0.04em]">{shellTitle}</p><p className="text-xs text-neutral-400">{shellSubtitle}</p></div>
+            <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Vault workspace</p></div>
           </button>
 
-          {isOnboarding ? (
-            <>
-              <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Account setup flow</p>
-              <nav className="mt-3 space-y-1">
-                {onboardingSteps.map((step, index) => {
-                  const screenIndex = index + 1;
-                  return <button key={step} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{step}</button>;
-                })}
-              </nav>
-              <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
-                <p className="text-sm font-medium">Not in the app yet</p>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">This rail is only the onboarding checklist: OAuth, company setup, Vault source setup, and first extraction. After this, the user enters the real app nav.</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">App navigation</p>
-              <nav className="mt-3 space-y-1">
-                {appScreens.map((screen, index) => {
-                  const screenIndex = index + 5;
-                  return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>;
-                })}
-              </nav>
-              <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
-                <p className="text-sm font-medium">Product spine</p>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">Build The Vault → explore table/map/chat → select comps + enrichment → generate outputs.</p>
-              </div>
-            </>
-          )}
+          <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">App navigation</p>
+          <nav className="mt-3 space-y-1">
+            {appScreens.map((screen, index) => {
+              const screenIndex = index + 5;
+              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>;
+            })}
+          </nav>
+          <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium">Product spine</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Build The Vault → explore table/map/chat → select comps + enrichment → generate outputs.</p>
+          </div>
         </aside>
-        <section className="flex-1">
-          {active === 2 && <AccountSetup go={setActive} />}
-          {active === 3 && <VaultSetup go={setActive} />}
-          {active === 4 && <LiveExtraction go={setActive} />}
-          {active >= 5 && <AppScreen />}
-        </section>
+        <section className="flex-1"><AppScreen /></section>
       </div>
     </main>
   );
