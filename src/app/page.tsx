@@ -130,7 +130,7 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
             <Pill tone="green">Private beta</Pill>
           </div>
           <h1 className="max-w-4xl text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-neutral-950">
-            Your market and asset brain, with a team that never sleeps.
+            Turn your existing real estate data into a proprietary edge.
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-neutral-500">
             Cactus builds The Vault: a living customer brain for portfolio asset management, acquisitions, and new development. It gives investors a data analyst, underwriter, deal sourcer, and asset manager that never sleep — saving the portfolio data, market subscriptions, Property Management Software, Accounting Software, Google Drive files, broker emails, listing scrapers, deal rooms, and provider APIs your team already relies on so every customer builds a proprietary edge.
