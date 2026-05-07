@@ -297,30 +297,36 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
         <div className="rounded-[1.5rem] border border-white/80 bg-white/88 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
           <div className="grid grid-cols-[1fr_260px] gap-6">
             <div>
-              <p className="text-sm font-medium text-neutral-950">Company settings</p>
-              <p className="mt-1 text-sm text-neutral-500">These settings become the defaults for your org, team access, reporting, and Vault ingestion.</p>
+              <p className="text-sm font-semibold text-neutral-950">Company settings</p>
+              <p className="mt-1 text-sm text-neutral-500">Edit the defaults your org will use for reporting and Vault ingestion.</p>
 
               <div className="mt-6 grid grid-cols-3 gap-4">
                 {[
-                  ["Company legal name", "Cactus Capital Partners"],
-                  ["Default currency", "USD"],
-                  ["Measurement", "$ / sq.ft"],
-                ].map(([label, placeholder]) => (
+                  ["Company legal name", "Cactus Capital Partners", ""],
+                  ["Default currency", "USD", "⌄"],
+                  ["Measurement", "$ / sq.ft", "⌄"],
+                ].map(([label, placeholder, icon]) => (
                   <label key={label} className="text-sm font-medium text-neutral-700">{label}
-                    <div className="mt-2 rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm text-neutral-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(15,23,42,0.04)]">{placeholder}</div>
+                    <div className="mt-2 flex items-center justify-between rounded-xl border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(15,23,42,0.04)]">
+                      <span>{placeholder}</span>
+                      {icon && <span className="text-neutral-400">{icon}</span>}
+                    </div>
                   </label>
                 ))}
               </div>
 
-              <div className="mt-6">
+              <div className="mt-7 rounded-2xl border border-neutral-200 bg-neutral-50/80 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-neutral-700">Team access</p>
-                    <p className="mt-1 text-xs text-neutral-500">Invite teammates and decide what each person can access.</p>
+                    <p className="text-sm font-semibold text-neutral-900">Team access</p>
+                    <p className="mt-1 text-xs text-neutral-500">Invite teammates. Set each person’s role and what parts of the Vault they can access.</p>
                   </div>
-                  <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm">+ Add member</button>
+                  <button className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm">+ Add member</button>
                 </div>
-                <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <div className="mt-4 grid grid-cols-[1.2fr_0.7fr_0.9fr] gap-3 px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+                  <span>Member</span><span>Role</span><span>Access</span>
+                </div>
+                <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
                   {[
                     ["Tyler Sellars", "tyler@company.com", "Owner", "All Vaults"],
                     ["Acquisitions Analyst", "analyst@company.com", "Editor", "Deals + comps"],
@@ -331,36 +337,36 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                         <p className="text-sm font-medium text-neutral-900">{name}</p>
                         <p className="text-xs text-neutral-500">{email}</p>
                       </div>
-                      <button className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-700">{role}</button>
-                      <button className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-700">{access}</button>
+                      <button className="flex items-center justify-between rounded-lg border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{role}</span><span className="text-neutral-400">⌄</span></button>
+                      <button className="flex items-center justify-between rounded-lg border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{access}</span><span className="text-neutral-400">⌄</span></button>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="mt-6">
-                <p className="text-sm font-medium text-neutral-700">Asset classes</p>
+                <p className="text-sm font-semibold text-neutral-900">Asset classes</p>
+                <p className="mt-1 text-xs text-neutral-500">Select every asset class this organization works with.</p>
                 <div className="mt-3 grid grid-cols-3 gap-3">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className={`rounded-xl border px-4 py-3 text-left text-sm font-medium shadow-sm ${index < 3 ? "border-[#d9d2c6] bg-[#f8f5ef] text-neutral-900" : "border-neutral-200 bg-white text-neutral-600"}`}>
-                      <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-400 bg-white text-neutral-900" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
+                    <button key={item} className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-300">
+                      <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <button onClick={() => go(3)} className="mt-8 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]">Continue to Vault setup</button>
+              <button onClick={() => go(3)} className="mt-8 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]">Save and continue to Vault setup</button>
             </div>
 
-            <div className="space-y-3">
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                <p className="text-sm font-medium text-neutral-900">Security + model training</p>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">Documents uploaded to your Vault stay inside your organization. Cactus does not train shared models on your documents outside your org.</p>
-                <button className="mt-3 text-xs font-medium text-neutral-900 underline underline-offset-4">Learn about security</button>
+            <div className="space-y-3 text-xs">
+              <div className="rounded-xl border border-neutral-200 bg-white/70 p-4">
+                <p className="text-sm font-medium text-neutral-900">Security</p>
+                <p className="mt-2 leading-5 text-neutral-500">Org-private documents. No shared model training from your Vault uploads.</p>
+                <button className="mt-3 font-medium text-neutral-900 underline underline-offset-4">Learn about security</button>
               </div>
-              <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                <p className="text-sm font-medium text-neutral-900">Trial access</p>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">50 documents to start. Deleted documents still count. No payment before setup.</p>
+              <div className="rounded-xl border border-neutral-200 bg-white/50 p-4 text-neutral-500">
+                <p><span className="font-medium text-neutral-800">Trial:</span> 50 documents · deleted docs count · no payment before setup.</p>
               </div>
               {helpOpen && (
                 <div className="rounded-xl border border-neutral-200 bg-neutral-950 p-4 text-white">
