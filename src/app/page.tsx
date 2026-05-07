@@ -110,10 +110,10 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
 
 function Homepage({ go }: { go: (screenIndex: number) => void }) {
   return (
-    <div className="grid min-h-[690px] grid-cols-[1fr_420px] gap-8 p-8">
+    <div className="grid min-h-[690px] grid-cols-[1fr_440px] gap-8 p-8">
       <div className="flex flex-col justify-between rounded-[2rem] border border-neutral-200 bg-white p-10 shadow-sm">
         <div>
-          <div className="mb-20 flex items-center justify-between">
+          <div className="mb-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-xl border border-neutral-200 bg-neutral-950 text-sm font-semibold text-white">C</div>
               <div>
@@ -124,27 +124,39 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
             <Pill tone="green">Private beta</Pill>
           </div>
           <h1 className="max-w-4xl text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-neutral-950">
-            Build your multifamily acquisition Vault.
+            Turn every file, feed, and data source into your acquisition edge.
           </h1>
-          <p className="mt-7 max-w-2xl text-lg leading-8 text-neutral-500">
-            Connect portfolio files, listing scrapers, deal rooms, email, Drive, Cactus data, and premium providers into one living property intelligence layer.
+          <p className="mt-7 max-w-3xl text-lg leading-8 text-neutral-500">
+            Cactus builds The Vault: a living property dataset from your portfolio, PMS, Google Drive, broker emails, listing scrapers, deal rooms, and data-provider APIs. Every property becomes a row, every extracted or enriched field becomes a column, and every analysis starts from data your team can trust.
           </p>
+          <div className="mt-8 grid max-w-3xl grid-cols-3 gap-3">
+            {[
+              ["Connect", "PMS, Google Drive, email, APIs, listing sites"],
+              ["Structure", "documents, listings, deals, comps, benchmarks"],
+              ["Analyze", "table, map, chat, outputs, hitlists"],
+            ].map(([title, note]) => (
+              <div key={title} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                <p className="text-sm font-medium text-neutral-950">{title}</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">{note}</p>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Get started</button>
+          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Build your Vault</button>
           <button onClick={() => go(1)} className="rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-neutral-700">Sign in</button>
         </div>
       </div>
       <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4">
         <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium">How setup works</p>
-          <p className="mt-2 text-xs leading-5 text-neutral-500">This should explain the onboarding path before users enter the app.</p>
+          <p className="text-sm font-medium">How The Vault gets built</p>
+          <p className="mt-2 text-xs leading-5 text-neutral-500">Start with whatever data the team already owns, then add connectors and scrapers as needed.</p>
           <div className="mt-5 space-y-3">
             {[
-              ["Sign up", "Create a secure account with Google, Microsoft, SSO, or email."],
-              ["Set up workspace", "Confirm company, markets, asset focus, buy box, and budget guardrails."],
-              ["Create The Vault", "Connect portfolio files, listing scrapers, email, Drive, deal rooms, and Cactus data."],
-              ["Enter the app", "Watch extraction populate rows, then explore the table, map, chat, comps, and outputs."],
+              ["Owned systems", "Connect PMS, portfolio docs, Google Drive, internal APIs, and provider accounts."],
+              ["Market capture", "Build listing scrapers and monitor broker sites, deal rooms, emails, and NDAs/CAs."],
+              ["Cactus enrichment", "Add parcel, ownership, traffic, flood, supply, comps, and premium provider data."],
+              ["Workspace output", "See the data populate in table/map/chat, then select comps and create IC or bank packages."],
             ].map(([title, note], index) => (
               <div key={title} className="rounded-2xl border border-neutral-200 bg-white p-4">
                 <div className="flex items-start gap-3">
@@ -158,15 +170,27 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
             ))}
           </div>
         </div>
-        <div className="mt-4 rounded-[1.5rem] border border-neutral-200 bg-white p-5">
-          <p className="text-sm font-medium">What The Vault creates</p>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {[["31", "property records"], ["612", "data points"], ["7", "review items"], ["5", "buy-box matches"]].map(([value, label]) => (
-              <div key={label} className="rounded-2xl bg-neutral-950 p-4 text-white">
-                <p className="text-2xl font-semibold tracking-[-0.05em]">{value}</p>
-                <p className="mt-1 text-xs text-neutral-400">{label}</p>
+        <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between px-5 py-4">
+            <div>
+              <p className="text-sm font-medium">Help video</p>
+              <p className="mt-1 text-xs text-neutral-500">How Cactus turns messy deal data into The Vault</p>
+            </div>
+            <Pill tone="green">Playing</Pill>
+          </div>
+          <div className="relative mx-5 mb-5 h-44 overflow-hidden rounded-2xl bg-neutral-950 text-white">
+            <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(90deg,rgba(255,255,255,.12)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.10)_1px,transparent_1px)] [background-size:34px_34px]" />
+            <div className="absolute left-5 top-5 rounded-full bg-white/10 px-3 py-1 text-xs text-neutral-300">00:18 / 01:42</div>
+            <div className="absolute inset-x-6 bottom-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-neutral-950">▶</div>
+                <div>
+                  <p className="text-sm font-medium">From source chaos to acquisition intelligence</p>
+                  <p className="mt-1 text-xs text-neutral-400">PMS → Drive → scraper → Vault table → map → IC output</p>
+                </div>
               </div>
-            ))}
+              <div className="h-1.5 rounded-full bg-white/15"><div className="h-1.5 w-1/3 rounded-full bg-white" /></div>
+            </div>
           </div>
         </div>
       </div>
