@@ -8,10 +8,16 @@ const appScreens = ["Vault Table", "Vault Map", "Deal Analysis", "Comps + Data",
 
 const sourceCards = [
   {
-    title: "Existing portfolio",
-    note: "Upload property lists, prior models, IC memos, rent rolls, and internal benchmarks.",
+    title: "Portfolio + operating systems",
+    note: "Connect Property Management Software, Accounting Software, rent rolls, models, IC memos, and internal benchmarks.",
     cost: "Included",
     status: "Ready",
+  },
+  {
+    title: "Market subscription tools",
+    note: "Bring in the expensive market-data tools the team already pays for so results get saved and reused.",
+    cost: "Customer-owned APIs",
+    status: "Connect",
   },
   {
     title: "Listing scraper",
@@ -20,8 +26,8 @@ const sourceCards = [
     status: "Configure",
   },
   {
-    title: "Email + Drive",
-    note: "Capture broker emails, attachments, addresses, OMs, T12s, and rent rolls.",
+    title: "Email + Google Drive",
+    note: "Capture broker emails, attachments, addresses, OMs, T12s, rent rolls, and development files.",
     cost: "Included",
     status: "Connect",
   },
@@ -32,8 +38,8 @@ const sourceCards = [
     status: "Approval required",
   },
   {
-    title: "Cactus data",
-    note: "Activate parcel, market, flood, traffic, ownership, supply, and comp endpoints.",
+    title: "Cactus enrichment",
+    note: "Activate parcel, market, flood, traffic, ownership, supply, comps, incentives, and funding endpoints.",
     cost: "Per market / deal / mo",
     status: "Preview",
   },
@@ -118,22 +124,22 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
               <div className="grid h-9 w-9 place-items-center rounded-xl border border-neutral-200 bg-neutral-950 text-sm font-semibold text-white">C</div>
               <div>
                 <p className="font-medium tracking-[-0.02em]">Cactus Vault</p>
-                <p className="text-xs text-neutral-400">Multifamily acquisition intelligence</p>
+                <p className="text-xs text-neutral-400">Portfolio, market, and development intelligence</p>
               </div>
             </div>
             <Pill tone="green">Private beta</Pill>
           </div>
           <h1 className="max-w-4xl text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-neutral-950">
-            Turn every file, feed, and data source into your acquisition edge.
+            Turn every file, feed, and market signal into your real estate edge.
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-neutral-500">
-            Cactus builds The Vault: a living acquisition workspace from your portfolio, Property Management Software, Accounting Software, Google Drive, broker emails, listing scrapers, deal rooms, and data-provider APIs. It organizes the information your team already relies on so you can find better deals, trust the source, and move from messy data to IC-ready analysis faster.
+            Cactus builds The Vault: a living customer brain for portfolio asset management, acquisitions, and new development. It saves the portfolio data, market subscriptions, Property Management Software, Accounting Software, Google Drive files, broker emails, listing scrapers, deal rooms, and provider APIs your team already relies on — then makes that information usable so each customer builds a proprietary edge.
           </p>
           <div className="mt-8 grid max-w-3xl grid-cols-3 gap-3">
             {[
-              ["Connect", "Property Management Software, Accounting Software, Google Drive, email, APIs, listing sites"],
-              ["Structure", "documents, listings, deals, comps, benchmarks"],
-              ["Analyze", "table, map, chat, outputs, hitlists"],
+              ["Connect", "Operating systems, market subscriptions, documents, APIs, listing sites"],
+              ["Remember", "save one-off research into a reusable customer brain"],
+              ["Act", "asset management, acquisitions, development, outputs, hitlists"],
             ].map(([title, note]) => (
               <div key={title} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                 <p className="text-sm font-medium text-neutral-950">{title}</p>
@@ -149,14 +155,14 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
       </div>
       <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4">
         <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium">How The Vault gets built</p>
+          <p className="text-sm font-medium">How each customer brain gets built</p>
           <p className="mt-2 text-xs leading-5 text-neutral-500">Start with whatever data the team already owns, then add connectors and scrapers as needed.</p>
           <div className="mt-5 space-y-3">
             {[
-              ["Owned systems", "Connect Property Management Software, Accounting Software, portfolio docs, Google Drive, internal APIs, and provider accounts."],
-              ["Market capture", "Build listing scrapers and monitor broker sites, deal rooms, emails, and NDAs/CAs."],
-              ["Cactus enrichment", "Add parcel, ownership, traffic, flood, supply, comps, and premium provider data."],
-              ["Workspace output", "See the data populate in table/map/chat, then select comps and create IC or bank packages."],
+              ["Customer data", "Portfolio history, Property Management Software, Accounting Software, Google Drive, internal APIs, and provider accounts."],
+              ["Market capture", "Save market-subscription research, build listing scrapers, and monitor broker sites, deal rooms, emails, and NDAs/CAs."],
+              ["Cactus enrichment", "Add asset-specific signals: affordable housing funding/incentives, self-storage supply/demand, zoning, traffic, ownership, flood, comps, and provider data."],
+              ["Decisions", "Use the brain for asset management, acquisitions, new development, IC memos, bank packages, and weekly hitlists."],
             ].map(([title, note], index) => (
               <div key={title} className="rounded-2xl border border-neutral-200 bg-white p-4">
                 <div className="flex items-start gap-3">
@@ -174,7 +180,7 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           <div className="flex items-center justify-between px-5 py-4">
             <div>
               <p className="text-sm font-medium">Help video</p>
-              <p className="mt-1 text-xs text-neutral-500">How Cactus turns messy deal data into The Vault</p>
+              <p className="mt-1 text-xs text-neutral-500">How Cactus turns scattered data into a customer brain</p>
             </div>
             <Pill tone="green">Playing</Pill>
           </div>
@@ -185,8 +191,8 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
               <div className="mb-4 flex items-center gap-3">
                 <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-neutral-950">▶</div>
                 <div>
-                  <p className="text-sm font-medium">From source chaos to acquisition intelligence</p>
-                  <p className="mt-1 text-xs text-neutral-400">Property Management Software → Accounting Software → scraper → Vault → IC output</p>
+                  <p className="text-sm font-medium">From scattered subscriptions to a proprietary edge</p>
+                  <p className="mt-1 text-xs text-neutral-400">Portfolio + market data → Cactus enrichment → asset-class decisions</p>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-white/15"><div className="h-1.5 w-1/3 rounded-full bg-white" /></div>
@@ -241,7 +247,7 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
         </div>
         <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
           <p className="text-sm text-neutral-400">Setup outcome</p>
-          <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">A workspace calibrated to your acquisition strategy.</h3>
+          <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">A workspace calibrated to portfolio, acquisition, and development decisions.</h3>
           <p className="mt-4 text-sm leading-6 text-neutral-400">Cactus uses these defaults to recommend sources, comps, enrichments, hitlists, and cost guardrails.</p>
         </div>
       </div>
