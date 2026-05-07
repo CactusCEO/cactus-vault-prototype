@@ -219,7 +219,10 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
   const softSurface = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50/90";
   const authButton = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100 hover:bg-white/[0.09]" : "border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50";
-  const inputClass = isDark ? "border-white/10 bg-black/30 text-white placeholder:text-neutral-600 focus:border-emerald-400/70" : "border-neutral-200 bg-gradient-to-b from-white to-neutral-50 text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-400";
+  const inputClass = isDark ? "border-white/10 bg-black/30 text-white placeholder:text-neutral-600 focus:border-white/30" : "border-neutral-200 bg-gradient-to-b from-white to-neutral-50 text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-400";
+  const primaryCta = isDark
+    ? "bg-[#f4f1ea] text-neutral-950 shadow-[0_16px_44px_rgba(244,241,234,0.16)] hover:bg-white"
+    : "bg-neutral-950 text-white shadow-[0_16px_40px_rgba(0,0,0,0.14)] hover:bg-neutral-800";
 
   return (
     <div className={pageClass}>
@@ -263,7 +266,7 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
           <div className={`my-5 flex items-center gap-3 text-xs ${muted}`}><div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} />or use work email<div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} /></div>
           <label className={`text-xs font-medium ${muted}`}>Work email</label>
           <input className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] ${inputClass}`} placeholder="you@company.com" />
-          <button onClick={() => go(2)} className="mt-3 w-full rounded-xl bg-emerald-300 px-4 py-3 text-sm font-medium text-neutral-950 shadow-[0_16px_40px_rgba(110,231,183,0.18)]">{isSignup ? "Create account" : "Email me a sign-in link"}</button>
+          <button onClick={() => go(2)} className={`mt-3 w-full rounded-xl px-4 py-3 text-sm font-medium transition ${primaryCta}`}>{isSignup ? "Create account" : "Email me a sign-in link"}</button>
 
           <p className={`mt-4 text-center text-xs leading-5 ${muted}`}>
             Free 50-document trial · No payment before setup · No time limit
