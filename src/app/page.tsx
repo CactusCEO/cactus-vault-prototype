@@ -304,14 +304,14 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
               <p className="text-sm font-semibold text-neutral-950">Company settings</p>
               <p className="mt-1 text-sm text-neutral-500">Edit the defaults your org will use for reporting and Vault ingestion.</p>
 
-              <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="mt-4 grid grid-cols-[1fr_130px_150px] gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
                   ["Default currency", "USD", "⌄"],
                   ["Measurement", "$ / sq.ft", "⌄"],
                 ].map(([label, placeholder, icon]) => (
                   <label key={label} className="text-sm font-medium text-neutral-700">{label}
-                    <div className="mt-2 flex items-center justify-between rounded-xl border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-4 py-3 text-sm text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(15,23,42,0.04)]">
+                    <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-3 py-2.5 text-sm text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_14px_rgba(15,23,42,0.035)]">
                       <span>{placeholder}</span>
                       {icon && <span className="text-neutral-400">{icon}</span>}
                     </div>
@@ -319,15 +319,15 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                 ))}
               </div>
 
-              <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50/80 p-3.5">
+              <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-neutral-900">Team access</p>
                     <p className="mt-1 text-xs text-neutral-500">Invite teammates. Set each person’s role and what parts of the Vault they can access.</p>
                   </div>
-                  <button className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm">+ Add member</button>
+                  <button className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-sm">+ Add member</button>
                 </div>
-                <div className="mt-3 grid grid-cols-[1.2fr_0.7fr_0.9fr] gap-3 px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+                <div className="mt-2.5 grid grid-cols-[1.2fr_0.65fr_0.85fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
                   <span>Member</span><span>Role</span><span>Access</span>
                 </div>
                 <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
@@ -336,13 +336,13 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                     ["Acquisitions Analyst", "analyst@company.com", "Editor", "Deals + comps"],
                     ["Asset Manager", "assetmanager@company.com", "Viewer", "Portfolio only"],
                   ].map(([name, email, role, access]) => (
-                    <div key={email} className="grid grid-cols-[1.2fr_0.7fr_0.9fr] items-center gap-3 border-b border-neutral-100 px-4 py-2.5 last:border-b-0">
+                    <div key={email} className="grid grid-cols-[1.2fr_0.65fr_0.85fr] items-center gap-3 border-b border-neutral-100 px-3.5 py-2 last:border-b-0">
                       <div>
-                        <p className="text-sm font-medium text-neutral-900">{name}</p>
+                        <p className="text-sm font-medium leading-5 text-neutral-900">{name}</p>
                         <p className="text-xs text-neutral-500">{email}</p>
                       </div>
-                      <button className="flex items-center justify-between rounded-lg border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{role}</span><span className="text-neutral-400">⌄</span></button>
-                      <button className="flex items-center justify-between rounded-lg border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{access}</span><span className="text-neutral-400">⌄</span></button>
+                      <button className="flex items-center justify-between rounded-md border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-2.5 py-1.5 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{role}</span><span className="text-neutral-400">⌄</span></button>
+                      <button className="flex items-center justify-between rounded-md border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-2.5 py-1.5 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{access}</span><span className="text-neutral-400">⌄</span></button>
                     </div>
                   ))}
                 </div>
@@ -351,9 +351,9 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
               <div className="mt-5">
                 <p className="text-sm font-semibold text-neutral-900">Asset classes</p>
                 <p className="mt-1 text-xs text-neutral-500">Select every asset class this organization works with.</p>
-                <div className="mt-2.5 grid grid-cols-3 gap-2.5">
+                <div className="mt-2.5 grid grid-cols-3 gap-2">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className="rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-300">
+                    <button key={item} className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-300">
                       <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
                     </button>
                   ))}
