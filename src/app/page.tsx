@@ -300,10 +300,9 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
               <p className="text-sm font-medium text-neutral-950">Company settings</p>
               <p className="mt-1 text-sm text-neutral-500">These settings become the defaults for your org, team access, reporting, and Vault ingestion.</p>
 
-              <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="mt-6 grid grid-cols-3 gap-4">
                 {[
                   ["Company legal name", "Cactus Capital Partners"],
-                  ["Team members", "tyler@company.com, analyst@company.com"],
                   ["Default currency", "USD"],
                   ["Measurement", "$ / sq.ft"],
                 ].map(([label, placeholder]) => (
@@ -314,10 +313,38 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
               </div>
 
               <div className="mt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">Team access</p>
+                    <p className="mt-1 text-xs text-neutral-500">Invite teammates and decide what each person can access.</p>
+                  </div>
+                  <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm">+ Add member</button>
+                </div>
+                <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                  {[
+                    ["Tyler Sellars", "tyler@company.com", "Owner", "All Vaults"],
+                    ["Acquisitions Analyst", "analyst@company.com", "Editor", "Deals + comps"],
+                    ["Asset Manager", "assetmanager@company.com", "Viewer", "Portfolio only"],
+                  ].map(([name, email, role, access]) => (
+                    <div key={email} className="grid grid-cols-[1.2fr_0.7fr_0.9fr] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0">
+                      <div>
+                        <p className="text-sm font-medium text-neutral-900">{name}</p>
+                        <p className="text-xs text-neutral-500">{email}</p>
+                      </div>
+                      <button className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-700">{role}</button>
+                      <button className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-xs font-medium text-neutral-700">{access}</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
                 <p className="text-sm font-medium text-neutral-700">Asset classes</p>
                 <div className="mt-3 grid grid-cols-3 gap-3">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className={`rounded-xl border px-4 py-3 text-left text-sm font-medium shadow-sm ${index < 3 ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}>{item}</button>
+                    <button key={item} className={`rounded-xl border px-4 py-3 text-left text-sm font-medium shadow-sm ${index < 3 ? "border-[#d9d2c6] bg-[#f8f5ef] text-neutral-900" : "border-neutral-200 bg-white text-neutral-600"}`}>
+                      <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-400 bg-white text-neutral-900" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
+                    </button>
                   ))}
                 </div>
               </div>
