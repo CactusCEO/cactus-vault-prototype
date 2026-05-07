@@ -127,11 +127,11 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
             Turn every file, feed, and data source into your acquisition edge.
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-neutral-500">
-            Cactus builds The Vault: a living property dataset from your portfolio, PMS, Google Drive, broker emails, listing scrapers, deal rooms, and data-provider APIs. Every property becomes a row, every extracted or enriched field becomes a column, and every analysis starts from data your team can trust.
+            Cactus builds The Vault: a living acquisition workspace from your portfolio, Property Management Software, Accounting Software, Google Drive, broker emails, listing scrapers, deal rooms, and data-provider APIs. It organizes the information your team already relies on so you can find better deals, trust the source, and move from messy data to IC-ready analysis faster.
           </p>
           <div className="mt-8 grid max-w-3xl grid-cols-3 gap-3">
             {[
-              ["Connect", "PMS, Google Drive, email, APIs, listing sites"],
+              ["Connect", "Property Management Software, Accounting Software, Google Drive, email, APIs, listing sites"],
               ["Structure", "documents, listings, deals, comps, benchmarks"],
               ["Analyze", "table, map, chat, outputs, hitlists"],
             ].map(([title, note]) => (
@@ -153,7 +153,7 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           <p className="mt-2 text-xs leading-5 text-neutral-500">Start with whatever data the team already owns, then add connectors and scrapers as needed.</p>
           <div className="mt-5 space-y-3">
             {[
-              ["Owned systems", "Connect PMS, portfolio docs, Google Drive, internal APIs, and provider accounts."],
+              ["Owned systems", "Connect Property Management Software, Accounting Software, portfolio docs, Google Drive, internal APIs, and provider accounts."],
               ["Market capture", "Build listing scrapers and monitor broker sites, deal rooms, emails, and NDAs/CAs."],
               ["Cactus enrichment", "Add parcel, ownership, traffic, flood, supply, comps, and premium provider data."],
               ["Workspace output", "See the data populate in table/map/chat, then select comps and create IC or bank packages."],
@@ -186,7 +186,7 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
                 <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-neutral-950">▶</div>
                 <div>
                   <p className="text-sm font-medium">From source chaos to acquisition intelligence</p>
-                  <p className="mt-1 text-xs text-neutral-400">PMS → Drive → scraper → Vault table → map → IC output</p>
+                  <p className="mt-1 text-xs text-neutral-400">Property Management Software → Accounting Software → scraper → Vault → IC output</p>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-white/15"><div className="h-1.5 w-1/3 rounded-full bg-white" /></div>
