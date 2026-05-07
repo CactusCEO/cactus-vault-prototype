@@ -206,27 +206,50 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
 
 function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-neutral-100 p-8">
-      <div className="grid w-full max-w-5xl grid-cols-[1fr_420px] overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm">
-        <div className="flex min-h-[680px] flex-col justify-between p-10">
+    <div className="grid min-h-screen place-items-center bg-neutral-100 p-6">
+      <div className="grid w-full max-w-5xl grid-cols-[430px_1fr] overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm">
+        <div className="border-r border-neutral-200 bg-white p-6">
           <div className="flex items-center gap-3">
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-950 text-sm font-semibold text-white">C</div>
-            <div><p className="font-medium">Cactus</p><p className="text-xs text-neutral-400">Secure onboarding</p></div>
+            <div><p className="font-medium">Cactus</p><p className="text-xs text-neutral-400">Secure sign up</p></div>
           </div>
-          <div>
+
+          <div className="mt-10">
             <Pill tone="green">Step 1 of 4</Pill>
-            <h1 className="mt-6 max-w-xl text-5xl font-semibold leading-[1] tracking-[-0.06em] text-neutral-950">Create your account before building The Vault.</h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-neutral-500">Start with OAuth and team identity first. The product should feel like a guided setup, not like users have already landed inside the operating system.</p>
+            <h1 className="mt-5 text-4xl font-semibold leading-[1] tracking-[-0.06em] text-neutral-950">Sign up or log in to Cactus.</h1>
+            <p className="mt-4 text-sm leading-6 text-neutral-500">Choose a secure sign-in method to start onboarding. After this, you will set up your company workspace and build The Vault.</p>
           </div>
-          <div className="w-fit rounded-full border border-neutral-200 bg-neutral-50 px-5 py-3 text-sm font-medium text-neutral-500">Use one of the secure sign-in options to continue</div>
-        </div>
-        <div className="border-l border-neutral-200 bg-neutral-50 p-6">
-          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5">
-            <p className="text-sm font-medium">Sign up or log in</p>
-            {['Continue with Google', 'Continue with Microsoft', 'Continue with SSO'].map((item) => <button key={item} onClick={() => go(2)} className="mt-3 w-full rounded-full border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-700">{item}</button>)}
-            <div className="my-5 border-t border-neutral-200" />
-            <input className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm outline-none" placeholder="work email" />
+
+          <div className="mt-8 rounded-[1.5rem] border border-neutral-200 bg-neutral-50 p-4">
+            {['Continue with Google', 'Continue with Microsoft', 'Continue with SSO'].map((item) => <button key={item} onClick={() => go(2)} className="mt-3 first:mt-0 w-full rounded-full border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-800 shadow-sm">{item}</button>)}
+            <div className="my-5 flex items-center gap-3 text-xs text-neutral-400"><div className="h-px flex-1 bg-neutral-200" />or<div className="h-px flex-1 bg-neutral-200" /></div>
+            <label className="text-xs font-medium text-neutral-500">Work email</label>
+            <input className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none" placeholder="you@company.com" />
             <button onClick={() => go(2)} className="mt-3 w-full rounded-full bg-neutral-950 px-4 py-3 text-sm font-medium text-white">Email me a secure link</button>
+          </div>
+        </div>
+
+        <div className="flex min-h-[620px] flex-col justify-between bg-neutral-50 p-10">
+          <div>
+            <p className="text-sm font-medium text-neutral-950">What happens next</p>
+            <div className="mt-5 space-y-3">
+              {[
+                ["Set up workspace", "Company, markets, asset types, roles, and data guardrails."],
+                ["Connect sources", "Property Management Software, Accounting Software, Google Drive, market subscriptions, APIs, and scrapers."],
+                ["Build the brain", "Cactus starts saving, organizing, enriching, and citing the data your team uses every day."],
+              ].map(([title, note], index) => (
+                <div key={title} className="rounded-2xl border border-neutral-200 bg-white p-4">
+                  <div className="flex gap-3">
+                    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-neutral-100 text-xs text-neutral-500">{index + 1}</div>
+                    <div><p className="text-sm font-medium text-neutral-900">{title}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{note}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-[1.5rem] bg-neutral-950 p-5 text-white">
+            <p className="text-sm font-medium">Investor promise</p>
+            <p className="mt-3 text-sm leading-6 text-neutral-300">Less grunt work, better reporting, stronger proprietary data, and more chances to see the right deal before competitors.</p>
           </div>
         </div>
       </div>
