@@ -2,17 +2,9 @@
 
 import { useMemo, useState } from "react";
 
-const screens = [
-  "Homepage",
-  "Create Vault",
-  "Live Extraction",
-  "Vault Table",
-  "Vault Map",
-  "Deal Analysis",
-  "Comps + Data",
-  "Outputs",
-  "Automations",
-];
+const onboardingSteps = ["Sign up", "Account setup", "Create Vault", "Live Extraction"];
+
+const appScreens = ["Vault Table", "Vault Map", "Deal Analysis", "Comps + Data", "Outputs", "Automations"];
 
 const sourceCards = [
   {
@@ -139,8 +131,8 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Create your Vault</button>
-          <button onClick={() => go(5)} className="rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-neutral-700">Analyze a deal</button>
+          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Get started</button>
+          <button onClick={() => go(1)} className="rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-neutral-700">Sign in</button>
         </div>
       </div>
       <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4">
@@ -173,10 +165,61 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
   );
 }
 
-function VaultSetup() {
+function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
+  return (
+    <div className="grid min-h-screen place-items-center bg-neutral-100 p-8">
+      <div className="grid w-full max-w-5xl grid-cols-[1fr_420px] overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm">
+        <div className="flex min-h-[680px] flex-col justify-between p-10">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-950 text-sm font-semibold text-white">C</div>
+            <div><p className="font-medium">Cactus</p><p className="text-xs text-neutral-400">Secure onboarding</p></div>
+          </div>
+          <div>
+            <Pill tone="green">Step 1 of 4</Pill>
+            <h1 className="mt-6 max-w-xl text-5xl font-semibold leading-[1] tracking-[-0.06em] text-neutral-950">Create your account before building The Vault.</h1>
+            <p className="mt-6 max-w-xl text-base leading-7 text-neutral-500">Start with OAuth and team identity first. The product should feel like a guided setup, not like users have already landed inside the operating system.</p>
+          </div>
+          <div className="w-fit rounded-full border border-neutral-200 bg-neutral-50 px-5 py-3 text-sm font-medium text-neutral-500">Use one of the secure sign-in options to continue</div>
+        </div>
+        <div className="border-l border-neutral-200 bg-neutral-50 p-6">
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5">
+            <p className="text-sm font-medium">Sign up or log in</p>
+            {['Continue with Google', 'Continue with Microsoft', 'Continue with SSO'].map((item) => <button key={item} onClick={() => go(2)} className="mt-3 w-full rounded-full border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-700">{item}</button>)}
+            <div className="my-5 border-t border-neutral-200" />
+            <input className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm outline-none" placeholder="work email" />
+            <button onClick={() => go(2)} className="mt-3 w-full rounded-full bg-neutral-950 px-4 py-3 text-sm font-medium text-white">Email me a secure link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Step 01" title="Create The Vault" subtitle="A guided source setup that shows what each connector captures, what it costs, and what rows/columns it will add to the customer dataset." />
+      <SectionHeader eyebrow="Onboarding · Step 02" title="Set up your company workspace" subtitle="Capture the basics before users configure data sources: team, markets, asset focus, buy box, and budget guardrails." />
+      <div className="grid grid-cols-[1fr_360px] gap-5">
+        <div className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="grid grid-cols-2 gap-4">
+            {['Company name', 'Primary market', 'Asset focus', 'Typical unit range', 'Target vintage', 'Monthly data budget'].map((label) => <label key={label} className="text-sm font-medium text-neutral-700">{label}<div className="mt-2 rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-400">Set {label.toLowerCase()}</div></label>)}
+          </div>
+          <button onClick={() => go(3)} className="mt-8 rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white">Continue to Vault setup</button>
+        </div>
+        <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
+          <p className="text-sm text-neutral-400">Setup outcome</p>
+          <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">A workspace calibrated to your acquisition strategy.</h3>
+          <p className="mt-4 text-sm leading-6 text-neutral-400">Cactus uses these defaults to recommend sources, comps, enrichments, hitlists, and cost guardrails.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VaultSetup({ go }: { go: (screenIndex: number) => void }) {
+  return (
+    <div className="p-8">
+      <SectionHeader eyebrow="Onboarding · Step 03" title="Create The Vault" subtitle="A guided source setup that shows what each connector captures, what it costs, and what rows/columns it will add to the customer dataset." />
       <div className="grid grid-cols-3 gap-4">
         {sourceCards.map((card) => (
           <div key={card.title} className="min-h-[210px] rounded-[1.6rem] border border-neutral-200 bg-white p-5 shadow-sm">
@@ -190,15 +233,18 @@ function VaultSetup() {
           </div>
         ))}
       </div>
+      <div className="mt-6 flex justify-end">
+        <button onClick={() => go(4)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white">Start extracting data</button>
+      </div>
     </div>
   );
 }
 
-function LiveExtraction() {
+function LiveExtraction({ go }: { go: (screenIndex: number) => void }) {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_360px] gap-5 p-8">
       <div className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Step 02" title="Watch The Vault populate" subtitle="The system should feel alive immediately: extracting docs, detecting locations, creating records, and surfacing the review queue in real time." />
+        <SectionHeader eyebrow="Onboarding · Step 04" title="Watch The Vault populate" subtitle="The system should feel alive immediately: extracting docs, detecting locations, creating records, and surfacing the review queue in real time." />
         <div className="space-y-3">
           {extractionEvents.map(([name, detail, status]) => (
             <div key={name} className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
@@ -223,6 +269,7 @@ function LiveExtraction() {
           <div className="flex justify-between"><span className="text-neutral-400">Deal-room access</span><span>$95</span></div>
           <div className="flex justify-between"><span className="text-neutral-400">Premium data</span><span>Not active</span></div>
         </div>
+        <button onClick={() => go(5)} className="mt-10 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Enter Cactus app</button>
       </div>
     </div>
   );
@@ -231,7 +278,7 @@ function LiveExtraction() {
 function VaultTable() {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Step 03" title="Explore The Vault as a living table" subtitle="Rows are locations/properties. Columns are data endpoints from documents, emails, listings, Cactus data, premium sources, and user-approved edits." />
+      <SectionHeader eyebrow="Vault workspace" title="Explore The Vault as a living table" subtitle="Rows are locations/properties. Columns are data endpoints from documents, emails, listings, Cactus data, premium sources, and user-approved edits." />
       <div className="overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
           <div className="flex gap-2"><Pill>Rows: properties / locations</Pill><Pill>Columns: data endpoints</Pill><Pill tone="amber">7 review items</Pill></div>
@@ -285,7 +332,7 @@ function DealAnalysis() {
         {['Overview', 'Documents', 'Extracted facts', 'Market', 'Rent comps', 'Sales comps', 'Underwriting', 'Memo'].map((item, i) => <div key={item} className={`rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{item}</div>)}
       </aside>
       <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Step 04" title="Analyze a deal or address" subtitle="Drag documents into chat, select a Vault row, enter an address, or open deal-room data. Cactus extracts facts and ties every field back to source evidence." />
+        <SectionHeader eyebrow="Deal workspace" title="Analyze a deal or address" subtitle="Drag documents into chat, select a Vault row, enter an address, or open deal-room data. Cactus extracts facts and ties every field back to source evidence." />
         <div className="grid grid-cols-2 gap-4">
           {dealFacts.map(([field, value, source, status]) => <div key={field} className="rounded-2xl border border-neutral-200 p-4"><div className="flex justify-between"><p className="text-xs text-neutral-400">{field}</p><Pill tone={status === "Review" ? "amber" : "green"}>{status}</Pill></div><p className="mt-3 text-lg font-medium tracking-[-0.03em]">{value}</p><p className="mt-2 text-xs text-neutral-400">Source: {source}</p></div>)}
         </div>
@@ -303,7 +350,7 @@ function CompsData() {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_340px] gap-5 p-8">
       <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Step 05" title="Approve comps and enrichments" subtitle="The system recommends comps, but the investor approves. Paid enrichment is offered at the moment of need with cost and value clearly shown." />
+        <SectionHeader eyebrow="Comps + enrichment" title="Approve comps and enrichments" subtitle="The system recommends comps, but the investor approves. Paid enrichment is offered at the moment of need with cost and value clearly shown." />
         <table className="w-full text-left text-sm"><thead className="text-xs text-neutral-500"><tr>{['Comp', 'Distance', 'Year', 'Units', '$/Unit', 'Decision'].map((h) => <th key={h} className="border-b border-neutral-200 px-3 py-3 font-medium">{h}</th>)}</tr></thead><tbody>{comps.map((row) => <tr key={row[0]}>{row.map((cell, i) => <td key={cell} className="border-b border-neutral-100 px-3 py-4"><span className={i === 5 ? "rounded-full border border-neutral-200 px-2 py-1 text-xs" : ""}>{cell}</span></td>)}</tr>)}</tbody></table>
       </div>
       <div className="space-y-4">
@@ -316,7 +363,7 @@ function CompsData() {
 function Outputs() {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Step 06" title="Generate IC and bank-ready outputs" subtitle="Convert the selected facts, comps, benchmarks, underwriting assumptions, and citations into professional materials the team can use." />
+      <SectionHeader eyebrow="Output builder" title="Generate IC and bank-ready outputs" subtitle="Convert the selected facts, comps, benchmarks, underwriting assumptions, and citations into professional materials the team can use." />
       <div className="grid grid-cols-3 gap-5">
         {['IC memo', 'Bank package', 'Investor package'].map((output, i) => <div key={output} className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm"><Pill tone={i === 2 ? "default" : "green"}>{i === 2 ? "Later" : "Ready"}</Pill><h3 className="mt-16 text-2xl font-semibold tracking-[-0.05em]">{output}</h3><p className="mt-3 text-sm leading-6 text-neutral-500">Executive summary, property overview, comps, market support, risks, citations, and appendix-ready source links.</p><button className="mt-6 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Preview</button></div>)}
       </div>
@@ -344,25 +391,60 @@ function Automations() {
 
 export default function Home() {
   const [active, setActive] = useState(0);
-  const ActiveScreen = useMemo(() => [VaultSetup, LiveExtraction, VaultTable, VaultMap, DealAnalysis, CompsData, Outputs, Automations][active - 1], [active]);
+  const AppScreen = useMemo(() => [VaultTable, VaultMap, DealAnalysis, CompsData, Outputs, Automations][active - 5], [active]);
+
+  if (active === 0) return <Homepage go={setActive} />;
+  if (active === 1) return <SignupScreen go={setActive} />;
+
+  const isOnboarding = active < 5;
+  const shellTitle = isOnboarding ? "Onboarding" : "Cactus";
+  const shellSubtitle = isOnboarding ? "Setup before app" : "Vault workspace";
 
   return (
     <main className="min-h-screen bg-neutral-100 text-neutral-950">
       <div className="flex min-h-screen">
-        <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 p-3">
-          <div className="mb-6 flex items-center gap-2 px-2 py-2">
+        <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 p-3">
+          <button onClick={() => setActive(0)} className="mb-7 flex items-center gap-2 rounded-xl px-2 py-2 text-left hover:bg-white">
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-950 text-xs font-semibold text-white">C</div>
-            <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Vault prototype</p></div>
-          </div>
-          <nav className="space-y-1">
-            {screens.map((screen, index) => <button key={screen} onClick={() => setActive(index)} className={`flex h-9 w-full items-center rounded-md px-3 text-left text-sm transition ${active === index ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>)}
-          </nav>
-          <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
-            <p className="text-sm font-medium">Product spine</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Build The Vault → explore table/map/chat → select comps + enrichment → generate outputs.</p>
-          </div>
+            <div><p className="text-xl font-light tracking-[-0.04em]">{shellTitle}</p><p className="text-xs text-neutral-400">{shellSubtitle}</p></div>
+          </button>
+
+          {isOnboarding ? (
+            <>
+              <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Account setup flow</p>
+              <nav className="mt-3 space-y-1">
+                {onboardingSteps.map((step, index) => {
+                  const screenIndex = index + 1;
+                  return <button key={step} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{step}</button>;
+                })}
+              </nav>
+              <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
+                <p className="text-sm font-medium">Not in the app yet</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">This rail is only the onboarding checklist: OAuth, company setup, Vault source setup, and first extraction. After this, the user enters the real app nav.</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">App navigation</p>
+              <nav className="mt-3 space-y-1">
+                {appScreens.map((screen, index) => {
+                  const screenIndex = index + 5;
+                  return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>;
+                })}
+              </nav>
+              <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
+                <p className="text-sm font-medium">Product spine</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">Build The Vault → explore table/map/chat → select comps + enrichment → generate outputs.</p>
+              </div>
+            </>
+          )}
         </aside>
-        <section className="flex-1">{active === 0 ? <Homepage go={setActive} /> : <ActiveScreen />}</section>
+        <section className="flex-1">
+          {active === 2 && <AccountSetup go={setActive} />}
+          {active === 3 && <VaultSetup go={setActive} />}
+          {active === 4 && <LiveExtraction go={setActive} />}
+          {active >= 5 && <AppScreen />}
+        </section>
       </div>
     </main>
   );
