@@ -325,10 +325,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
         <div className={panelClass}>
           <div className="grid grid-cols-[1fr_250px] gap-5">
             <div>
-              <p className={`text-sm font-semibold ${heading}`}>Company settings</p>
-              <p className={`mt-1 text-sm ${body}`}>Edit the defaults your org will use for reporting and Vault ingestion.</p>
-
-              <div className="mt-4 grid grid-cols-[1fr_130px_150px] gap-3">
+              <div className="grid grid-cols-[1fr_130px_150px] gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
                   ["Default currency", "USD", "⌄"],
@@ -390,7 +387,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
             <div className="space-y-3 text-xs">
               <div className={`rounded-xl border p-4 ${subtleSurface}`}>
                 <p className={`text-sm font-medium ${heading}`}>Security</p>
-                <p className={`mt-2 leading-5 ${body}`}>Org-private documents. No shared model training from your Vault uploads.</p>
+                <p className={`mt-2 leading-5 ${body}`}>Each organization gets its own secure Vault boundary. Uploaded documents, extracted deal facts, and organization-specific modeling stay contained to that org and are not used to train shared models for other customers.</p>
                 <button className={`mt-3 font-medium underline underline-offset-4 ${heading}`}>Learn about security</button>
               </div>
               <div className={`rounded-xl border p-4 ${subtleSurface} ${body}`}>
