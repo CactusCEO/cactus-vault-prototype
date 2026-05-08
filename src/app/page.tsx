@@ -202,9 +202,21 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
   );
 }
 
-function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
+function ThemeToggle({ theme, setTheme }: { theme: "light" | "dark"; setTheme: (theme: "light" | "dark") => void }) {
+  const isDark = theme === "dark";
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className={`fixed right-5 top-5 z-50 grid h-9 w-9 place-items-center rounded-lg border text-sm shadow-sm backdrop-blur ${isDark ? "border-white/10 bg-white/10 text-neutral-100" : "border-neutral-200 bg-white/80 text-neutral-700"}`}
+    >
+      {isDark ? "☀" : "☾"}
+    </button>
+  );
+}
+
+function SignupScreen({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const isSignup = mode === "signup";
   const isDark = theme === "dark";
 
@@ -215,7 +227,6 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
     ? "w-full max-w-4xl rounded-[1.5rem] border border-white/10 bg-[#0b0d0c]/92 p-6 shadow-[0_34px_110px_rgba(0,0,0,0.55)] backdrop-blur"
     : "w-full max-w-4xl rounded-[1.5rem] border border-white/80 bg-white/85 p-6 shadow-[0_28px_90px_rgba(15,23,42,0.10)] backdrop-blur";
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
-  const softSurface = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50/90";
   const authButton = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100 hover:bg-white/[0.09]" : "border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50";
   const inputClass = isDark ? "border-white/10 bg-black/30 text-white placeholder:text-neutral-600 focus:border-white/30" : "border-neutral-200 bg-gradient-to-b from-white to-neutral-50 text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-400";
   const primaryCta = isDark
@@ -231,13 +242,6 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
             <div><p className="font-medium">Cactus</p><p className={`text-xs ${muted}`}>Secure access</p></div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className={`grid h-8 w-8 place-items-center rounded-lg border text-sm ${softSurface} ${isDark ? "text-neutral-200" : "text-neutral-600"}`}
-            >
-              {isDark ? "☀" : "☾"}
-            </button>
             <Pill tone="green">Step 1 of 4</Pill>
           </div>
         </div>
@@ -281,42 +285,57 @@ function SignupScreen({ go }: { go: (screenIndex: number) => void }) {
   );
 }
 
-function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
+function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const isDark = theme === "dark";
+  const pageClass = isDark
+    ? "min-h-screen bg-[radial-gradient(circle_at_top_left,#202a24,transparent_30%),linear-gradient(135deg,#060706,#111312_52%,#181a18_100%)] p-6 text-white"
+    : "min-h-screen bg-[radial-gradient(circle_at_top_left,#eef3ee,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_48%,#eceff3_100%)] p-6 text-neutral-950";
+  const panelClass = isDark
+    ? "rounded-[1.5rem] border border-white/10 bg-[#0b0d0c]/90 p-5 shadow-[0_28px_90px_rgba(0,0,0,0.46)] backdrop-blur"
+    : "rounded-[1.5rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur";
+  const heading = isDark ? "text-white" : "text-neutral-950";
+  const body = isDark ? "text-neutral-400" : "text-neutral-500";
+  const controlLabel = isDark ? "text-neutral-300" : "text-neutral-700";
+  const field = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100 shadow-sm" : "border-neutral-300 bg-gradient-to-b from-white to-neutral-50 text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_14px_rgba(15,23,42,0.035)]";
+  const section = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50/60";
+  const surface = isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white";
+  const subtleSurface = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-white/70";
+  const cta = isDark ? "bg-[#f4f1ea] text-neutral-950 shadow-[0_16px_44px_rgba(244,241,234,0.14)]" : "bg-neutral-950 text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef3ee,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_48%,#eceff3_100%)] p-6">
+    <div className={pageClass}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-3 flex items-end justify-between gap-6">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-[11px] text-neutral-500">
+            <div className={`mb-2 flex items-center gap-2 text-[11px] ${body}`}>
               <span className="font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
               <span>✓ Sign up</span>
               <span className="text-neutral-300">/</span>
-              <span className="font-medium text-neutral-900">Account setup</span>
+              <span className={`font-medium ${heading}`}>Account setup</span>
               <span className="text-neutral-300">/</span>
               <span>Create Vault locked until saved</span>
             </div>
-            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-neutral-950">Create your corporate account</h2>
-            <p className="mt-1.5 max-w-2xl text-sm text-neutral-500">Set the company defaults Cactus will use for your proprietary data ingestion.</p>
+            <h2 className={`text-2xl font-semibold tracking-[-0.03em] ${heading}`}>Create your corporate account</h2>
+            <p className={`mt-1.5 max-w-2xl text-sm ${body}`}>Set the company defaults Cactus will use for your proprietary data ingestion.</p>
           </div>
-          <button onClick={() => setHelpOpen(!helpOpen)} className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm">{helpOpen ? "Close help" : "Ask a question"}</button>
+          <button onClick={() => setHelpOpen(!helpOpen)} className={`rounded-xl border px-4 py-2 text-sm font-medium shadow-sm ${surface} ${controlLabel}`}>{helpOpen ? "Close help" : "Ask a question"}</button>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div className={panelClass}>
           <div className="grid grid-cols-[1fr_250px] gap-5">
             <div>
-              <p className="text-sm font-semibold text-neutral-950">Company settings</p>
-              <p className="mt-1 text-sm text-neutral-500">Edit the defaults your org will use for reporting and Vault ingestion.</p>
+              <p className={`text-sm font-semibold ${heading}`}>Company settings</p>
+              <p className={`mt-1 text-sm ${body}`}>Edit the defaults your org will use for reporting and Vault ingestion.</p>
 
               <div className="mt-4 grid grid-cols-[1fr_130px_150px] gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
                   ["Default currency", "USD", "⌄"],
                   ["Measurement", "$ / sq.ft", "⌄"],
-                ].map(([label, placeholder, icon]) => (
-                  <label key={label} className="text-sm font-medium text-neutral-700">{label}
-                    <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-3 py-2.5 text-sm text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_14px_rgba(15,23,42,0.035)]">
+                ].map(([fieldLabel, placeholder, icon]) => (
+                  <label key={fieldLabel} className={`text-sm font-medium ${controlLabel}`}>{fieldLabel}
+                    <div className={`mt-2 flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm ${field}`}>
                       <span>{placeholder}</span>
                       {icon && <span className="text-neutral-400">{icon}</span>}
                     </div>
@@ -324,58 +343,58 @@ function AccountSetup({ go }: { go: (screenIndex: number) => void }) {
                 ))}
               </div>
 
-              <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
+              <div className={`mt-5 rounded-xl border p-3 ${section}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-neutral-900">Team access</p>
-                    <p className="mt-1 text-xs text-neutral-500">Invite teammates. Set each person’s role and what parts of the Vault they can access.</p>
+                    <p className={`text-sm font-semibold ${heading}`}>Team access</p>
+                    <p className={`mt-1 text-xs ${body}`}>Invite teammates. Set each person’s role and what parts of the Vault they can access.</p>
                   </div>
-                  <button className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-sm">+ Add member</button>
+                  <button className={`rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm ${surface} ${controlLabel}`}>+ Add member</button>
                 </div>
                 <div className="mt-2.5 grid grid-cols-[1.2fr_0.65fr_0.85fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
                   <span>Member</span><span>Role</span><span>Access</span>
                 </div>
-                <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <div className={`mt-2 overflow-hidden rounded-xl border ${surface}`}>
                   {[
                     ["Tyler Sellars", "tyler@company.com", "Owner", "All Vaults"],
                     ["Acquisitions Analyst", "analyst@company.com", "Editor", "Deals + comps"],
                     ["Asset Manager", "assetmanager@company.com", "Viewer", "Portfolio only"],
                   ].map(([name, email, role, access]) => (
-                    <div key={email} className="grid grid-cols-[1.2fr_0.65fr_0.85fr] items-center gap-3 border-b border-neutral-100 px-3.5 py-2 last:border-b-0">
+                    <div key={email} className={`grid grid-cols-[1.2fr_0.65fr_0.85fr] items-center gap-3 border-b px-3.5 py-2 last:border-b-0 ${isDark ? "border-white/10" : "border-neutral-100"}`}>
                       <div>
-                        <p className="text-sm font-medium leading-5 text-neutral-900">{name}</p>
-                        <p className="text-xs text-neutral-500">{email}</p>
+                        <p className={`text-sm font-medium leading-5 ${heading}`}>{name}</p>
+                        <p className={`text-xs ${body}`}>{email}</p>
                       </div>
-                      <button className="flex items-center justify-between rounded-md border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-2.5 py-1.5 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{role}</span><span className="text-neutral-400">⌄</span></button>
-                      <button className="flex items-center justify-between rounded-md border border-neutral-300 bg-gradient-to-b from-white to-neutral-50 px-2.5 py-1.5 text-left text-xs font-medium text-neutral-800 shadow-sm"><span>{access}</span><span className="text-neutral-400">⌄</span></button>
+                      <button className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}><span>{role}</span><span className="text-neutral-400">⌄</span></button>
+                      <button className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}><span>{access}</span><span className="text-neutral-400">⌄</span></button>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="mt-5">
-                <p className="text-sm font-semibold text-neutral-900">Asset classes</p>
-                <p className="mt-1 text-xs text-neutral-500">Select every asset class this organization works with.</p>
+                <p className={`text-sm font-semibold ${heading}`}>Asset classes</p>
+                <p className={`mt-1 text-xs ${body}`}>Select every asset class this organization works with.</p>
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-300">
+                    <button key={item} className={`rounded-lg border px-3 py-2 text-left text-sm font-medium shadow-sm ${surface} ${controlLabel}`}>
                       <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <button onClick={() => go(3)} className="mt-5 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]">Save and continue to Vault setup</button>
+              <button onClick={() => go(3)} className={`mt-5 rounded-xl px-5 py-3 text-sm font-medium ${cta}`}>Save and continue to Vault setup</button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="rounded-xl border border-neutral-200 bg-white/70 p-4">
-                <p className="text-sm font-medium text-neutral-900">Security</p>
-                <p className="mt-2 leading-5 text-neutral-500">Org-private documents. No shared model training from your Vault uploads.</p>
-                <button className="mt-3 font-medium text-neutral-900 underline underline-offset-4">Learn about security</button>
+              <div className={`rounded-xl border p-4 ${subtleSurface}`}>
+                <p className={`text-sm font-medium ${heading}`}>Security</p>
+                <p className={`mt-2 leading-5 ${body}`}>Org-private documents. No shared model training from your Vault uploads.</p>
+                <button className={`mt-3 font-medium underline underline-offset-4 ${heading}`}>Learn about security</button>
               </div>
-              <div className="rounded-xl border border-neutral-200 bg-white/50 p-4 text-neutral-500">
-                <p><span className="font-medium text-neutral-800">Trial:</span> 50 documents · deleted docs count · no payment before setup.</p>
+              <div className={`rounded-xl border p-4 ${subtleSurface} ${body}`}>
+                <p><span className={`font-medium ${heading}`}>Trial:</span> 50 documents · deleted docs count · no payment before setup.</p>
               </div>
               {helpOpen && (
                 <div className="rounded-xl border border-neutral-200 bg-neutral-950 p-4 text-white">
@@ -572,20 +591,23 @@ function Automations() {
 
 export default function Home() {
   const [active, setActive] = useState(0);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const isDark = theme === "dark";
   const AppScreen = useMemo(() => [VaultTable, VaultMap, DealAnalysis, CompsData, Outputs, Automations][active - 5], [active]);
 
-  if (active === 0) return <Homepage go={setActive} />;
-  if (active === 1) return <SignupScreen go={setActive} />;
-  if (active === 2) return <AccountSetup go={setActive} />;
-  if (active === 3) return <VaultSetup go={setActive} />;
-  if (active === 4) return <LiveExtraction go={setActive} />;
+  if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
+  if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} /></>;
+  if (active === 2) return <><ThemeToggle theme={theme} setTheme={setTheme} /><AccountSetup go={setActive} theme={theme} /></>;
+  if (active === 3) return <><ThemeToggle theme={theme} setTheme={setTheme} /><VaultSetup go={setActive} /></>;
+  if (active === 4) return <><ThemeToggle theme={theme} setTheme={setTheme} /><LiveExtraction go={setActive} /></>;
 
   return (
-    <main className="min-h-screen bg-neutral-100 text-neutral-950">
+    <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950"}`}>
+      <ThemeToggle theme={theme} setTheme={setTheme} />
       <div className="flex min-h-screen">
-        <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 p-3">
-          <button onClick={() => setActive(0)} className="mb-7 flex items-center gap-2 rounded-xl px-2 py-2 text-left hover:bg-white">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-950 text-xs font-semibold text-white">C</div>
+        <aside className={`sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r p-3 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
+          <button onClick={() => setActive(0)} className={`mb-7 flex items-center gap-2 rounded-xl px-2 py-2 text-left ${isDark ? "hover:bg-white/10" : "hover:bg-white"}`}>
+            <div className={`grid h-8 w-8 place-items-center rounded-lg text-xs font-semibold ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>C</div>
             <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Vault workspace</p></div>
           </button>
 
@@ -593,10 +615,10 @@ export default function Home() {
           <nav className="mt-3 space-y-1">
             {appScreens.map((screen, index) => {
               const screenIndex = index + 5;
-              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>;
+              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? isDark ? "bg-white text-neutral-950 shadow-sm" : "bg-white text-neutral-950 shadow-sm" : isDark ? "text-neutral-400 hover:bg-white/10" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>;
             })}
           </nav>
-          <div className="mt-auto rounded-2xl border border-neutral-200 bg-white p-4">
+          <div className={`mt-auto rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
             <p className="text-sm font-medium">Product spine</p>
             <p className="mt-2 text-xs leading-5 text-neutral-500">Build The Vault → explore table/map/chat → select comps + enrichment → generate outputs.</p>
           </div>
