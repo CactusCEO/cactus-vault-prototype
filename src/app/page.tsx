@@ -304,19 +304,14 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const cta = isDark ? "bg-[#f4f1ea] text-neutral-950 shadow-[0_16px_44px_rgba(244,241,234,0.14)]" : "bg-neutral-950 text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]";
 
   return (
-    <div className={pageClass}>
-      <div className="mx-auto max-w-5xl">
+    <div className={`${pageClass} flex items-center justify-center`}>
+      <div className="w-full max-w-5xl">
         <div className="mb-3 flex items-end justify-between gap-6">
           <div>
-            <div className={`mb-2 flex items-center gap-2 text-[11px] ${body}`}>
-              <span className="font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
-              <span>✓ Sign up</span>
-              <span className="text-neutral-300">/</span>
-              <span className={`font-medium ${heading}`}>Account setup</span>
-              <span className="text-neutral-300">/</span>
-              <span>Create Vault locked until saved</span>
+            <div className="flex items-baseline gap-3">
+              <h2 className={`text-2xl font-semibold tracking-[-0.03em] ${heading}`}>Create your corporate account</h2>
+              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
             </div>
-            <h2 className={`text-2xl font-semibold tracking-[-0.03em] ${heading}`}>Create your corporate account</h2>
             <p className={`mt-1.5 max-w-2xl text-sm ${body}`}>Set the company defaults Cactus will use for your proprietary data ingestion.</p>
           </div>
           <button onClick={() => setHelpOpen(!helpOpen)} className={`rounded-xl border px-4 py-2 text-sm font-medium shadow-sm ${surface} ${controlLabel}`}>{helpOpen ? "Close help" : "Ask a question"}</button>
