@@ -8,34 +8,30 @@ const sourceCards = [
   {
     title: "Upload documents",
     badge: "Best first step",
-    note: "OMs, T12s, rent rolls, market reports, lender packages, and spreadsheets.",
-    detail: "Fastest way to see rows, fields, source links, and outputs appear.",
+    note: "OMs, T12s, rent rolls, market reports, spreadsheets.",
   },
   {
     title: "Connect email or drive",
     badge: "Broker flow + folders",
-    note: "Gmail, Outlook, Google Drive, OneDrive, deal rooms, and recurring reports.",
-    detail: "Cactus only reads the labels, folders, senders, or files you approve.",
+    note: "Gmail, Outlook, Drive, OneDrive, deal rooms.",
   },
   {
     title: "Import lists or comps",
     badge: "Market data + saved work",
-    note: "Property lists, sales comps, rent comps, CRM exports, and underwriting models.",
-    detail: "Turn existing lists into searchable records and reusable comp intelligence.",
+    note: "Property lists, comps, CRM exports, underwriting models.",
   },
   {
     title: "Use sample Vault",
     badge: "Explore first",
-    note: "Open a finished Vault with deals, comps, maps, analysis, and outputs.",
-    detail: "Best if the user wants to understand Cactus before connecting real data.",
+    note: "Open a finished Vault before adding real data.",
   },
 ];
 
-const vaultPowers = [
-  ["Organize", "Create structured property, deal, comp, and source records."],
-  ["Search", "Ask questions across files, emails, market data, and prior work."],
-  ["Analyze", "Compare assumptions, rents, sales comps, risks, and market signals."],
-  ["Output", "Draft IC memos, investor summaries, lender packages, and reports."],
+const agentPreview = [
+  ["Read", "approved files + folders"],
+  ["Extract", "facts, comps, sources"],
+  ["Build", "Vault rows + map pins"],
+  ["Draft", "summaries + IC memo"],
 ];
 
 const extractionEvents = [
@@ -401,70 +397,91 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   );
 }
 
-function VaultSetup({ go }: { go: (screenIndex: number) => void }) {
+function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const [selected, setSelected] = useState(0);
+  const isDark = theme === "dark";
+  const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
+  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
+  const card = isDark ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]" : "border-neutral-200 bg-neutral-50/70 text-neutral-950 hover:bg-white";
+  const selectedCard = isDark ? "border-white/60 bg-white text-neutral-950 ring-1 ring-white/20" : "border-neutral-900 bg-[#f4f1ea] text-neutral-950 ring-1 ring-neutral-900/10";
+  const muted = isDark ? "text-neutral-400" : "text-neutral-500";
+  const soft = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-neutral-50";
+  const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-neutral-950">
-      <div className="w-full max-w-6xl">
-        <div className="mb-4 flex items-end justify-between gap-6">
-          <div>
-            <div className="flex items-baseline gap-3">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start building your Vault</h2>
-              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
-            </div>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">Tell Cactus where your real estate data lives. Cactus turns scattered files, emails, reports, and comps into a private intelligence layer your team can search, map, analyze, and turn into professional outputs — a proprietary edge built from data competitors cannot see.</p>
+    <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
+      <div className="w-full max-w-5xl">
+        <div className="mb-4">
+          <div className="flex items-baseline gap-3">
+            <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start building your Vault</h2>
+            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
           </div>
-          <div className="rounded-xl border border-neutral-200 bg-white/80 px-4 py-3 text-xs text-neutral-500 shadow-sm">You can add more sources later.</div>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Choose one place for Cactus to start. It will turn that source into records, maps, facts, and outputs.</p>
+          <p className={`mt-2 text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>Start with one source today. Add email, drives, comps, and more later.</p>
         </div>
 
-        <div className="grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div>
-            <p className="text-sm font-semibold">Choose your first source</p>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              {sourceCards.map((card, index) => {
-                const isSelected = selected === index;
-                return (
-                  <button key={card.title} onClick={() => setSelected(index)} className={`min-h-[150px] rounded-xl border p-4 text-left shadow-sm transition ${isSelected ? "border-neutral-900 bg-[#f4f1ea] text-neutral-950 ring-1 ring-neutral-900/10" : "border-neutral-200 bg-neutral-50/70 text-neutral-950 hover:bg-white"}`}>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className={`text-[11px] font-medium uppercase tracking-[0.14em] ${isSelected ? "text-neutral-600" : "text-neutral-400"}`}>{card.badge}</span>
-                      <span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${isSelected ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>
-                    </div>
-                    <h3 className="mt-5 text-lg font-semibold tracking-[-0.04em]">{card.title}</h3>
-                    <p className="mt-2 text-sm leading-5 text-neutral-600">{card.note}</p>
-                    <p className="mt-3 text-xs leading-5 text-neutral-500">{card.detail}</p>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-500">
-              <span>You control every source. Vault data and org-specific modeling stay contained to your organization.</span>
-              <button onClick={() => go(4)} className="ml-4 shrink-0 rounded-lg bg-neutral-950 px-4 py-2 text-sm font-medium text-white shadow-sm">Continue with selected source</button>
-            </div>
+        <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
+          <div className="grid grid-cols-[1fr_300px] gap-5">
+            <section>
+              <p className="text-sm font-semibold">Choose your first source</p>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {sourceCards.map((source, index) => {
+                  const isSelected = selected === index;
+                  return (
+                    <button key={source.title} onClick={() => setSelected(index)} className={`min-h-[118px] rounded-xl border p-4 text-left shadow-sm transition ${isSelected ? selectedCard : card}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className={`text-[10px] font-medium uppercase tracking-[0.14em] ${isSelected && !isDark ? "text-neutral-600" : "text-neutral-400"}`}>{source.badge}</span>
+                        <span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>
+                      </div>
+                      <h3 className="mt-4 text-base font-semibold tracking-[-0.03em]">{source.title}</h3>
+                      <p className={`mt-2 text-sm leading-5 ${isSelected ? isDark ? "text-neutral-600" : "text-neutral-600" : muted}`}>{source.note}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <aside className={`rounded-2xl border p-4 ${soft}`}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Cactus will start working</p>
+                <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Agent ready</span>
+              </div>
+              <div className="mt-4 space-y-2">
+                {agentPreview.map(([verb, detail], index) => (
+                  <div key={verb} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-white"}`}>
+                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-semibold ${index === 0 ? cta : isDark ? "bg-white/10 text-neutral-300" : "bg-neutral-100 text-neutral-500"}`}>{index + 1}</span>
+                    <div><p className="text-sm font-medium">{verb}</p><p className={`text-xs ${muted}`}>{detail}</p></div>
+                  </div>
+                ))}
+              </div>
+              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${soft} ${muted}`}>You approve every source. Vault data and org-specific modeling stay inside your organization.</div>
+            </aside>
           </div>
 
-          <aside className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-semibold">Your Vault creates your edge</p>
-            <div className="mt-4 space-y-3 text-xs">
-              <div className="rounded-xl bg-neutral-50 p-3"><p className="font-medium text-neutral-900">Scattered data</p><p className="mt-1 text-neutral-500">Emails · PDFs · Excel · Drive · Comps</p></div>
-              <div className="pl-3 text-neutral-300">↓</div>
-              <div className="rounded-xl bg-neutral-950 p-3 text-white"><p className="font-medium">Organized intelligence</p><p className="mt-1 text-neutral-400">Deals · Properties · Sources · Maps · Assumptions</p></div>
-              <div className="pl-3 text-neutral-300">↓</div>
-              <div className="rounded-xl bg-neutral-50 p-3"><p className="font-medium text-neutral-900">Professional output</p><p className="mt-1 text-neutral-500">Memos · Summaries · Packages · Reports</p></div>
+          <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
+            <button onClick={() => go(2)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
+            <div className="flex items-center gap-4">
+              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>More sources can be added anytime.</span>
+              <button onClick={() => go(4)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to live build</button>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {vaultPowers.map(([power, detail]) => <div key={power} className="rounded-lg border border-neutral-200 p-3"><p className="text-xs font-semibold">{power}</p><p className="mt-1 text-[11px] leading-4 text-neutral-500">{detail}</p></div>)}
-            </div>
-          </aside>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function LiveExtraction({ go }: { go: (screenIndex: number) => void }) {
+function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
+  const isDark = theme === "dark";
+  const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
+  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
+  const surface = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white";
+  const soft = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50";
+  const muted = isDark ? "text-neutral-400" : "text-neutral-500";
+  const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-neutral-950">
+    <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
       <div className="w-full max-w-6xl">
         <div className="mb-4 flex items-end justify-between gap-6">
           <div>
@@ -472,26 +489,26 @@ function LiveExtraction({ go }: { go: (screenIndex: number) => void }) {
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Cactus is building your Vault</h2>
               <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 4 of 4</span>
             </div>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">No generic loading screen. Cactus shows the work: reading sources, extracting facts, creating rows, mapping properties, linking citations, and preparing outputs.</p>
+            <p className={`mt-2 max-w-3xl text-sm leading-6 ${muted}`}>No generic loading screen. Cactus shows the work: reading sources, extracting facts, creating rows, mapping properties, linking citations, and preparing outputs.</p>
           </div>
-          <button onClick={() => go(5)} className="rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Open your Vault</button>
+          <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Open your Vault</button>
         </div>
 
-        <div className="grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div className={`grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <div className="space-y-4">
-            <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
-                <div><p className="text-sm font-semibold">Vault records appearing live</p><p className="mt-1 text-xs text-neutral-500">Rows and columns fill as Cactus extracts facts from source files.</p></div>
+            <div className={`rounded-2xl border shadow-sm ${surface}`}>
+              <div className={`flex items-center justify-between border-b px-4 py-3 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
+                <div><p className="text-sm font-semibold">Vault records appearing live</p><p className={`mt-1 text-xs ${muted}`}>Rows and columns fill as Cactus extracts facts from source files.</p></div>
                 <Pill tone="green">24 records created</Pill>
               </div>
               <table className="w-full text-left text-sm">
-                <thead className="bg-neutral-50 text-xs text-neutral-500"><tr>{["Property", "Market", "Units", "Sources", "Status"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-2.5 font-medium">{h}</th>)}</tr></thead>
-                <tbody>{buildRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-3 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 4 ? <span className={`rounded-full px-2 py-1 text-xs ${cell === "Ready" ? "bg-emerald-50 text-emerald-700" : cell === "Needs review" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>{cell}</span> : cell}</td>)}</tr>)}</tbody>
+                <thead className={`text-xs ${isDark ? "bg-white/[0.04] text-neutral-400" : "bg-neutral-50 text-neutral-500"}`}><tr>{["Property", "Market", "Units", "Sources", "Status"].map((h) => <th key={h} className={`border-b px-4 py-2.5 font-medium ${isDark ? "border-white/10" : "border-neutral-200"}`}>{h}</th>)}</tr></thead>
+                <tbody>{buildRows.map((row) => <tr key={row[0]} className={isDark ? "hover:bg-white/[0.03]" : "hover:bg-neutral-50"}>{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b px-4 py-3 ${isDark ? "border-white/10" : "border-neutral-100"} ${i === 0 ? "font-medium" : muted}`}>{i === 4 ? <span className={`rounded-full px-2 py-1 text-xs ${cell === "Ready" ? "bg-emerald-500/15 text-emerald-300" : cell === "Needs review" ? "bg-amber-500/15 text-amber-300" : "bg-blue-500/15 text-blue-300"}`}>{cell}</span> : cell}</td>)}</tr>)}</tbody>
               </table>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              {["31 addresses detected", "37 comps queued", "5 outputs unlocking"].map((stat) => <div key={stat} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm font-medium">{stat}<p className="mt-2 text-xs font-normal text-neutral-500">Source-linked and reviewable.</p></div>)}
+              {["31 addresses detected", "37 comps queued", "5 outputs unlocking"].map((stat) => <div key={stat} className={`rounded-xl border p-4 text-sm font-medium ${soft}`}>{stat}<p className={`mt-2 text-xs font-normal ${muted}`}>Source-linked and reviewable.</p></div>)}
             </div>
           </div>
 
@@ -507,10 +524,10 @@ function LiveExtraction({ go }: { go: (screenIndex: number) => void }) {
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <div className={`rounded-2xl border p-4 shadow-sm ${surface}`}>
               <p className="text-sm font-semibold">Outputs unlocking</p>
-              <div className="mt-3 flex flex-wrap gap-2">{unlockedOutputs.map((output, index) => <span key={output} className={`rounded-full border px-3 py-1.5 text-xs ${index < 3 ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-500"}`}>{output}</span>)}</div>
-              <p className="mt-4 text-xs leading-5 text-neutral-500">The user sees useful artifacts becoming available instead of staring at a loading bar.</p>
+              <div className="mt-3 flex flex-wrap gap-2">{unlockedOutputs.map((output, index) => <span key={output} className={`rounded-full border px-3 py-1.5 text-xs ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-900 bg-neutral-950 text-white" : isDark ? "border-white/10 text-neutral-400" : "border-neutral-200 text-neutral-500"}`}>{output}</span>)}</div>
+              <p className={`mt-4 text-xs leading-5 ${muted}`}>The user sees useful artifacts becoming available instead of staring at a loading bar.</p>
             </div>
           </aside>
         </div>
@@ -647,8 +664,8 @@ export default function Home() {
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
   if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} /></>;
   if (active === 2) return <><ThemeToggle theme={theme} setTheme={setTheme} /><AccountSetup go={setActive} theme={theme} /></>;
-  if (active === 3) return <><ThemeToggle theme={theme} setTheme={setTheme} /><VaultSetup go={setActive} /></>;
-  if (active === 4) return <><ThemeToggle theme={theme} setTheme={setTheme} /><LiveExtraction go={setActive} /></>;
+  if (active === 3) return <><ThemeToggle theme={theme} setTheme={setTheme} /><VaultSetup go={setActive} theme={theme} /></>;
+  if (active === 4) return <><ThemeToggle theme={theme} setTheme={setTheme} /><LiveExtraction go={setActive} theme={theme} /></>;
 
   return (
     <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950"}`}>
