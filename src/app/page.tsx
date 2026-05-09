@@ -281,6 +281,7 @@ function SignupScreen({ go, theme }: { go: (screenIndex: number) => void; theme:
 
 function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [setupStage, setSetupStage] = useState(1);
   const isDark = theme === "dark";
   const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
   const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
@@ -290,6 +291,18 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
   const label = isDark ? "text-neutral-300" : "text-neutral-700";
   const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
+  const summary = isDark ? "border-white/10 bg-white/[0.03] text-neutral-300" : "border-neutral-200 bg-neutral-50 text-neutral-600";
+  const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to Vault setup";
+
+  const goBack = () => {
+    if (setupStage > 1) setSetupStage(setupStage - 1);
+    else go(1);
+  };
+
+  const goForward = () => {
+    if (setupStage < 3) setSetupStage(setupStage + 1);
+    else go(3);
+  };
 
   return (
     <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
@@ -299,11 +312,29 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
             <h2 className="text-2xl font-semibold tracking-[-0.03em]">Create your corporate account</h2>
             <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
           </div>
-          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set organization defaults so Cactus can secure your Vault, manage teammate access, and process documents consistently.</p>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Add one layer at a time. Cactus uses these defaults to create a secure company Vault.</p>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <section>
+            <div className="mb-4 flex items-center gap-2 text-xs font-medium">
+              {["Company", "Team", "Asset classes"].map((item, index) => {
+                const stage = index + 1;
+                const active = setupStage === stage;
+                const done = setupStage > stage;
+                return (
+                  <span key={item} className={`rounded-full border px-3 py-1 ${active ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-900 bg-neutral-950 text-white" : done ? isDark ? "border-white/10 bg-white/10 text-neutral-300" : "border-neutral-200 bg-white text-neutral-700" : isDark ? "border-white/10 text-neutral-500" : "border-neutral-200 text-neutral-400"}`}>{done ? "✓ " : ""}{item}</span>
+                );
+              })}
+            </div>
+
+            {setupStage > 1 && (
+              <div className={`mb-3 rounded-xl border px-3 py-2.5 text-sm ${summary}`}>
+                <span className="font-medium">Company defaults saved:</span> Cactus Capital Partners · USD · $ / sq.ft
+              </div>
+            )}
+
+            {setupStage === 1 && (
               <div className="grid grid-cols-[1fr_130px_150px] gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
@@ -318,8 +349,16 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                   </label>
                 ))}
               </div>
+            )}
 
-              <div className={`mt-5 rounded-xl border p-3 ${soft}`}>
+            {setupStage > 2 && (
+              <div className={`mb-3 rounded-xl border px-3 py-2.5 text-sm ${summary}`}>
+                <span className="font-medium">Team access saved:</span> 3 members · owner, editor, viewer
+              </div>
+            )}
+
+            {setupStage === 2 && (
+              <div className={`rounded-xl border p-3 ${soft}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold">Team access</p>
@@ -347,8 +386,10 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                   ))}
                 </div>
               </div>
+            )}
 
-              <div className="mt-5">
+            {setupStage === 3 && (
+              <div>
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-sm font-semibold">Asset classes</p>
@@ -363,15 +404,16 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                     </button>
                   ))}
                 </div>
+                {helpOpen && <div className="mt-4 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad. You can change asset classes after the first Vault is built.</div>}
               </div>
-              {helpOpen && <div className="mt-4 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad with team access. You can tighten permissions after the first Vault is built.</div>}
+            )}
           </section>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
-            <button onClick={() => go(1)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
+            <button onClick={goBack} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
             <div className="flex items-center gap-4">
               <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>These defaults can be edited later.</span>
-              <button onClick={() => go(3)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to Vault setup</button>
+              <button onClick={goForward} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>{continueCopy}</button>
             </div>
           </div>
         </div>
