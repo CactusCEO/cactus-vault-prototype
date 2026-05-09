@@ -299,7 +299,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
             <h2 className="text-2xl font-semibold tracking-[-0.03em]">Create your corporate account</h2>
             <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
           </div>
-          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set the organization defaults Cactus uses to secure your Vault, invite teammates, and prepare ingestion.</p>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set organization defaults so Cactus can secure your Vault, manage teammate access, and process documents consistently.</p>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
@@ -369,24 +369,32 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 
             <aside className={`rounded-2xl border p-4 ${soft}`}>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Account boundary ready</p>
-                <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Secure</span>
+                <p className="text-sm font-semibold">Why this step matters</p>
+                <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Private</span>
               </div>
+              <p className={`mt-2 text-xs leading-5 ${muted}`}>These defaults create your company Vault, set who can access it, and keep currency, units, and asset classes consistent.</p>
+
               <div className="mt-4 space-y-2">
                 {[
-                  ["Protect", "org-contained Vault + modeling"],
-                  ["Invite", "team roles + access scopes"],
-                  ["Standardize", "currency, units, asset classes"],
-                  ["Prepare", "sources for Vault ingestion"],
-                ].map(([verb, detail], index) => (
-                  <div key={verb} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${surface}`}>
-                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-semibold ${index === 0 ? cta : isDark ? "bg-white/10 text-neutral-300" : "bg-neutral-100 text-neutral-500"}`}>{index + 1}</span>
-                    <div><p className="text-sm font-medium">{verb}</p><p className={`text-xs ${muted}`}>{detail}</p></div>
+                  ["Company Vault", "Belongs to the organization, not a personal inbox."],
+                  ["Team access", "Invite teammates with the right permissions."],
+                  ["Consistent outputs", "Keep tables, maps, and memos using the same formats."],
+                ].map(([title, detail], index) => (
+                  <div key={title} className={`rounded-xl border px-3 py-3 ${surface}`}>
+                    <div className="flex items-start gap-3">
+                      <span className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full text-[10px] font-semibold ${index === 0 ? isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white" : isDark ? "bg-white/10 text-neutral-400" : "bg-neutral-100 text-neutral-500"}`}>{index + 1}</span>
+                      <div><p className="text-sm font-medium">{title}</p><p className={`mt-1 text-xs leading-5 ${muted}`}>{detail}</p></div>
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>Each organization gets a secure Vault boundary. Uploaded documents, extracted facts, and org-specific modeling stay inside that organization.</div>
-              <div className={`mt-3 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>50 documents to start. Deleted documents count toward free access. No payment before setup.</div>
+
+              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>
+                <span className={isDark ? "font-medium text-neutral-200" : "font-medium text-neutral-800"}>Secure by default.</span> Uploaded documents, extracted facts, and org-specific modeling stay inside this organization.
+              </div>
+              <div className={`mt-3 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>
+                <span className={isDark ? "font-medium text-neutral-200" : "font-medium text-neutral-800"}>Free to start.</span> 50 documents included. Deleted documents still count. No payment before setup.
+              </div>
               {helpOpen && <div className="mt-3 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad with team access. You can tighten permissions after the first Vault is built.</div>}
             </aside>
           </div>
