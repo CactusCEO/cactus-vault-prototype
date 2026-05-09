@@ -282,46 +282,37 @@ function SignupScreen({ go, theme }: { go: (screenIndex: number) => void; theme:
 function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const isDark = theme === "dark";
-  const pageClass = isDark
-    ? "min-h-screen bg-[radial-gradient(circle_at_top_left,#202a24,transparent_30%),linear-gradient(135deg,#060706,#111312_52%,#181a18_100%)] p-6 text-white"
-    : "min-h-screen bg-[radial-gradient(circle_at_top_left,#eef3ee,transparent_28%),linear-gradient(135deg,#f7f5ef_0%,#f4f4f2_48%,#eceff3_100%)] p-6 text-neutral-950";
-  const panelClass = isDark
-    ? "rounded-[1.5rem] border border-white/10 bg-[#0b0d0c]/90 p-5 shadow-[0_28px_90px_rgba(0,0,0,0.46)] backdrop-blur"
-    : "rounded-[1.5rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur";
-  const heading = isDark ? "text-white" : "text-neutral-950";
-  const body = isDark ? "text-neutral-400" : "text-neutral-500";
-  const controlLabel = isDark ? "text-neutral-300" : "text-neutral-700";
-  const field = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100 shadow-sm" : "border-neutral-300 bg-gradient-to-b from-white to-neutral-50 text-neutral-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_14px_rgba(15,23,42,0.035)]";
-  const section = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50/60";
-  const surface = isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white";
-  const subtleSurface = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-white/70";
-  const cta = isDark ? "bg-[#f4f1ea] text-neutral-950 shadow-[0_16px_44px_rgba(244,241,234,0.14)]" : "bg-neutral-950 text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]";
+  const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
+  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
+  const surface = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white";
+  const soft = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50";
+  const field = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100" : "border-neutral-300 bg-gradient-to-b from-white to-neutral-50 text-neutral-700";
+  const muted = isDark ? "text-neutral-400" : "text-neutral-500";
+  const label = isDark ? "text-neutral-300" : "text-neutral-700";
+  const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
 
   return (
-    <div className={`${pageClass} flex items-center justify-center`}>
+    <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
       <div className="w-full max-w-5xl">
-        <div className="mb-3 flex items-end justify-between gap-6">
-          <div>
-            <div className="flex items-baseline gap-3">
-              <h2 className={`text-2xl font-semibold tracking-[-0.03em] ${heading}`}>Create your corporate account</h2>
-              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
-            </div>
-            <p className={`mt-1.5 max-w-2xl text-sm ${body}`}>Set the company defaults Cactus will use for your proprietary data ingestion.</p>
+        <div className="mb-4">
+          <div className="flex items-baseline gap-3">
+            <h2 className="text-2xl font-semibold tracking-[-0.03em]">Create your corporate account</h2>
+            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
           </div>
-          <button onClick={() => setHelpOpen(!helpOpen)} className={`rounded-xl border px-4 py-2 text-sm font-medium shadow-sm ${surface} ${controlLabel}`}>{helpOpen ? "Close help" : "Ask a question"}</button>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set the organization defaults Cactus uses to secure your Vault, invite teammates, and prepare ingestion.</p>
         </div>
 
-        <div className={panelClass}>
-          <div className="grid grid-cols-[1fr_250px] gap-5">
-            <div>
+        <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
+          <div className="grid grid-cols-[1fr_300px] gap-5">
+            <section>
               <div className="grid grid-cols-[1fr_130px_150px] gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
-                  ["Default currency", "USD", "⌄"],
+                  ["Currency", "USD", "⌄"],
                   ["Measurement", "$ / sq.ft", "⌄"],
                 ].map(([fieldLabel, placeholder, icon]) => (
-                  <label key={fieldLabel} className={`text-sm font-medium ${controlLabel}`}>{fieldLabel}
-                    <div className={`mt-2 flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm ${field}`}>
+                  <label key={fieldLabel} className={`text-sm font-medium ${label}`}>{fieldLabel}
+                    <div className={`mt-2 flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm shadow-sm ${field}`}>
                       <span>{placeholder}</span>
                       {icon && <span className="text-neutral-400">{icon}</span>}
                     </div>
@@ -329,13 +320,13 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                 ))}
               </div>
 
-              <div className={`mt-5 rounded-xl border p-3 ${section}`}>
+              <div className={`mt-5 rounded-xl border p-3 ${soft}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`text-sm font-semibold ${heading}`}>Team access</p>
-                    <p className={`mt-1 text-xs ${body}`}>Invite teammates. Set each person’s role and what parts of the Vault they can access.</p>
+                    <p className="text-sm font-semibold">Team access</p>
+                    <p className={`mt-1 text-xs ${muted}`}>Set who can review, edit, and use each part of the Vault.</p>
                   </div>
-                  <button className={`rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm ${surface} ${controlLabel}`}>+ Add member</button>
+                  <button className={`rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm ${surface} ${label}`}>+ Add member</button>
                 </div>
                 <div className="mt-2.5 grid grid-cols-[1.2fr_0.65fr_0.85fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
                   <span>Member</span><span>Role</span><span>Access</span>
@@ -348,8 +339,8 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                   ].map(([name, email, role, access]) => (
                     <div key={email} className={`grid grid-cols-[1.2fr_0.65fr_0.85fr] items-center gap-3 border-b px-3.5 py-2 last:border-b-0 ${isDark ? "border-white/10" : "border-neutral-100"}`}>
                       <div>
-                        <p className={`text-sm font-medium leading-5 ${heading}`}>{name}</p>
-                        <p className={`text-xs ${body}`}>{email}</p>
+                        <p className="text-sm font-medium leading-5">{name}</p>
+                        <p className={`text-xs ${muted}`}>{email}</p>
                       </div>
                       <button className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}><span>{role}</span><span className="text-neutral-400">⌄</span></button>
                       <button className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}><span>{access}</span><span className="text-neutral-400">⌄</span></button>
@@ -359,36 +350,52 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
               </div>
 
               <div className="mt-5">
-                <p className={`text-sm font-semibold ${heading}`}>Asset classes</p>
-                <p className={`mt-1 text-xs ${body}`}>Select every asset class this organization works with.</p>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">Asset classes</p>
+                    <p className={`mt-1 text-xs ${muted}`}>Choose the markets this organization works with.</p>
+                  </div>
+                  <button onClick={() => setHelpOpen(!helpOpen)} className={`text-xs font-medium underline-offset-4 hover:underline ${label}`}>{helpOpen ? "Hide help" : "Need help?"}</button>
+                </div>
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className={`rounded-lg border px-3 py-2 text-left text-sm font-medium shadow-sm ${surface} ${controlLabel}`}>
-                      <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
+                    <button key={item} className={`rounded-lg border px-3 py-2 text-left text-sm font-medium shadow-sm ${surface} ${label}`}>
+                      <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
                     </button>
                   ))}
                 </div>
               </div>
+            </section>
 
-              <button onClick={() => go(3)} className={`mt-5 rounded-xl px-5 py-3 text-sm font-medium ${cta}`}>Save and continue to Vault setup</button>
-            </div>
+            <aside className={`rounded-2xl border p-4 ${soft}`}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Account boundary ready</p>
+                <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Secure</span>
+              </div>
+              <div className="mt-4 space-y-2">
+                {[
+                  ["Protect", "org-contained Vault + modeling"],
+                  ["Invite", "team roles + access scopes"],
+                  ["Standardize", "currency, units, asset classes"],
+                  ["Prepare", "sources for Vault ingestion"],
+                ].map(([verb, detail], index) => (
+                  <div key={verb} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${surface}`}>
+                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-semibold ${index === 0 ? cta : isDark ? "bg-white/10 text-neutral-300" : "bg-neutral-100 text-neutral-500"}`}>{index + 1}</span>
+                    <div><p className="text-sm font-medium">{verb}</p><p className={`text-xs ${muted}`}>{detail}</p></div>
+                  </div>
+                ))}
+              </div>
+              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>Each organization gets a secure Vault boundary. Uploaded documents, extracted facts, and org-specific modeling stay inside that organization.</div>
+              <div className={`mt-3 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>50 documents to start. Deleted documents count toward free access. No payment before setup.</div>
+              {helpOpen && <div className="mt-3 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad with team access. You can tighten permissions after the first Vault is built.</div>}
+            </aside>
+          </div>
 
-            <div className="space-y-3 text-xs">
-              <div className={`rounded-xl border p-4 ${subtleSurface}`}>
-                <p className={`text-sm font-medium ${heading}`}>Security</p>
-                <p className={`mt-2 leading-5 ${body}`}>Each organization gets its own secure Vault boundary. Uploaded documents, extracted deal facts, and organization-specific modeling stay contained to that org and are not used to train shared models for other customers.</p>
-                <button className={`mt-3 font-medium underline underline-offset-4 ${heading}`}>Learn about security</button>
-              </div>
-              <div className={`rounded-xl border p-4 ${subtleSurface} ${body}`}>
-                <p><span className={`font-medium ${heading}`}>Trial:</span> 50 documents · deleted docs count · no payment before setup.</p>
-              </div>
-              {helpOpen && (
-                <div className="rounded-xl border border-neutral-200 bg-neutral-950 p-4 text-white">
-                  <p className="text-sm font-medium">Cactus help</p>
-                  <p className="mt-2 text-xs leading-5 text-neutral-400">Ask about team roles, security, data ingestion, or which settings matter for your first Vault.</p>
-                  <div className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs text-neutral-300">How should we set this up for a multifamily investor?</div>
-                </div>
-              )}
+          <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
+            <button onClick={() => go(1)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
+            <div className="flex items-center gap-4">
+              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>These defaults can be edited later.</span>
+              <button onClick={() => go(3)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to Vault setup</button>
             </div>
           </div>
         </div>
