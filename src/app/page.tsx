@@ -317,20 +317,10 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <section>
-            <div className="mb-4 flex items-center gap-2 text-xs font-medium">
-              {["Company", "Team", "Asset classes"].map((item, index) => {
-                const stage = index + 1;
-                const active = setupStage === stage;
-                const done = setupStage > stage;
-                return (
-                  <span key={item} className={`rounded-full border px-3 py-1 ${active ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-900 bg-neutral-950 text-white" : done ? isDark ? "border-white/10 bg-white/10 text-neutral-300" : "border-neutral-200 bg-white text-neutral-700" : isDark ? "border-white/10 text-neutral-500" : "border-neutral-200 text-neutral-400"}`}>{done ? "✓ " : ""}{item}</span>
-                );
-              })}
-            </div>
-
             {setupStage > 1 && (
-              <div className={`mb-3 rounded-xl border px-3 py-2.5 text-sm ${summary}`}>
-                <span className="font-medium">Company defaults saved:</span> Cactus Capital Partners · USD · $ / sq.ft
+              <div className={`mb-3 flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm ${summary}`}>
+                <div><span className="font-medium">Company details:</span> Cactus Capital Partners · USD · $ / sq.ft</div>
+                <button onClick={() => setSetupStage(1)} className={`rounded-md border px-2.5 py-1 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-white"}`}>Edit</button>
               </div>
             )}
 
