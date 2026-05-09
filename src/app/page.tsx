@@ -293,7 +293,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 
   return (
     <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-4xl">
         <div className="mb-4">
           <div className="flex items-baseline gap-3">
             <h2 className="text-2xl font-semibold tracking-[-0.03em]">Create your corporate account</h2>
@@ -303,8 +303,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
-          <div className="grid grid-cols-[1fr_300px] gap-5">
-            <section>
+          <section>
               <div className="grid grid-cols-[1fr_130px_150px] gap-3">
                 {[
                   ["Company legal name", "Cactus Capital Partners", ""],
@@ -365,39 +364,8 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                   ))}
                 </div>
               </div>
-            </section>
-
-            <aside className={`rounded-2xl border p-4 ${soft}`}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Why this step matters</p>
-                <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Private</span>
-              </div>
-              <p className={`mt-2 text-xs leading-5 ${muted}`}>These defaults create your company Vault, set who can access it, and keep currency, units, and asset classes consistent.</p>
-
-              <div className="mt-4 space-y-2">
-                {[
-                  ["Company Vault", "Belongs to the organization, not a personal inbox."],
-                  ["Team access", "Invite teammates with the right permissions."],
-                  ["Consistent outputs", "Keep tables, maps, and memos using the same formats."],
-                ].map(([title, detail], index) => (
-                  <div key={title} className={`rounded-xl border px-3 py-3 ${surface}`}>
-                    <div className="flex items-start gap-3">
-                      <span className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full text-[10px] font-semibold ${index === 0 ? isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white" : isDark ? "bg-white/10 text-neutral-400" : "bg-neutral-100 text-neutral-500"}`}>{index + 1}</span>
-                      <div><p className="text-sm font-medium">{title}</p><p className={`mt-1 text-xs leading-5 ${muted}`}>{detail}</p></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>
-                <span className={isDark ? "font-medium text-neutral-200" : "font-medium text-neutral-800"}>Secure by default.</span> Uploaded documents, extracted facts, and org-specific modeling stay inside this organization.
-              </div>
-              <div className={`mt-3 rounded-xl border p-3 text-xs leading-5 ${surface} ${muted}`}>
-                <span className={isDark ? "font-medium text-neutral-200" : "font-medium text-neutral-800"}>Free to start.</span> 50 documents included. Deleted documents still count. No payment before setup.
-              </div>
-              {helpOpen && <div className="mt-3 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad with team access. You can tighten permissions after the first Vault is built.</div>}
-            </aside>
-          </div>
+              {helpOpen && <div className="mt-4 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad with team access. You can tighten permissions after the first Vault is built.</div>}
+          </section>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(1)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
