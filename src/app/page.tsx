@@ -6,57 +6,55 @@ const appScreens = ["Vault Table", "Vault Map", "Deal Analysis", "Comps + Data",
 
 const sourceCards = [
   {
-    title: "Portfolio + operating systems",
-    note: "Connect Property Management Software, Accounting Software, rent rolls, models, IC memos, and internal benchmarks.",
-    cost: "Free trial",
-    status: "Ready",
+    title: "Upload documents",
+    badge: "Best first step",
+    note: "OMs, T12s, rent rolls, market reports, lender packages, and spreadsheets.",
+    detail: "Fastest way to see rows, fields, source links, and outputs appear.",
   },
   {
-    title: "Market subscription tools",
-    note: "Bring in market-data tools the team already uses so results get saved and reused.",
-    cost: "Use your login",
-    status: "Connect",
+    title: "Connect email or drive",
+    badge: "Broker flow + folders",
+    note: "Gmail, Outlook, Google Drive, OneDrive, deal rooms, and recurring reports.",
+    detail: "Cactus only reads the labels, folders, senders, or files you approve.",
   },
   {
-    title: "Listing scraper",
-    note: "Track broker/listing sites by market, asset type, fields, and scrape frequency.",
-    cost: "Setup guide",
-    status: "Configure",
+    title: "Import lists or comps",
+    badge: "Market data + saved work",
+    note: "Property lists, sales comps, rent comps, CRM exports, and underwriting models.",
+    detail: "Turn existing lists into searchable records and reusable comp intelligence.",
   },
   {
-    title: "Email + Google Drive",
-    note: "Capture broker emails, attachments, addresses, OMs, T12s, rent rolls, and development files.",
-    cost: "Free trial",
-    status: "Connect",
-  },
-  {
-    title: "Deal rooms + NDAs",
-    note: "Approval-gated CA/NDA signing and document extraction from protected rooms.",
-    cost: "Approval step",
-    status: "Approval required",
-  },
-  {
-    title: "Cactus enrichment",
-    note: "Activate parcel, market, flood, traffic, ownership, supply, comps, incentives, and funding endpoints.",
-    cost: "Sample data",
-    status: "Preview",
-  },
-  {
-    title: "Premium providers",
-    note: "Add Green Street, HelloData, ATTOM, or other paid sources later when needed.",
-    cost: "Connect later",
-    status: "Later",
+    title: "Use sample Vault",
+    badge: "Explore first",
+    note: "Open a finished Vault with deals, comps, maps, analysis, and outputs.",
+    detail: "Best if the user wants to understand Cactus before connecting real data.",
   },
 ];
 
-const extractionEvents = [
-  ["Scanning Gmail label", "Broker Deals / Southeast", "running"],
-  ["Documents found", "48 OMs, 14 T12s, 11 rent rolls", "done"],
-  ["Addresses detected", "31 unique multifamily locations", "done"],
-  ["Property records created", "24 rows added to The Vault", "done"],
-  ["Fields extracted", "612 datapoints with 84% avg confidence", "running"],
-  ["Review queue", "7 fields need analyst approval", "review"],
+const vaultPowers = [
+  ["Organize", "Create structured property, deal, comp, and source records."],
+  ["Search", "Ask questions across files, emails, market data, and prior work."],
+  ["Analyze", "Compare assumptions, rents, sales comps, risks, and market signals."],
+  ["Output", "Draft IC memos, investor summaries, lender packages, and reports."],
 ];
+
+const extractionEvents = [
+  ["Reading approved sources", "48 documents from upload, broker email, and Drive folders", "done"],
+  ["Detecting real estate objects", "31 addresses, 24 properties, 14 T12s, 11 rent rolls", "done"],
+  ["Creating Vault records", "Rows are appearing with market, units, source docs, and status", "running"],
+  ["Extracting deal facts", "612 fields pulled with citations back to source pages and files", "running"],
+  ["Matching maps + comps", "22 addresses geocoded; 37 sales/rent comps queued for review", "done"],
+  ["Preparing outputs", "Deal summaries ready; IC memo and investor package drafting", "review"],
+];
+
+const buildRows = [
+  ["Riverside Flats", "Nashville", "184", "OM, T12", "Ready"],
+  ["The Mercer", "Atlanta", "248", "OM, rent roll", "Extracting"],
+  ["Pine Hollow", "Charlotte", "132", "Email, OM", "Mapped"],
+  ["Cedar Point", "Tampa", "96", "T12", "Needs review"],
+];
+
+const unlockedOutputs = ["Vault table", "Map view", "Deal summary", "Rent roll review", "IC memo drafting"];
 
 const vaultRows = [
   ["Riverside Flats", "Nashville", "184", "1988", "$24.6M", "$133k", "5.8%", "$1,462", "A-", "Email + OM"],
@@ -404,24 +402,61 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 }
 
 function VaultSetup({ go }: { go: (screenIndex: number) => void }) {
+  const [selected, setSelected] = useState(0);
+
   return (
-    <div className="p-8">
-      <SectionHeader eyebrow="Onboarding · Step 03" title="Create The Vault" subtitle="Choose the first sources for your Cactus engine. Start with documents, Google Drive, operating systems, APIs, or scrapers — Cactus will organize what it finds and show what needs review." />
-      <div className="grid grid-cols-3 gap-4">
-        {sourceCards.map((card) => (
-          <div key={card.title} className="min-h-[210px] rounded-[1.6rem] border border-neutral-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <Pill tone={card.status === "Ready" ? "green" : card.status === "Approval required" ? "amber" : "default"}>{card.status}</Pill>
-              <span className="text-xs text-neutral-400">{card.cost}</span>
+    <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-neutral-950">
+      <div className="w-full max-w-6xl">
+        <div className="mb-4 flex items-end justify-between gap-6">
+          <div>
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start building your Vault</h2>
+              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
             </div>
-            <h3 className="mt-8 text-xl font-semibold tracking-[-0.04em] text-neutral-950">{card.title}</h3>
-            <p className="mt-3 text-sm leading-6 text-neutral-500">{card.note}</p>
-            <button className="mt-6 rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700">Set up</button>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">Tell Cactus where your real estate data lives. Cactus turns scattered files, emails, reports, and comps into a private intelligence layer your team can search, map, analyze, and turn into professional outputs — a proprietary edge built from data competitors cannot see.</p>
           </div>
-        ))}
-      </div>
-      <div className="mt-6 flex justify-end">
-        <button onClick={() => go(4)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white">Start extracting data</button>
+          <div className="rounded-xl border border-neutral-200 bg-white/80 px-4 py-3 text-xs text-neutral-500 shadow-sm">You can add more sources later.</div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div>
+            <p className="text-sm font-semibold">Choose your first source</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              {sourceCards.map((card, index) => {
+                const isSelected = selected === index;
+                return (
+                  <button key={card.title} onClick={() => setSelected(index)} className={`min-h-[150px] rounded-xl border p-4 text-left shadow-sm transition ${isSelected ? "border-neutral-900 bg-[#f4f1ea] text-neutral-950 ring-1 ring-neutral-900/10" : "border-neutral-200 bg-neutral-50/70 text-neutral-950 hover:bg-white"}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className={`text-[11px] font-medium uppercase tracking-[0.14em] ${isSelected ? "text-neutral-600" : "text-neutral-400"}`}>{card.badge}</span>
+                      <span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${isSelected ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>
+                    </div>
+                    <h3 className="mt-5 text-lg font-semibold tracking-[-0.04em]">{card.title}</h3>
+                    <p className="mt-2 text-sm leading-5 text-neutral-600">{card.note}</p>
+                    <p className="mt-3 text-xs leading-5 text-neutral-500">{card.detail}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-500">
+              <span>You control every source. Vault data and org-specific modeling stay contained to your organization.</span>
+              <button onClick={() => go(4)} className="ml-4 shrink-0 rounded-lg bg-neutral-950 px-4 py-2 text-sm font-medium text-white shadow-sm">Continue with selected source</button>
+            </div>
+          </div>
+
+          <aside className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <p className="text-sm font-semibold">Your Vault creates your edge</p>
+            <div className="mt-4 space-y-3 text-xs">
+              <div className="rounded-xl bg-neutral-50 p-3"><p className="font-medium text-neutral-900">Scattered data</p><p className="mt-1 text-neutral-500">Emails · PDFs · Excel · Drive · Comps</p></div>
+              <div className="pl-3 text-neutral-300">↓</div>
+              <div className="rounded-xl bg-neutral-950 p-3 text-white"><p className="font-medium">Organized intelligence</p><p className="mt-1 text-neutral-400">Deals · Properties · Sources · Maps · Assumptions</p></div>
+              <div className="pl-3 text-neutral-300">↓</div>
+              <div className="rounded-xl bg-neutral-50 p-3"><p className="font-medium text-neutral-900">Professional output</p><p className="mt-1 text-neutral-500">Memos · Summaries · Packages · Reports</p></div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {vaultPowers.map(([power, detail]) => <div key={power} className="rounded-lg border border-neutral-200 p-3"><p className="text-xs font-semibold">{power}</p><p className="mt-1 text-[11px] leading-4 text-neutral-500">{detail}</p></div>)}
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );
@@ -429,34 +464,56 @@ function VaultSetup({ go }: { go: (screenIndex: number) => void }) {
 
 function LiveExtraction({ go }: { go: (screenIndex: number) => void }) {
   return (
-    <div className="grid min-h-[690px] grid-cols-[1fr_360px] gap-5 p-8">
-      <div className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Onboarding · Step 04" title="Watch The Vault populate" subtitle="The system should feel alive immediately: extracting docs, detecting locations, creating records, and surfacing the review queue in real time." />
-        <div className="space-y-3">
-          {extractionEvents.map(([name, detail, status]) => (
-            <div key={name} className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <div className="flex items-center gap-4">
-                <div className={`h-3 w-3 rounded-full ${status === "running" ? "animate-pulse bg-blue-500" : status === "review" ? "bg-amber-400" : "bg-emerald-500"}`} />
-                <div>
-                  <p className="text-sm font-medium text-neutral-900">{name}</p>
-                  <p className="text-xs text-neutral-500">{detail}</p>
-                </div>
-              </div>
-              <Pill tone={status === "review" ? "amber" : "default"}>{status}</Pill>
+    <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-neutral-950">
+      <div className="w-full max-w-6xl">
+        <div className="mb-4 flex items-end justify-between gap-6">
+          <div>
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Cactus is building your Vault</h2>
+              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 4 of 4</span>
             </div>
-          ))}
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">No generic loading screen. Cactus shows the work: reading sources, extracting facts, creating rows, mapping properties, linking citations, and preparing outputs.</p>
+          </div>
+          <button onClick={() => go(5)} className="rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Open your Vault</button>
         </div>
-      </div>
-      <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
-        <p className="text-sm text-emerald-300">Trial progress</p>
-        <p className="mt-4 text-5xl font-semibold tracking-[-0.06em]">48 / 50</p>
-        <p className="mt-2 text-sm text-neutral-400">Documents scanned in your free trial. Deleted documents still count toward the trial limit.</p>
-        <div className="mt-8 space-y-3 text-sm">
-          <div className="flex justify-between"><span className="text-neutral-400">Documents uploaded</span><span>48</span></div>
-          <div className="flex justify-between"><span className="text-neutral-400">Documents remaining</span><span>2</span></div>
-          <div className="flex justify-between"><span className="text-neutral-400">Time limit</span><span>None</span></div>
+
+        <div className="grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border border-white/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+                <div><p className="text-sm font-semibold">Vault records appearing live</p><p className="mt-1 text-xs text-neutral-500">Rows and columns fill as Cactus extracts facts from source files.</p></div>
+                <Pill tone="green">24 records created</Pill>
+              </div>
+              <table className="w-full text-left text-sm">
+                <thead className="bg-neutral-50 text-xs text-neutral-500"><tr>{["Property", "Market", "Units", "Sources", "Status"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-2.5 font-medium">{h}</th>)}</tr></thead>
+                <tbody>{buildRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-3 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 4 ? <span className={`rounded-full px-2 py-1 text-xs ${cell === "Ready" ? "bg-emerald-50 text-emerald-700" : cell === "Needs review" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>{cell}</span> : cell}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {["31 addresses detected", "37 comps queued", "5 outputs unlocking"].map((stat) => <div key={stat} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm font-medium">{stat}<p className="mt-2 text-xs font-normal text-neutral-500">Source-linked and reviewable.</p></div>)}
+            </div>
+          </div>
+
+          <aside className="space-y-3">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-950 p-4 text-white shadow-sm">
+              <p className="text-sm font-semibold">Cactus activity</p>
+              <div className="mt-4 space-y-3">
+                {extractionEvents.map(([name, detail, status]) => (
+                  <div key={name} className="flex gap-3">
+                    <div className={`mt-1.5 h-2.5 w-2.5 rounded-full ${status === "running" ? "animate-pulse bg-blue-300" : status === "review" ? "bg-amber-300" : "bg-emerald-300"}`} />
+                    <div><p className="text-xs font-medium text-white">{name}</p><p className="mt-1 text-[11px] leading-4 text-neutral-400">{detail}</p></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <p className="text-sm font-semibold">Outputs unlocking</p>
+              <div className="mt-3 flex flex-wrap gap-2">{unlockedOutputs.map((output, index) => <span key={output} className={`rounded-full border px-3 py-1.5 text-xs ${index < 3 ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-500"}`}>{output}</span>)}</div>
+              <p className="mt-4 text-xs leading-5 text-neutral-500">The user sees useful artifacts becoming available instead of staring at a loading bar.</p>
+            </div>
+          </aside>
         </div>
-        <button onClick={() => go(5)} className="mt-10 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Enter Cactus app</button>
       </div>
     </div>
   );
