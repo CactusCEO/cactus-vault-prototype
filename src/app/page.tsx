@@ -411,7 +411,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
                   {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
                     <button key={item} className={`rounded-lg border px-3 py-2 text-left text-sm font-medium shadow-sm ${surface} ${label}`}>
-                      <span className="flex items-center gap-2"><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>{item}</span>
+                      <span className="flex items-center gap-2"><span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>{index < 3 ? "✓" : ""}</span>{item}</span>
                     </button>
                   ))}
                 </div>
@@ -467,7 +467,7 @@ function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "
                     <button key={source.title} onClick={() => setSelected(index)} className={`min-h-[118px] rounded-xl border p-4 text-left shadow-sm transition ${isSelected ? selectedCard : card}`}>
                       <div className="flex items-center justify-between gap-3">
                         <span className={`text-[10px] font-medium uppercase tracking-[0.14em] ${isSelected && !isDark ? "text-neutral-600" : "text-neutral-400"}`}>{source.badge}</span>
-                        <span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>✓</span>
+                        <span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
                       </div>
                       <h3 className="mt-4 text-base font-semibold tracking-[-0.03em]">{source.title}</h3>
                       <p className={`mt-2 text-sm leading-5 ${isSelected ? isDark ? "text-neutral-600" : "text-neutral-600" : muted}`}>{source.note}</p>
@@ -485,7 +485,7 @@ function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "
                     ["Portfolio Monitor", "Watch owned assets and market changes."],
                   ].map(([title, copy], index) => (
                     <button key={title} className={`rounded-xl border p-3 text-left shadow-sm transition ${index === 0 ? selectedCard : card}`}>
-                      <div className="flex items-center justify-between"><p className="text-sm font-semibold">{title}</p><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index === 0 ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>✓</span></div>
+                      <div className="flex items-center justify-between"><p className="text-sm font-semibold">{title}</p><span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index === 0 ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{index === 0 ? "✓" : ""}</span></div>
                       <p className={`mt-2 text-xs leading-5 ${index === 0 ? "text-neutral-600" : muted}`}>{copy}</p>
                     </button>
                   ))}
@@ -660,11 +660,11 @@ function Agents() {
 function VaultTable() {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Opportunity workspace" title="Explore The Vault as a living table" subtitle="Rows are locations/properties. Columns are data endpoints from documents, emails, listings, Cactus data, premium sources, and user-approved edits." />
+      <SectionHeader eyebrow="Opportunity workspace" title="The Vault stores every deal, site, source, and learning" subtitle="Rows are opportunities, properties, sites, owners, comps, and documents. Columns are source-linked facts, map signals, underwriting inputs, review status, and what Cactus has learned." />
       <div className="overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-          <div className="flex gap-2"><Pill>Rows: properties / locations</Pill><Pill>Columns: data endpoints</Pill><Pill tone="amber">7 review items</Pill></div>
-          <div className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-500">Ask your Vault: “Which properties fit our Nashville buy box?”</div>
+          <div className="flex gap-2"><Pill>Deals + sites</Pill><Pill>Source-linked facts</Pill><Pill tone="amber">7 review items</Pill></div>
+          <div className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-500">Ask your Vault: “Which sites or deals fit our Tampa strategy?”</div>
         </div>
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-neutral-50 text-xs text-neutral-500">
@@ -684,24 +684,24 @@ function VaultMap() {
     <div className="grid min-h-[690px] grid-cols-[290px_1fr_320px] gap-5 p-8">
       <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-medium">Filters</p>
-        {['Drive time: 20 min', 'Radius: 5 miles', 'Units: 100-300', 'Vintage: 1975-2005', 'Flood zone: exclude AE', 'Source: all'].map((filter) => <div key={filter} className="mt-3 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-600">{filter} <span className="float-right text-neutral-300">⌄</span></div>)}
+        {['Drive time: 20 min', 'Demand growth: high', 'Supply pipeline: low', 'Traffic density: strong', 'Flood zone: exclude AE', 'Zoning: multifamily-friendly'].map((filter) => <div key={filter} className="mt-3 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-600">{filter} <span className="float-right text-neutral-300">⌄</span></div>)}
         <div className="mt-5 border-t border-neutral-200 pt-5">
           <div className="mb-3 flex items-center justify-between"><p className="text-sm font-medium">Matching records</p><span className="text-xs text-neutral-400">3</span></div>
-          {['Riverside Flats', 'Hillside Trace', 'Rivergate Park'].map((property) => <div key={property} className="mt-2 rounded-xl bg-neutral-50 p-3 text-sm"><p className="font-medium text-neutral-900">{property}</p><p className="mt-1 text-xs text-neutral-500">Internal comp · add to set</p></div>)}
+          {['East Loop Assemblage', 'Riverside Flats', 'West Mesa Corridor'].map((property) => <div key={property} className="mt-2 rounded-xl bg-neutral-50 p-3 text-sm"><p className="font-medium text-neutral-900">{property}</p><p className="mt-1 text-xs text-neutral-500">Opportunity signal · open analysis</p></div>)}
         </div>
       </div>
       <div className="relative overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-[#eef0eb] shadow-sm">
         <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(35deg,transparent_47%,rgba(82,82,82,.16)_48%,rgba(82,82,82,.16)_52%,transparent_53%),linear-gradient(120deg,transparent_47%,rgba(82,82,82,.12)_48%,rgba(82,82,82,.12)_52%,transparent_53%)] [background-size:160px_160px,220px_220px]" />
         <div className="absolute left-[18%] top-[20%] h-[420px] w-[520px] rounded-full border border-emerald-500/30 bg-emerald-400/10" />
-        <div className="absolute right-[10%] top-[18%] rounded-full border border-blue-400/40 bg-blue-100/50 px-3 py-1 text-xs text-blue-700">20-min drive time</div>
+        <div className="absolute right-[10%] top-[18%] rounded-full border border-blue-400/40 bg-blue-100/50 px-3 py-1 text-xs text-blue-700">site-selection layer</div>
         {mapPins.map(([pos, name, detail]) => <div key={name} className={`absolute ${pos} group`}><div className="h-4 w-4 rounded-full border-2 border-white bg-neutral-950 shadow-lg" /><div className="mt-2 hidden rounded-xl bg-white p-3 text-xs shadow-xl group-hover:block"><p className="font-medium">{name}</p><p className="text-neutral-500">{detail}</p></div></div>)}
       </div>
       <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-medium">Map assistant</p>
-        <div className="mt-5 rounded-2xl bg-neutral-50 p-4 text-sm leading-6 text-neutral-600">Three records match the current drive-time, vintage, and flood-zone filters. Riverside Flats has the best rent-gap signal and two strong internal comps.</div>
-        <div className="mt-3 rounded-2xl bg-neutral-950 p-4 text-sm leading-6 text-white">I can explain the match, widen the radius, or create a comp set from these 3 records.</div>
-        <div className="mt-4 rounded-full border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-400">Ask about this map view…</div>
-        <button className="mt-4 w-full rounded-full bg-neutral-950 px-4 py-3 text-sm font-medium text-white">Create comp set from 3 matches</button>
+        <div className="mt-5 rounded-2xl bg-neutral-50 p-4 text-sm leading-6 text-neutral-600">Three opportunity zones match demand growth, traffic density, zoning, supply gap, and flood-risk filters. East Loop has the strongest site-selection signal.</div>
+        <div className="mt-3 rounded-2xl bg-neutral-950 p-4 text-sm leading-6 text-white">I can explain why this site surfaced, compare nearby comps, or turn it into a development review packet.</div>
+        <div className="mt-4 rounded-full border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-400">Ask about this site-selection view…</div>
+        <button className="mt-4 w-full rounded-full bg-neutral-950 px-4 py-3 text-sm font-medium text-white">Create site review from 3 signals</button>
       </div>
     </div>
   );
@@ -711,18 +711,18 @@ function DealAnalysis() {
   return (
     <div className="grid min-h-[690px] grid-cols-[260px_1fr_340px] gap-5 p-8">
       <aside className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
-        {['Overview', 'Documents', 'Extracted facts', 'Market', 'Rent comps', 'Sales comps', 'Underwriting', 'Memo'].map((item, i) => <div key={item} className={`rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{item}</div>)}
+        {['Overview', 'Opportunity thesis', 'Extracted facts', 'Site signals', 'Market', 'Rent comps', 'Sales comps', 'Memo'].map((item, i) => <div key={item} className={`rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{item}</div>)}
       </aside>
       <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Deal workspace" title="Analyze a deal or address" subtitle="Drag documents into chat, select a Vault row, enter an address, or open deal-room data. Cactus extracts facts and ties every field back to source evidence." />
+        <SectionHeader eyebrow="Deal + site workspace" title="Analyze an opportunity, deal, or site" subtitle="Select an opportunity from the engine, open a Vault row, enter an address, or add documents. Cactus combines site-selection signals, comps, source facts, and learned criteria into one reviewable analysis." />
         <div className="grid grid-cols-2 gap-4">
           {dealFacts.map(([field, value, source, status]) => <div key={field} className="rounded-2xl border border-neutral-200 p-4"><div className="flex justify-between"><p className="text-xs text-neutral-400">{field}</p><Pill tone={status === "Review" ? "amber" : "green"}>{status}</Pill></div><p className="mt-3 text-lg font-medium tracking-[-0.03em]">{value}</p><p className="mt-2 text-xs text-neutral-400">Source: {source}</p></div>)}
         </div>
       </main>
       <aside className="rounded-[1.5rem] border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
-        <p className="text-sm font-medium">Deal chat</p>
-        <div className="mt-4 rounded-2xl bg-white p-4 text-sm leading-6 text-neutral-600">Drop OM, T12, rent roll, or broker email here. I will match the address to The Vault, recommend comps, and flag missing data.</div>
-        <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-sm text-neutral-400">Drag documents</div>
+        <p className="text-sm font-medium">Analysis assistant</p>
+        <div className="mt-4 rounded-2xl bg-white p-4 text-sm leading-6 text-neutral-600">Ask why an opportunity surfaced, add an OM/T12/rent roll, or compare the site against demographics, traffic, supply, flood risk, and comps.</div>
+        <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-sm text-neutral-400">Add docs or ask why this surfaced</div>
       </aside>
     </div>
   );
@@ -732,11 +732,11 @@ function CompsData() {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_340px] gap-5 p-8">
       <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Comps + enrichment" title="Approve comps and enrichments" subtitle="The system recommends comps, but the investor approves. Paid enrichment is offered at the moment of need with cost and value clearly shown." />
-        <table className="w-full text-left text-sm"><thead className="text-xs text-neutral-500"><tr>{['Comp', 'Distance', 'Year', 'Units', '$/Unit', 'Decision'].map((h) => <th key={h} className="border-b border-neutral-200 px-3 py-3 font-medium">{h}</th>)}</tr></thead><tbody>{comps.map((row) => <tr key={row[0]}>{row.map((cell, i) => <td key={cell} className="border-b border-neutral-100 px-3 py-4"><span className={i === 5 ? "rounded-full border border-neutral-200 px-2 py-1 text-xs" : ""}>{cell}</span></td>)}</tr>)}</tbody></table>
+        <SectionHeader eyebrow="Comps + enrichment" title="Approve comps, site signals, and enrichments" subtitle="Cactus recommends evidence for deals and sites, but the investor approves. Paid enrichment appears only when it strengthens underwriting, site selection, or output citations." />
+        <table className="w-full text-left text-sm"><thead className="text-xs text-neutral-500"><tr>{['Evidence', 'Distance', 'Year', 'Units', '$/Unit', 'Decision'].map((h) => <th key={h} className="border-b border-neutral-200 px-3 py-3 font-medium">{h}</th>)}</tr></thead><tbody>{comps.map((row) => <tr key={row[0]}>{row.map((cell, i) => <td key={cell} className="border-b border-neutral-100 px-3 py-4"><span className={i === 5 ? "rounded-full border border-neutral-200 px-2 py-1 text-xs" : ""}>{cell}</span></td>)}</tr>)}</tbody></table>
       </div>
       <div className="space-y-4">
-        {['Cactus market pack — $49/deal', 'HelloData rent comps — $75/deal', 'ATTOM ownership/tax — $39/deal', 'Green Street outlook — quote'].map((item) => <div key={item} className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm"><p className="font-medium tracking-[-0.02em]">{item}</p><p className="mt-2 text-sm leading-6 text-neutral-500">Adds evidence to underwriting, comp support, and output citations.</p><button className="mt-4 rounded-full border border-neutral-200 px-4 py-2 text-sm">Add</button></div>)}
+        {['Cactus site-selection pack — $49/opportunity', 'HelloData rent comps — $75/deal', 'ATTOM ownership/tax — $39/deal', 'Green Street outlook — quote'].map((item) => <div key={item} className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm"><p className="font-medium tracking-[-0.02em]">{item}</p><p className="mt-2 text-sm leading-6 text-neutral-500">Adds evidence to opportunity ranking, site selection, underwriting, comp support, and output citations.</p><button className="mt-4 rounded-full border border-neutral-200 px-4 py-2 text-sm">Add</button></div>)}
       </div>
     </div>
   );
@@ -745,9 +745,9 @@ function CompsData() {
 function Outputs() {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Output builder" title="Generate IC and bank-ready outputs" subtitle="Convert the selected facts, comps, benchmarks, underwriting assumptions, and citations into professional materials the team can use." />
+      <SectionHeader eyebrow="Output builder" title="Generate hitlists, site memos, IC, and bank-ready outputs" subtitle="Convert ranked opportunities, site-selection signals, facts, comps, assumptions, and citations into professional materials the team can review or send." />
       <div className="grid grid-cols-3 gap-5">
-        {['IC memo', 'Bank package', 'Investor package'].map((output, i) => <div key={output} className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm"><Pill tone={i === 2 ? "default" : "green"}>{i === 2 ? "Later" : "Ready"}</Pill><h3 className="mt-16 text-2xl font-semibold tracking-[-0.05em]">{output}</h3><p className="mt-3 text-sm leading-6 text-neutral-500">Executive summary, property overview, comps, market support, risks, citations, and appendix-ready source links.</p><button className="mt-6 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Preview</button></div>)}
+        {['Weekly hitlist', 'Site-selection memo', 'IC memo', 'Bank package'].map((output, i) => <div key={output} className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm"><Pill tone={i === 2 ? "default" : "green"}>{i === 2 ? "Later" : "Ready"}</Pill><h3 className="mt-16 text-2xl font-semibold tracking-[-0.05em]">{output}</h3><p className="mt-3 text-sm leading-6 text-neutral-500">Opportunity thesis, site/deal evidence, comps, market support, risks, citations, and appendix-ready source links.</p><button className="mt-6 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Preview</button></div>)}
       </div>
     </div>
   );
