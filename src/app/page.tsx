@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-const appScreens = ["Vault Table", "Vault Map", "Deal Analysis", "Comps + Data", "Outputs", "Automations"];
+const appScreens = ["Opportunities", "Vault", "Map", "Agents", "Deal Analysis", "Comps + Data", "Outputs", "Activity"];
 
 const sourceCards = [
   {
@@ -28,29 +28,29 @@ const sourceCards = [
 ];
 
 const agentPreview = [
-  ["Read", "approved files + folders"],
-  ["Extract", "facts, comps, sources"],
-  ["Build", "Vault rows + map pins"],
-  ["Draft", "summaries + IC memo"],
+  ["Watch", "approved markets, sources, brokers"],
+  ["Find", "deals, sites, signals, risks"],
+  ["Analyze", "maps, comps, citations, rankings"],
+  ["Learn", "team feedback + rejected deals"],
 ];
 
 const extractionEvents = [
-  ["Reading approved sources", "48 documents from upload, broker email, and Drive folders", "done"],
-  ["Detecting real estate objects", "31 addresses, 24 properties, 14 T12s, 11 rent rolls", "done"],
-  ["Creating Vault records", "Rows are appearing with market, units, source docs, and status", "running"],
-  ["Extracting deal facts", "612 fields pulled with citations back to source pages and files", "running"],
-  ["Matching maps + comps", "22 addresses geocoded; 37 sales/rent comps queued for review", "done"],
-  ["Preparing outputs", "Deal summaries ready; IC memo and investor package drafting", "review"],
+  ["Watching approved markets", "Nashville, Tampa, Charlotte, Phoenix, and Dallas opportunity signals", "done"],
+  ["Finding deals + sites", "19 acquisition leads and 6 development zones surfaced for review", "running"],
+  ["Creating Vault records", "Properties, owners, submarkets, sources, and status fields are appearing", "running"],
+  ["Scoring site-selection signals", "Demographics, traffic, flood risk, zoning, supply pipeline, and comps checked", "done"],
+  ["Extracting deal facts", "612 fields pulled with citations back to source pages and files", "done"],
+  ["Learning your criteria", "Cactus saved buy-box preferences and rejection reasons for future rankings", "review"],
 ];
 
 const buildRows = [
-  ["Riverside Flats", "Nashville", "184", "OM, T12", "Ready"],
-  ["The Mercer", "Atlanta", "248", "OM, rent roll", "Extracting"],
-  ["Pine Hollow", "Charlotte", "132", "Email, OM", "Mapped"],
-  ["Cedar Point", "Tampa", "96", "T12", "Needs review"],
+  ["Riverside Flats", "Nashville", "184", "Deal signal + OM", "Ready"],
+  ["East Loop Assemblage", "Tampa", "Site", "Permit + zoning", "Scoring"],
+  ["Pine Hollow", "Charlotte", "132", "Broker email", "Mapped"],
+  ["Cedar Point", "Tampa", "96", "Ownership signal", "Needs review"],
 ];
 
-const unlockedOutputs = ["Vault table", "Map view", "Deal summary", "Rent roll review", "IC memo drafting"];
+const unlockedOutputs = ["Opportunity list", "Vault table", "Map layers", "Site memo", "IC memo drafting"];
 
 const vaultRows = [
   ["Riverside Flats", "Nashville", "184", "1988", "$24.6M", "$133k", "5.8%", "$1,462", "A-", "Email + OM"],
@@ -81,6 +81,27 @@ const comps = [
   ["Hillside Trace", "14 min", "1986", "210", "$139k/unit", "Use"],
   ["Metro Pointe", "22 min", "2003", "260", "$176k/unit", "Maybe"],
   ["East Bend", "4.8 mi", "1978", "120", "$118k/unit", "Exclude"],
+];
+
+const opportunityRows = [
+  ["East Loop Assemblage", "Tampa", "Site selection", "91", "Supply gap + traffic", "Analyze"],
+  ["Riverside Flats", "Nashville", "Acquisition", "88", "Rent gap + broker signal", "Analyze"],
+  ["Pine Hollow", "Charlotte", "Acquisition", "82", "Owner age + comp support", "Review"],
+  ["West Mesa Corridor", "Phoenix", "Site selection", "79", "Growth + zoning", "Watch"],
+];
+
+const agentCards = [
+  ["Opportunity Finder", "Watching brokers, listings, owner signals, permits", "18 min ago", "19 leads found", "3 need review"],
+  ["Site Selection", "Scoring demographics, traffic, zoning, flood, supply", "Today", "6 zones ranked", "1 memo ready"],
+  ["Deal Intake", "Reading approved inbox labels and deal rooms", "42 min ago", "4 packages structured", "7 facts need review"],
+  ["Portfolio Monitor", "Watching owned assets, rents, taxes, insurance, comps", "Daily", "3 alerts created", "0 blocked"],
+];
+
+const learnedItems = [
+  "Prefers 80–250 unit value-add multifamily in growth markets.",
+  "Flags flood risk and unclear T12s before underwriting.",
+  "Ranks sites higher when traffic, job growth, and supply gap align.",
+  "Uses conservative rent-growth assumptions unless Tyler approves otherwise.",
 ];
 
 function Pill({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "dark" | "green" | "amber" }) {
@@ -122,16 +143,16 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
             <Pill tone="green">Private beta</Pill>
           </div>
           <h1 className="max-w-4xl text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-neutral-950">
-            Turn your existing real estate data into a proprietary edge.
+            Build always-on CRE agents that find, analyze, and improve.
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-neutral-500">
-            Cactus builds The Vault: a living customer brain for portfolio asset management, acquisitions, and new development. It gives investors a data analyst, underwriter, deal sourcer, and asset manager that never sleep — saving the portfolio data, market subscriptions, Property Management Software, Accounting Software, Google Drive files, broker emails, listing scrapers, deal rooms, and provider APIs your team already relies on so every customer builds a proprietary edge.
+            Cactus gives real estate teams always-on systems that never sleep: they find deals and sites, watch markets, analyze opportunities, organize your Vault, learn from feedback, and prepare outputs while your team works on the highest-value decisions.
           </p>
           <div className="mt-8 grid max-w-3xl grid-cols-3 gap-3">
             {[
-              ["Connect", "Operating systems, market subscriptions, documents, APIs, listing sites"],
-              ["Think", "a data analyst, underwriter, deal sourcer, and asset manager working continuously"],
-              ["Act", "portfolio management, acquisitions, development, outputs, hitlists"],
+              ["Find", "deals, sites, market shifts, ownership signals, permits, broker activity"],
+              ["Analyze", "maps, comps, risks, source citations, site-selection signals, rankings"],
+              ["Improve", "learn from approvals, rejections, edits, assumptions, and team feedback"],
             ].map(([title, note]) => (
               <div key={title} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                 <p className="text-sm font-medium text-neutral-950">{title}</p>
@@ -141,20 +162,20 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Build your Vault</button>
+          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Build your engine</button>
           <button onClick={() => go(1)} className="rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-neutral-700">Sign in</button>
         </div>
       </div>
       <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4">
         <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium">How each customer brain gets built</p>
-          <p className="mt-2 text-xs leading-5 text-neutral-500">Start with whatever data the team already owns, then add connectors and scrapers as needed.</p>
+          <p className="text-sm font-medium">How the opportunity engine keeps working</p>
+          <p className="mt-2 text-xs leading-5 text-neutral-500">Start with one approved source and one always-on system, then let Cactus keep watching, learning, and improving.</p>
           <div className="mt-5 space-y-3">
             {[
-              ["Customer data", "Portfolio history, Property Management Software, Accounting Software, Google Drive, internal APIs, and provider accounts."],
-              ["Market capture", "Save market-subscription research, build listing scrapers, and monitor broker sites, deal rooms, emails, and NDAs/CAs."],
-              ["Cactus enrichment", "Add asset-specific signals: affordable housing funding/incentives, self-storage supply/demand, zoning, traffic, ownership, flood, comps, and provider data."],
-              ["Decisions", "Use the brain for asset management, acquisitions, new development, IC memos, bank packages, and weekly hitlists."],
+              ["Watch", "Approved markets, sources, broker activity, listing sites, permits, ownership signals, and portfolio changes."],
+              ["Find", "Surface acquisition targets, site-selection zones, market gaps, and off-market signals before a formal deal arrives."],
+              ["Analyze", "Map, comp, risk-score, cite sources, prepare memos, and show exactly why each opportunity surfaced."],
+              ["Learn", "Capture approvals, rejections, assumptions, and edits so future rankings get sharper automatically."],
             ].map(([title, note], index) => (
               <div key={title} className="rounded-2xl border border-neutral-200 bg-white p-4">
                 <div className="flex items-start gap-3">
@@ -172,7 +193,7 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           <div className="flex items-center justify-between px-5 py-4">
             <div>
               <p className="text-sm font-medium">Help video</p>
-              <p className="mt-1 text-xs text-neutral-500">How Cactus turns scattered data into a customer brain</p>
+              <p className="mt-1 text-xs text-neutral-500">How Cactus creates always-on opportunity intelligence</p>
             </div>
             <Pill tone="green">Playing</Pill>
           </div>
@@ -183,8 +204,8 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
               <div className="mb-4 flex items-center gap-3">
                 <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-neutral-950">▶</div>
                 <div>
-                  <p className="text-sm font-medium">From scattered subscriptions to a proprietary edge</p>
-                  <p className="mt-1 text-xs text-neutral-400">Portfolio + market data → Cactus enrichment → asset-class decisions</p>
+                  <p className="text-sm font-medium">Find → analyze → review → learn → improve</p>
+                  <p className="mt-1 text-xs text-neutral-400">Deal finding + site selection + Vault context → faster intake</p>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-white/15"><div className="h-1.5 w-1/3 rounded-full bg-white" /></div>
@@ -292,7 +313,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const label = isDark ? "text-neutral-300" : "text-neutral-700";
   const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
   const summary = isDark ? "border-white/10 bg-white/[0.03] text-neutral-300" : "border-neutral-200 bg-neutral-50 text-neutral-600";
-  const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to Vault setup";
+  const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to opportunity setup";
 
   const goBack = () => {
     if (setupStage > 1) setSetupStage(setupStage - 1);
@@ -428,17 +449,17 @@ function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "
       <div className="w-full max-w-5xl">
         <div className="mb-4">
           <div className="flex items-baseline gap-3">
-            <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start building your Vault</h2>
+            <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start your opportunity engine</h2>
             <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
           </div>
-          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Choose one place for Cactus to start. It will turn that source into records, maps, facts, and outputs.</p>
-          <p className={`mt-2 text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>Start with one source today. Add email, drives, comps, and more later.</p>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Choose one source and one always-on system. Cactus will start finding deals/sites, building records, mapping facts, and learning what matters.</p>
+          <p className={`mt-2 text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>Start simple today. Add more sources, agents, and criteria later.</p>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <div className="grid grid-cols-[1fr_300px] gap-5">
             <section>
-              <p className="text-sm font-semibold">Choose your first source</p>
+              <p className="text-sm font-semibold">Choose the first source Cactus can learn from</p>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 {sourceCards.map((source, index) => {
                   const isSelected = selected === index;
@@ -454,11 +475,27 @@ function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "
                   );
                 })}
               </div>
+              <div className="mt-4">
+                <p className="text-sm font-semibold">Choose the first always-on system</p>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {[
+                    ["Opportunity Finder", "Find acquisition targets and deal signals."],
+                    ["Site Selection", "Rank areas/sites using demand, traffic, risk, and comps."],
+                    ["Deal Intake", "Process incoming packages faster with context already built."],
+                    ["Portfolio Monitor", "Watch owned assets and market changes."],
+                  ].map(([title, copy], index) => (
+                    <button key={title} className={`rounded-xl border p-3 text-left shadow-sm transition ${index === 0 ? selectedCard : card}`}>
+                      <div className="flex items-center justify-between"><p className="text-sm font-semibold">{title}</p><span className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index === 0 ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>✓</span></div>
+                      <p className={`mt-2 text-xs leading-5 ${index === 0 ? "text-neutral-600" : muted}`}>{copy}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
 
             <aside className={`rounded-2xl border p-4 ${soft}`}>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Cactus will start working</p>
+                <p className="text-sm font-semibold">Cactus will keep working</p>
                 <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Agent ready</span>
               </div>
               <div className="mt-4 space-y-2">
@@ -469,15 +506,15 @@ function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "
                   </div>
                 ))}
               </div>
-              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${soft} ${muted}`}>You approve every source. Vault data and org-specific modeling stay inside your organization.</div>
+              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${soft} ${muted}`}>You approve every source. Cactus only watches what you allow and keeps org-specific learning inside your organization.</div>
             </aside>
           </div>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(2)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
             <div className="flex items-center gap-4">
-              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>More sources can be added anytime.</span>
-              <button onClick={() => go(4)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to live build</button>
+              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>More sources and agents can be added anytime.</span>
+              <button onClick={() => go(4)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Start live activation</button>
             </div>
           </div>
         </div>
@@ -501,20 +538,20 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
         <div className="mb-4 flex items-end justify-between gap-6">
           <div>
             <div className="flex items-baseline gap-3">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Cactus is building your Vault</h2>
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Cactus is activating your engine</h2>
               <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 4 of 4</span>
             </div>
-            <p className={`mt-2 max-w-3xl text-sm leading-6 ${muted}`}>No generic loading screen. Cactus shows the work: reading sources, extracting facts, creating rows, mapping properties, linking citations, and preparing outputs.</p>
+            <p className={`mt-2 max-w-3xl text-sm leading-6 ${muted}`}>No generic loading screen. Cactus shows the always-on work: finding deals and sites, scoring signals, creating Vault rows, linking citations, learning criteria, and preparing outputs.</p>
           </div>
-          <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Open your Vault</button>
+          <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Open opportunity engine</button>
         </div>
 
         <div className={`grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <div className="space-y-4">
             <div className={`rounded-2xl border shadow-sm ${surface}`}>
               <div className={`flex items-center justify-between border-b px-4 py-3 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
-                <div><p className="text-sm font-semibold">Vault records appearing live</p><p className={`mt-1 text-xs ${muted}`}>Rows and columns fill as Cactus extracts facts from source files.</p></div>
-                <Pill tone="green">24 records created</Pill>
+                <div><p className="text-sm font-semibold">Opportunities and Vault records appearing live</p><p className={`mt-1 text-xs ${muted}`}>Rows fill as Cactus finds opportunities, scores sites, extracts facts, and links evidence.</p></div>
+                <Pill tone="green">19 opportunities found</Pill>
               </div>
               <table className="w-full text-left text-sm">
                 <thead className={`text-xs ${isDark ? "bg-white/[0.04] text-neutral-400" : "bg-neutral-50 text-neutral-500"}`}><tr>{["Property", "Market", "Units", "Sources", "Status"].map((h) => <th key={h} className={`border-b px-4 py-2.5 font-medium ${isDark ? "border-white/10" : "border-neutral-200"}`}>{h}</th>)}</tr></thead>
@@ -523,7 +560,7 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              {["31 addresses detected", "37 comps queued", "5 outputs unlocking"].map((stat) => <div key={stat} className={`rounded-xl border p-4 text-sm font-medium ${soft}`}>{stat}<p className={`mt-2 text-xs font-normal ${muted}`}>Source-linked and reviewable.</p></div>)}
+              {["19 leads surfaced", "6 sites ranked", "4 learnings saved"].map((stat) => <div key={stat} className={`rounded-xl border p-4 text-sm font-medium ${soft}`}>{stat}<p className={`mt-2 text-xs font-normal ${muted}`}>Source-linked, ranked, and reviewable.</p></div>)}
             </div>
           </div>
 
@@ -542,7 +579,7 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
             <div className={`rounded-2xl border p-4 shadow-sm ${surface}`}>
               <p className="text-sm font-semibold">Outputs unlocking</p>
               <div className="mt-3 flex flex-wrap gap-2">{unlockedOutputs.map((output, index) => <span key={output} className={`rounded-full border px-3 py-1.5 text-xs ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-900 bg-neutral-950 text-white" : isDark ? "border-white/10 text-neutral-400" : "border-neutral-200 text-neutral-500"}`}>{output}</span>)}</div>
-              <p className={`mt-4 text-xs leading-5 ${muted}`}>The user sees useful artifacts becoming available instead of staring at a loading bar.</p>
+              <p className={`mt-4 text-xs leading-5 ${muted}`}>The user sees an always-on system becoming useful instead of staring at a loading bar.</p>
             </div>
           </aside>
         </div>
@@ -551,10 +588,79 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
   );
 }
 
+function Opportunities() {
+  return (
+    <div className="grid min-h-[690px] grid-cols-[1fr_340px] gap-5 p-8">
+      <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+        <SectionHeader eyebrow="Opportunity engine" title="Find deals and sites before intake" subtitle="Cactus keeps watching approved markets, sources, broker activity, ownership signals, permits, supply gaps, and site-selection factors so deal intake starts with context already built." />
+        <div className="grid grid-cols-4 gap-3">
+          {["19 leads surfaced", "6 sites ranked", "4 markets watched", "3 need review"].map((stat) => (
+            <div key={stat} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-xl font-semibold tracking-[-0.04em] text-neutral-950">{stat.split(" ")[0]}</p>
+              <p className="mt-1 text-xs text-neutral-500">{stat.split(" ").slice(1).join(" ")}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 overflow-hidden rounded-2xl border border-neutral-200">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-neutral-50 text-xs text-neutral-500"><tr>{["Opportunity", "Market", "Type", "Score", "Why surfaced", "Action"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-3 font-medium">{h}</th>)}</tr></thead>
+            <tbody>{opportunityRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 5 ? <span className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-700">{cell}</span> : cell}</td>)}</tr>)}</tbody>
+          </table>
+        </div>
+        <div className="mt-5 grid grid-cols-3 gap-4">
+          {[
+            ["Deal finding", "Broker signals, listings, owner age, taxes, distress, and off-market patterns."],
+            ["Site selection", "Demographics, traffic density, zoning, flood risk, supply/demand, and nearby comps."],
+            ["Learning loop", "Approvals, rejects, edits, and assumptions change future rankings automatically."],
+          ].map(([title, copy]) => <div key={title} className="rounded-2xl border border-neutral-200 p-4"><p className="text-sm font-medium text-neutral-950">{title}</p><p className="mt-2 text-xs leading-5 text-neutral-500">{copy}</p></div>)}
+        </div>
+      </main>
+      <aside className="rounded-[1.5rem] border border-neutral-200 bg-neutral-950 p-5 text-white shadow-sm">
+        <p className="text-sm font-medium">Why this is faster than intake alone</p>
+        <p className="mt-4 text-3xl font-semibold leading-[1] tracking-[-0.06em]">The context is built before the deal arrives.</p>
+        <div className="mt-6 space-y-2 text-xs text-neutral-300">
+          {['Watches markets continuously', 'Scores locations and owner signals', 'Pre-builds comps and map context', 'Learns what the team rejects', 'Turns strong leads into analysis packets'].map((item) => <div key={item} className="rounded-xl bg-white/10 px-3 py-2">{item}</div>)}
+        </div>
+        <button className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Teach Cactus criteria</button>
+      </aside>
+    </div>
+  );
+}
+
+function Agents() {
+  return (
+    <div className="grid min-h-[690px] grid-cols-[1fr_360px] gap-5 p-8">
+      <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+        <SectionHeader eyebrow="Always-on agents" title="Systems that never stop working" subtitle="Each agent is a plain-English CRE workflow: it watches approved sources, creates work, asks for review when needed, and learns from every decision." />
+        <div className="grid grid-cols-2 gap-4">
+          {agentCards.map(([name, watches, last, created, review]) => (
+            <div key={name} className="rounded-2xl border border-neutral-200 p-5">
+              <div className="flex items-start justify-between gap-4"><div><p className="text-base font-semibold tracking-[-0.03em] text-neutral-950">{name}</p><p className="mt-2 text-xs leading-5 text-neutral-500">{watches}</p></div><Pill tone="green">Watching</Pill></div>
+              <div className="mt-5 grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-xl bg-neutral-50 p-3"><p className="text-neutral-400">Last worked</p><p className="mt-1 font-medium text-neutral-800">{last}</p></div>
+                <div className="rounded-xl bg-neutral-50 p-3"><p className="text-neutral-400">Created</p><p className="mt-1 font-medium text-neutral-800">{created}</p></div>
+                <div className="rounded-xl bg-neutral-50 p-3"><p className="text-neutral-400">Review</p><p className="mt-1 font-medium text-neutral-800">{review}</p></div>
+              </div>
+              <div className="mt-4 flex gap-2"><button className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-medium text-white">View work</button><button className="rounded-full border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600">Edit instructions</button><button className="rounded-full border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600">Teach</button></div>
+            </div>
+          ))}
+        </div>
+      </main>
+      <aside className="rounded-[1.5rem] border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+        <p className="text-sm font-medium text-neutral-950">What Cactus learned</p>
+        <p className="mt-2 text-xs leading-5 text-neutral-500">Plain-English memory that users can confirm, edit, or remove.</p>
+        <div className="mt-5 space-y-3">
+          {learnedItems.map((item) => <div key={item} className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm leading-6 text-neutral-700"><p>{item}</p><div className="mt-3 flex gap-2"><button className="rounded-full bg-neutral-950 px-3 py-1.5 text-xs text-white">Confirm</button><button className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Edit</button></div></div>)}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 function VaultTable() {
   return (
     <div className="p-8">
-      <SectionHeader eyebrow="Vault workspace" title="Explore The Vault as a living table" subtitle="Rows are locations/properties. Columns are data endpoints from documents, emails, listings, Cactus data, premium sources, and user-approved edits." />
+      <SectionHeader eyebrow="Opportunity workspace" title="Explore The Vault as a living table" subtitle="Rows are locations/properties. Columns are data endpoints from documents, emails, listings, Cactus data, premium sources, and user-approved edits." />
       <div className="overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
           <div className="flex gap-2"><Pill>Rows: properties / locations</Pill><Pill>Columns: data endpoints</Pill><Pill tone="amber">7 review items</Pill></div>
@@ -647,23 +753,29 @@ function Outputs() {
   );
 }
 
-function Automations() {
+function Activity() {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_380px] gap-5 p-8">
       <div className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="After MVP" title="Cheap automated weekly hitlists" subtitle="Screen many deals at low cost, enrich only the promising ones, and bring the team a ranked list of what to review every week." />
-        <div className="grid grid-cols-3 gap-4">
-          {['Tier 1: cheap screen', 'Tier 2: selective enrichment', 'Tier 3: deep analysis'].map((tier, i) => <div key={tier} className="rounded-2xl border border-neutral-200 p-5"><p className="text-sm font-medium">{tier}</p><p className="mt-10 text-4xl font-semibold tracking-[-0.06em]">{[124, 18, 4][i]}</p><p className="mt-2 text-sm text-neutral-500">deals/week</p></div>)}
+        <SectionHeader eyebrow="Activity + learning" title="Cactus improves from every review" subtitle="The activity log shows what agents did, what sources they touched, what they created, and how team feedback changes future rankings." />
+        <div className="space-y-3">
+          {[
+            ['Opportunity Finder', 'Rejected two Nashville leads under 80 units; lowered future rank for similar deals.'],
+            ['Site Selection', 'Promoted East Loop after traffic density, zoning, supply gap, and flood risk passed.'],
+            ['Deal Intake', 'Linked Riverside Flats OM facts to source pages and queued T12 NOI for review.'],
+            ['Portfolio Monitor', 'Flagged insurance renewal risk on Cedar Point and added it to weekly update.'],
+          ].map(([agent, note]) => <div key={agent} className="rounded-2xl border border-neutral-200 p-4"><div className="flex items-center justify-between"><p className="text-sm font-medium text-neutral-950">{agent}</p><Pill>Audited</Pill></div><p className="mt-2 text-sm leading-6 text-neutral-500">{note}</p></div>)}
         </div>
       </div>
       <div className="rounded-[1.75rem] border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm">
-        <p className="text-sm text-neutral-400">Broker product direction</p>
-        <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">CRM-connected owner intelligence</h3>
-        <p className="mt-4 text-sm leading-6 text-neutral-400">For brokers, the message shifts from investor brain to pipeline engine: connect Cactus data to CRM and outbound workflows, detect owner selling signals, prioritize pitch targets, generate BOV angles, and keep listing pursuits moving.</p>
+        <p className="text-sm text-neutral-400">Continuous improvement</p>
+        <h3 className="mt-8 text-3xl font-semibold tracking-[-0.06em]">Every approval, rejection, and edit trains the system.</h3>
+        <p className="mt-4 text-sm leading-6 text-neutral-400">Cactus should feel technical in power but plain-English in control: users teach it through normal CRE decisions, not developer-style configuration.</p>
         <div className="mt-6 space-y-2 text-xs text-neutral-300">
-          <div className="rounded-xl bg-white/10 px-3 py-2">CRM sync + owner history</div>
-          <div className="rounded-xl bg-white/10 px-3 py-2">Outbound sequences + pitch timing</div>
-          <div className="rounded-xl bg-white/10 px-3 py-2">BOV targets + listing pipeline</div>
+          <div className="rounded-xl bg-white/10 px-3 py-2">Approve or reject opportunities</div>
+          <div className="rounded-xl bg-white/10 px-3 py-2">Edit assumptions and comps</div>
+          <div className="rounded-xl bg-white/10 px-3 py-2">Confirm learned preferences</div>
+          <div className="rounded-xl bg-white/10 px-3 py-2">Audit source-linked work</div>
         </div>
       </div>
     </div>
@@ -674,7 +786,7 @@ export default function Home() {
   const [active, setActive] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const isDark = theme === "dark";
-  const AppScreen = useMemo(() => [VaultTable, VaultMap, DealAnalysis, CompsData, Outputs, Automations][active - 5], [active]);
+  const AppScreen = useMemo(() => [Opportunities, VaultTable, VaultMap, Agents, DealAnalysis, CompsData, Outputs, Activity][active - 5], [active]);
 
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
   if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} /></>;
@@ -689,7 +801,7 @@ export default function Home() {
         <aside className={`sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r p-3 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
           <button onClick={() => setActive(0)} className={`mb-7 flex items-center gap-2 rounded-xl px-2 py-2 text-left ${isDark ? "hover:bg-white/10" : "hover:bg-white"}`}>
             <div className={`grid h-8 w-8 place-items-center rounded-lg text-xs font-semibold ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>C</div>
-            <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Vault workspace</p></div>
+            <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Opportunity workspace</p></div>
           </button>
 
           <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">App navigation</p>
@@ -701,7 +813,7 @@ export default function Home() {
           </nav>
           <div className={`mt-auto rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
             <p className="text-sm font-medium">Product spine</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Build The Vault → explore table/map/chat → select comps + enrichment → generate outputs.</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Find deals/sites → analyze with Vault/map/comps → review evidence → teach Cactus → generate outputs.</p>
           </div>
         </aside>
         <section className="flex-1"><AppScreen /></section>
