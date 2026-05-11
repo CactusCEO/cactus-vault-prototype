@@ -1,0 +1,157 @@
+# Cactus Data Sources + Vault Strategy
+
+Source note captured from Tyler's `message.txt` on 2026-05-10. This is the current working data-source map for product, Vault, Spaces, scoring, and prototype decisions.
+
+## Product principle
+
+Cactus should make decisions and outputs visibly backed by data. The product should not feel like an AI summary tool; it should feel like a CRE decision system where every recommendation can be traced to market data, property data, source documents, user criteria, and review history.
+
+## Live / available data sources
+
+| Source | What it provides | Status | Product role |
+| --- | --- | --- | --- |
+| HelloData | Multifamily rental comps, roughly 10 comps per property | Live | Rent comp support, rent upside, underwriting assumptions |
+| Radius Plus | Self-storage rental comps | Live | Self-storage rent comp support |
+| Census ACS | Demographics, rent burden, income, population via internal pipeline | Live | Demand profile, renter base, market/submarket thesis |
+| FRED | Economic data, interest rates, MSA building permits | Live | Macro context, rate assumptions, market momentum |
+| FEMA | Flood zone designations per property | Live | Risk flags, map layer, insurance/diligence questions |
+| Walk Score | Walk, transit, bike scores per property | Live | Neighborhood quality, tenant demand signal |
+| Google Places | POI / proximity data | API access available | Neighborhood profile, nearby amenities, site-selection support |
+
+## Paid data providers being added
+
+### Green Street — highest priority
+
+- Status: In negotiation; target 6-month pilot at launch.
+- Pricing: $20,000 for 2,000 properties, approximately $10/property as one bundled API call; overages TBD.
+- Timeline: Build May-June; live at launch.
+- Sectors: Multifamily, Office, Industrial, Strip Centers, Self Storage.
+- Data: zip-level cap rates, sale comps, revenue growth, NOI growth, market/submarket/zip grades, supply/demand metrics.
+- Product role: Institutional valuation trust layer. Without market cap rates and sale comps, Cactus can produce an opinion but cannot benchmark against actual market pricing.
+
+### ATTOM — P0, replaces Regrid
+
+- Status: P0 primary parcel + property data provider.
+- Pricing: $1,000/month for 5,000 calls, about $0.20/call; 3-5 calls/property = about $0.60-$1.00 per underwriting.
+- Timeline: Build May-June; live at launch.
+- Core calls:
+  - `/property/basicprofile`: APN, address, lat/lng, zoning, year built, units/SF, assessment, market value, tax, improvement %, owner detail, latest sale, first-position mortgage.
+  - `/saleshistory/expandedhistory`: full sale chain, mortgages, subordinate mortgages, foreclosure/distress when present; supports last sale history and mortgage calculator.
+  - `/neighborhood/community`: ZIP-level demographics, employment, retail spending, transport, climate, disaster indices, crime, air quality.
+- Optional calls:
+  - `/transaction/salestrend`: 8-year ZIP sale trends for market momentum.
+  - `/school/search` + `/school/profile`: school search and profile; compare against GreatSchools after testing.
+  - Sale comps if coverage is good enough to supplement Green Street.
+- Product role: Primary property identity, owner, mortgage, tax, assessment, sale chain, and neighborhood data layer.
+
+### ReportAll — P0 parcel + building geometry
+
+- Status: P0; replaces Regrid parcel geometry and removes need for OSM building footprints in this stage.
+- Pricing: $1,050/year for 15,000 parcel calls + 375,000 map tiles; about $0.07/parcel call.
+- Timeline: Build May-June; live at launch.
+- Data: parcel boundary geometry, building footprint polygon(s), parcel map tiles.
+- Product role: Map truth layer: parcel outlines, building outlines, lot size/frontage/shape, geometry-driven map UX.
+
+### CrimeOMeter — Tomas priority 1
+
+- Status: Target live at launch or shortly after.
+- Pricing: Ultra $249/month for 1,000 calls; Mega $490/month for 5,000 calls; about $0.10/call.
+- Data: SQI score, incident counts in configurable radius, violent/property breakdown, crime density and trends.
+- Product role: Property-level safety/risk signal for tenant quality, vacancy, rent assumptions, and institutional underwriting credibility.
+
+### GreatSchools — Tomas priority 2
+
+- Status: Target July-August 2026.
+- Pricing: $97.50/month, 15,000 calls included, $0.006/call overage; 14-day trial.
+- Data: nearest 3-5 schools, rating bands, names, addresses, grades, distance.
+- Product role: MF family-submarket rent premium / tenant stability signal. Test overlap with ATTOM school calls.
+
+### Shovels.ai — Phase 2
+
+- Status: Target August-September 2026.
+- Pricing: $249/month base + $0.25/call.
+- Data: permit number/type/status/dates/job value/fees, plain-English summary, category tags, inspections, property details, owner/applicant/contractor details, contractor license/status/rating/pass rate.
+- Product role: Physical condition inference, deferred maintenance, recent capex, hidden upside, supply pipeline, sustainability, and contractor-quality flags.
+
+## Free data sources being added
+
+### FBI Crime Data
+
+- Effort: 3-4 days.
+- Data: violent/property crime rates at county/agency level and comparisons to state/national averages.
+- Product role: Market-level supplement to CrimeOMeter property-level score.
+
+### Google Places POI enrichment
+
+- Effort: 2 days.
+- Data: counts and nearest distances for grocery, restaurants, pharmacies, hospitals, transit, gyms, major retailers.
+- Product role: Standardized neighborhood profile. Cache by lat/lng with 90-day TTL.
+
+### BLS Employment Concentration
+
+- Effort: 2 days.
+- Data: top 5 industries by county employment share; concentration risk flag above 25-30%.
+- Product role: Economic diversification risk.
+
+### Natural Disaster Risk
+
+- Effort: 2-3 days.
+- Data: FEMA NRI composite score for 18 hazards at tract level; USGS earthquake hazard data.
+- Product role: Climate/natural-hazard risk beyond FEMA flood zones.
+
+### Census ACS expansion
+
+- Effort: 1 day.
+- Data: property tax rates, vacancy by type, age of housing stock, commute patterns.
+- Product role: Rounds out expense benchmarking, housing supply context, and tenant/demand context.
+
+## Vault implications
+
+Every provider should feed the Vault as source-linked facts, not just raw blobs or one-off model context.
+
+Recommended structure:
+
+1. Raw source/provider response retained with provider, endpoint, call timestamp, cost estimate, address/property key, and license constraints.
+2. Normalized facts written to canonical Cactus objects: Property, Site, Opportunity, Owner, Comp, Market Signal, Risk Signal, Criteria Fit, Output.
+3. Facts include source/provider, endpoint, confidence, freshness, geography level, and review status.
+4. Conflicts are preserved until reviewed. Example: ATTOM unit count vs OM unit count vs county record.
+5. Spaces use scoped subsets of these facts, so external collaborators only see approved context.
+
+## Data category map
+
+| Category | Providers | Used for |
+| --- | --- | --- |
+| Identity / parcel / ownership | ATTOM, ReportAll | Property record, owner record, parcel/building map |
+| Valuation / pricing | Green Street, ATTOM optional comps, HelloData, Radius Plus | Cap rate, sale comps, rent comps, pricing support |
+| Market growth / supply-demand | Green Street, FRED, Census ACS, Shovels nearby permits | Market thesis, supply risk, opportunity score |
+| Physical / capex | Shovels, ATTOM, ReportAll | Condition flags, deferred maintenance, recent capex, building/lot geometry |
+| Neighborhood quality | Google Places, Walk Score, GreatSchools, ATTOM neighborhood | Tenant demand, amenities, school quality, livability |
+| Risk | FEMA, FEMA NRI, USGS, CrimeOMeter, FBI, ATTOM disaster/crime | Flood, natural hazard, crime, climate, insurance/diligence |
+| Economic / demographic | Census ACS, ATTOM neighborhood, BLS, FRED | Demand, employment concentration, income, rent burden, macro context |
+
+## Product/UI implications
+
+Cactus should show users not just conclusions, but the evidence behind conclusions:
+
+- "Why Cactus surfaced this" should cite Green Street, ATTOM, HelloData/Radius Plus, Google Places, FEMA, and team criteria as applicable.
+- Deal Analysis should include a compact evidence strip: Pricing, Demand, Risk, Physical, Neighborhood, Criteria Fit.
+- Vault property pages should show data freshness and provider/source for each major field.
+- Spaces should show which Vault context/data sources are included and which are excluded.
+- Outputs should include a source appendix or citation drawer.
+
+## Cost implications
+
+- Treat Green Street as premium/high-cost data: use intentionally, cache, and make its value visible in the product.
+- ATTOM variable cost is moderate per underwriting but can add up at 3-5 calls/property; cache by property and separate required vs optional calls.
+- ReportAll parcel calls are cheap; tiles effectively low-cost at expected volume.
+- CrimeOMeter is reasonably cheap but should still be cached by lat/lng/radius and refreshed on a sensible schedule.
+- GreatSchools and free sources are low-cost enrichment layers.
+- Shovels is valuable but later and per-call expensive enough to use on active reviews, watchlist signals, or when physical-condition uncertainty matters.
+
+## Launch priority recommendation
+
+1. Keep live sources visible: HelloData, Radius Plus, Census ACS, FRED, FEMA, Walk Score, Google Places.
+2. P0 launch: ATTOM + ReportAll + Green Street if pilot closes.
+3. Launch/near-launch risk layer: CrimeOMeter and FBI supplement.
+4. Quick free enrichment: Google Places, BLS, FEMA NRI/USGS, ACS expansion.
+5. Post-launch/Phase 2: GreatSchools after ATTOM overlap test; Shovels for permit/capex and supply pipeline depth.
