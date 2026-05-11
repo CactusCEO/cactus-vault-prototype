@@ -196,8 +196,16 @@ Keep secondary product areas available later, but do not overwhelm the empty-sta
 - Clear active state.
 - Search / command-style interaction should be available later.
 - Do not wrap onboarding in this shell.
+- Assistant is the home page. It should let users add documents, add context from the Vault, create workflows like Mike, and improve their request through an **Enhance prompt** action.
 - Pre-data app landing must contain a real-looking data-intake module: upload/drop zone or connector scope controls, plus a compact value path showing `Extract facts → Vault records → Review/Spaces/Outputs`.
+- The onboarding source choice starts with one provider/source and preferably 5-10 documents about one deal; other sources can be added later.
 - Do not make users infer that a generic `Connect data` button will handle ingestion; the upload/connect surface must be visible in the app.
+- After the user submits the first source, open the Vault while extraction is happening. The Vault should show source records/facts being added in real time, not magically appear fully populated.
+- Pair extraction visibility with one primary CTA: **Check extraction status + audit**. Keep **Add more sources** as a second CTA.
+- If the user connects ongoing sources, ask whether they want a continuous flow/subscription because it adds recurring monthly cost.
+- Vault should include filtering, multi-select, folder creation, and a sticky hover chat for asking questions about Vault context.
+- Chatting about selected Vault context should create a Space. Folders should also have their own hover chat and can become Spaces.
+- Spaces are where work gets done: shareable with edit/view access, able to accept additional documents, and similar to a Claude project with scoped context.
 
 ---
 

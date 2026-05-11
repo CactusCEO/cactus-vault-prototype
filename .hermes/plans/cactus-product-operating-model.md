@@ -29,7 +29,21 @@ Cactus should help users:
 
 ## Vault
 
-The Vault is the master memory and source of truth.
+The Vault is the master memory and source of truth. It should be visibly filled by source data, not appear pre-populated without explanation.
+
+First-use flow:
+- Onboarding asks the user to choose one starting data provider/source; the preferred first run is 5-10 documents about one deal.
+- After the user submits that source, Cactus opens the empty Vault and shows extraction creating records/facts in real time.
+- The primary Vault CTA during this state is singular: **Check extraction status + audit**. This opens one review surface for extraction progress, source citations, confidence, and issues needing human confirmation.
+- A secondary CTA lets users **Add more sources**.
+- If a source is continuous (email, drive folder, deal room, scraper, provider refresh), Cactus should ask whether the user wants a continuous flow/subscription and disclose recurring monthly cost/approval scope.
+
+Vault interaction model:
+- Vault rows can be filtered, searched, and multi-selected.
+- Multi-select can create folders/subfolders that preserve scoped context.
+- The Vault has a sticky hover chat for asking questions about the whole Vault or the selected records.
+- Each folder can also have its own hover chat.
+- Chatting with selected Vault context or a folder should create a Space so the conversation becomes durable work, not a lost one-off chat.
 
 It contains:
 - customer portfolio data,
@@ -52,7 +66,15 @@ The Vault should get better as the customer uses Cactus.
 
 Spaces are where work gets done.
 
-A Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs.
+A Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs. Spaces should feel like a CRE-specific project workspace: users can add more documents directly to the Space, share with collaborators, and assign view/edit access independently.
+
+Spaces can be created from:
+- a chat over selected Vault records,
+- a Vault folder/subfolder chat,
+- an Assistant home-page request with attached Vault context,
+- or a manual new Space action.
+
+Share controls should distinguish **view** and **edit** access for each teammate/external collaborator.
 
 Spaces can be:
 - internal-only,

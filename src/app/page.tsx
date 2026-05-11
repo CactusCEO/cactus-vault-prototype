@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useState } from "react";
 
 const sourceCards = [
   {
@@ -54,14 +54,6 @@ const systemCards = [
     note: "Rents, comps, taxes, risk.",
     artifact: "portfolio change brief",
   },
-];
-
-const vaultRows = [
-  ["Riverside Flats", "Nashville", "184", "1988", "$24.6M", "$133k", "5.8%", "$1,462", "A-", "Email + OM"],
-  ["Pine Hollow", "Charlotte", "132", "1976", "$15.9M", "$120k", "6.2%", "$1,318", "B+", "Scraper"],
-  ["The Mercer", "Atlanta", "248", "1992", "$38.4M", "$155k", "5.4%", "$1,684", "A", "Deal room"],
-  ["Cedar Point", "Tampa", "96", "1984", "$11.2M", "$117k", "6.6%", "$1,226", "B", "Portfolio"],
-  ["Lakeside Commons", "Raleigh", "210", "2001", "$34.1M", "$162k", "5.1%", "$1,741", "A", "Cactus"],
 ];
 
 const mapPins = [
@@ -125,12 +117,6 @@ const sourceLedger = [
   ["HelloData", "Rent comps + upside", "12 days old", "Paid · no refresh needed", "High"],
   ["ATTOM", "Owner, tax, parcel", "On demand", "Paid refresh", "Medium"],
   ["FEMA", "Flood zone", "Monthly public", "Free", "High"],
-];
-
-const dataStoryRows = [
-  ["Cap rate", "6.0% → 6.5% → 7.0%", "Valuation pressure increased"],
-  ["Rent upside", "+12% → +8%", "Seller growth case weakened"],
-  ["New supply", "2 → 4 projects", "Lease-up risk moved higher"],
 ];
 
 const freshnessRows = [
@@ -215,13 +201,13 @@ const appNav = [
   ["Outputs", "Memos", 12],
 ] as const;
 
-function AppWorkHeader({ isDark }: { isDark: boolean }) {
+function AppWorkHeader({ isDark, hasIntake }: { isDark: boolean; hasIntake: boolean }) {
   return (
     <div className={`sticky top-0 z-30 border-b px-6 py-3 backdrop-blur-xl ${isDark ? "border-white/10 bg-neutral-950/88" : "border-neutral-200 bg-neutral-100/88"}`}>
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-medium">Cactus Capital Partners</p>
-          <p className={`mt-0.5 truncate text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Multifamily Vault · no sources connected</p>
+          <p className={`mt-0.5 truncate text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Multifamily Vault · {hasIntake ? "1 source extracting" : "no sources connected"}</p>
         </div>
       </div>
     </div>
@@ -679,19 +665,19 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
   );
 }
 
-function Opportunities() {
+function Opportunities({ go, onSubmit, hasIntake }: { go: (screenIndex: number) => void; onSubmit: () => void; hasIntake: boolean }) {
   const [selectedSource, setSelectedSource] = useState(0);
   const selected = sourceCards[selectedSource];
   const intakeCopy = [
-    ["Upload documents", "Drop OMs, T12s, rent rolls, models, PDFs, or Excel files."],
-    ["Connect email or drive", "Choose approved folders, labels, senders, and deal rooms."],
+    ["Upload documents", "Start with 5-10 files about one deal: OM, T12, rent roll, model, notes."],
+    ["Connect email or drive", "Choose approved folders, labels, senders, and deal rooms. Continuous flow adds monthly subscription cost."],
     ["Import lists or comps", "Bring property lists, sales comps, rent comps, CRM exports, or models."],
     ["Use demo Vault", "Load sample data only so the team can explore the workflow first."],
   ][selectedSource];
   const valuePath = [
-    ["Extract", "addresses, units, rents, NOI, debt, dates, owners, brokers"],
-    ["Vault", "source-linked records, citations, confidence, review state"],
-    ["Unlock", "review list, map pins, Spaces, underwriting, outputs"],
+    ["Submit", "5-10 documents about Riverside Flats"],
+    ["Extract", "facts appear in the Vault with citations and confidence"],
+    ["Audit", "review status and fix extraction before analysis"],
   ];
 
   return (
@@ -699,14 +685,21 @@ function Opportunities() {
       <main className="mx-auto min-h-[640px] max-w-5xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Data intake</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Connect CRE data to start.</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">Step 4 brought you here. Cactus still has no source data. Add documents or connectors first; then it can extract facts into the Vault and create useful review work.</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Assistant home</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Add the first deal source.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">You chose the starting source in onboarding. Add 5-10 documents about one deal, submit them, and Cactus will open the Vault while extraction fills it in real time.</p>
           </div>
-          <div className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-500">No sources connected</div>
+          <div className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-500">{hasIntake ? "1 source extracting" : "No sources connected"}</div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 text-left shadow-inner">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-xs font-semibold text-neutral-700">AI</span>
+          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to create a workflow, add Vault context, or analyze the deal…" />
+          <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Enhance prompt</button>
+          <button className="rounded-lg bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Ask</button>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
           {sourceCards.map((source, index) => {
             const active = selectedSource === index;
             return (
@@ -725,18 +718,20 @@ function Opportunities() {
                 <p className="text-sm font-semibold text-neutral-950">{intakeCopy[0]}</p>
                 <p className="mt-1 text-xs leading-5 text-neutral-500">{intakeCopy[1]}</p>
               </div>
-              <span className="rounded-full bg-white px-2.5 py-1 text-xs text-neutral-500">Selected</span>
+              <span className="rounded-full bg-white px-2.5 py-1 text-xs text-neutral-500">From onboarding</span>
             </div>
 
             {selected.title === "Upload documents" ? (
-              <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-6 text-center">
-                <p className="text-sm font-medium text-neutral-950">Drop files here</p>
-                <p className="mt-1 text-xs text-neutral-500">or choose files from your computer</p>
+              <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5 text-center">
+                <p className="text-sm font-medium text-neutral-950">Riverside Flats first run</p>
+                <p className="mt-1 text-xs text-neutral-500">7 starter docs selected: OM, T12, rent roll, debt quote, model, broker email, notes.</p>
                 <input id="cactus-upload" type="file" multiple className="sr-only" />
-                <label htmlFor="cactus-upload" className="mt-4 inline-flex cursor-pointer rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Choose files</label>
+                <label htmlFor="cactus-upload" className="mt-4 inline-flex cursor-pointer rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700">Choose different files</label>
+                <button onClick={() => { onSubmit(); go(6); }} className="ml-2 mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Submit 7 docs to Vault</button>
               </div>
             ) : selected.title === "Connect email or drive" ? (
               <div className="mt-4 grid gap-2 text-sm">
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-800">Continuous folder/email watching adds to the monthly subscription. Cactus asks before turning it on.</div>
                 {["Google Drive", "Outlook / Gmail", "Deal room folder"].map((item) => <button key={item} className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-3 text-left"><span>{item}</span><span className="rounded-full border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-700">Choose scope</span></button>)}
               </div>
             ) : selected.title === "Import lists or comps" ? (
@@ -747,7 +742,7 @@ function Opportunities() {
           </section>
 
           <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-sm font-semibold text-neutral-950">How this becomes useful</p>
+            <p className="text-sm font-semibold text-neutral-950">What happens after submit</p>
             <div className="mt-4 space-y-3">
               {valuePath.map(([label, note], index) => (
                 <div key={label} className="flex gap-3">
@@ -759,16 +754,11 @@ function Opportunities() {
                 </div>
               ))}
             </div>
-            <div className="mt-5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-3 text-xs leading-5 text-neutral-500">
-              Nothing is generated yet. After a source is added, Cactus shows extraction progress, citations, and review states before it surfaces opportunities.
+            <div className="mt-5 flex gap-2">
+              <button className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Add Vault context</button>
+              <button className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Create workflow</button>
             </div>
           </section>
-        </div>
-
-        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 text-left shadow-inner">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-50 text-xs font-semibold text-neutral-700">AI</span>
-          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus what to connect first…" />
-          <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Ask</button>
         </div>
       </main>
     </div>
@@ -815,13 +805,14 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
               <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">One compact room for the whole loop: scoped Vault context, extraction into the customer model, assumption pressure-test, output draft, and automation handoff.</p>
             </div>
             <div className="flex gap-2">
-              <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-600">Share</button>
+              <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-600">Share · view/edit access</button>
+              <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-600">Add documents</button>
               <button onClick={() => go(12)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Generate IC memo</button>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-3">
-            {["Context: selected", "Model: Excel mapped", "Question: hit 16% IRR", "Next: memo draft"].map((item) => (
+            {["Vault context: selected rows", "Folder: Riverside Flats diligence", "Documents: add more", "Share: view/edit"].map((item) => (
               <div key={item} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                 <p className="text-sm font-medium text-neutral-950">{item.split(":")[0]}</p>
                 <p className="mt-1 text-xs text-neutral-500">{item.split(": ")[1]}</p>
@@ -953,36 +944,90 @@ function Agents() {
   );
 }
 
-function VaultTable() {
+function VaultTable({ hasIntake, go }: { hasIntake: boolean; go: (screenIndex: number) => void }) {
+  const [selectedRows, setSelectedRows] = useState(["Riverside Flats"]);
+  const extractingRows = [
+    ["Riverside Flats", "Deal", "OM + rent roll", "184 units · Nashville", "Extracting", "92%"],
+    ["T12 NOI", "Fact", "T12 p.8", "$1.42M", "Needs audit", "76%"],
+    ["Avg rent", "Fact", "Rent roll", "$1,462", "Added", "94%"],
+    ["Debt quote", "Document", "PDF", "5.95% quote", "Reading", "61%"],
+    ["Broker email", "Source", "Email", "Seller process + deadline", "Added", "89%"],
+  ];
+
+  if (!hasIntake) {
+    return (
+      <div className="p-8">
+        <main className="mx-auto max-w-4xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+          <SectionHeader eyebrow="Empty Vault" title="Submit a first source to fill the Vault" subtitle="The Vault starts empty. Add 5-10 documents from Assistant, then Cactus will open this table while facts are extracted and audited." />
+          <button onClick={() => go(5)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Add first source</button>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
-      <SectionHeader eyebrow="Opportunity workspace" title="The Vault stores every deal, site, source, and learning" subtitle="Rows are opportunities, properties, sites, owners, comps, and documents. Columns are source-linked facts, map signals, underwriting inputs, review status, and what Cactus has learned." />
-      <div className="mb-5 grid grid-cols-[1fr_340px] gap-5">
-        <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between"><p className="text-sm font-medium text-neutral-950">Data story: Riverside Flats</p><Pill tone="amber">Changed since April</Pill></div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            {dataStoryRows.map(([metric, movement, impact]) => <div key={metric} className="rounded-2xl bg-neutral-50 p-4"><p className="text-xs text-neutral-400">{metric}</p><p className="mt-2 text-sm font-medium text-neutral-950">{movement}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{impact}</p></div>)}
-          </div>
-        </div>
-        <div className="rounded-[1.5rem] border border-neutral-200 bg-neutral-950 p-5 text-white shadow-sm">
-          <p className="text-sm font-medium">Cactus view</p>
-          <p className="mt-4 text-2xl font-semibold leading-tight tracking-[-0.05em]">Same assumptions now underwrite worse.</p>
-          <p className="mt-3 text-sm leading-6 text-neutral-400">Cap-rate expansion and narrower rent upside moved the base case from 15.8% to 12.9% IRR. Refresh premium data only if the team keeps pursuing.</p>
+    <div className="relative p-8 pb-28">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <SectionHeader eyebrow="Vault · Riverside Flats first run" title="Your Vault is filling from 7 submitted documents" subtitle="Cactus is extracting source-linked facts into records. Audit uncertain fields before using them in analysis or outputs." />
+        <div className="flex shrink-0 gap-2">
+          <button className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Check extraction status + audit</button>
+          <button onClick={() => go(5)} className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-600">Add more sources</button>
         </div>
       </div>
+
+      <div className="mb-4 grid gap-3 md:grid-cols-4">
+        {[
+          ["7 docs", "submitted from onboarding"],
+          ["5 records", "being added now"],
+          ["2 audit items", "need human review"],
+          ["Continuous flow", "off · ask before monthly cost"],
+        ].map(([metric, note]) => <div key={metric} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-sm font-semibold text-neutral-950">{metric}</p><p className="mt-1 text-xs text-neutral-500">{note}</p></div>)}
+      </div>
+
       <div className="overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-          <div className="flex gap-2"><Pill>Deals + sites</Pill><Pill>Source-linked facts</Pill><Pill tone="amber">7 review items</Pill></div>
-          <div className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-500">Ask your Vault: “Which sites or deals fit our Tampa strategy?”</div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 px-5 py-4">
+          <div className="flex flex-wrap gap-2">
+            {['All', 'Documents', 'Facts', 'Needs audit', 'High confidence'].map((filter, index) => <button key={filter} className={`rounded-full border px-3 py-1.5 text-xs ${index === 0 ? 'border-neutral-950 bg-neutral-950 text-white' : 'border-neutral-200 text-neutral-600'}`}>{filter}</button>)}
+          </div>
+          <div className="flex gap-2">
+            <button className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Create folder from selected</button>
+            <button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Chat → create Space</button>
+          </div>
         </div>
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-neutral-50 text-xs text-neutral-500">
-            <tr>{["Property", "Market", "Units", "Year", "Price", "$/Unit", "Cap", "Rent", "Score", "Source"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-3 font-medium">{h}</th>)}</tr>
+            <tr>{["", "Record", "Type", "Source", "Extracted value", "Status", "Confidence"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-3 font-medium">{h}</th>)}</tr>
           </thead>
           <tbody>
-            {vaultRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{cell}</td>)}</tr>)}
+            {extractingRows.map((row) => {
+              const checked = selectedRows.includes(row[0]);
+              return (
+                <tr key={row[0]} className="hover:bg-neutral-50">
+                  <td className="border-b border-neutral-100 px-4 py-4"><input type="checkbox" checked={checked} onChange={() => setSelectedRows(checked ? selectedRows.filter((item) => item !== row[0]) : [...selectedRows, row[0]])} /></td>
+                  {row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 4 ? <span className={`rounded-full px-2 py-1 text-xs ${cell === 'Needs audit' ? 'bg-amber-50 text-amber-700' : cell === 'Extracting' || cell === 'Reading' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{cell}</span> : cell}</td>)}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-[1fr_320px]">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between"><p className="text-sm font-semibold text-neutral-950">Folder: Riverside Flats diligence</p><button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Open folder chat</button></div>
+          <p className="mt-2 text-xs leading-5 text-neutral-500">Created from selected Vault records. Folder chat uses only these records unless more context is added.</p>
+        </div>
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-xs leading-5 text-neutral-500">
+          Connected sources can become continuous flows. Cactus asks before watching folders or inboxes because it may add monthly subscription cost.
+        </div>
+      </div>
+
+      <div className="fixed bottom-5 right-6 z-40 w-[360px] rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl">
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Vault chat</p>
+        <div className="mt-2 flex items-center gap-2">
+          <input className="min-w-0 flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none" placeholder="Ask this Vault or selected rows…" />
+          <button onClick={() => go(7)} className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space</button>
+        </div>
       </div>
     </div>
   );
@@ -1219,8 +1264,14 @@ function Activity() {
 export default function Home() {
   const [active, setActive] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [hasIntake, setHasIntake] = useState(false);
   const isDark = theme === "dark";
-  const AppScreen = useMemo(() => [Opportunities, VaultTable, Spaces, VaultMap, Agents, DealAnalysis, CompsData, Outputs, Activity][active - 5] ?? Opportunities, [active]);
+  const renderAppScreen = () => {
+    if (active === 5) return <Opportunities go={setActive} onSubmit={() => setHasIntake(true)} hasIntake={hasIntake} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} />;
+    const AppScreen = [Spaces, VaultMap, Agents, DealAnalysis, CompsData, Outputs, Activity][active - 7] ?? Spaces;
+    return <AppScreen go={setActive} />;
+  };
 
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
   if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} /></>;
@@ -1246,8 +1297,8 @@ export default function Home() {
 
         </aside>
         <section className="min-w-0 flex-1">
-          <AppWorkHeader isDark={isDark} />
-          <AppScreen go={setActive} />
+          <AppWorkHeader isDark={isDark} hasIntake={hasIntake} />
+          {renderAppScreen()}
         </section>
       </div>
     </main>
