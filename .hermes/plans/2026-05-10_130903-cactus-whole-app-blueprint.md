@@ -161,10 +161,11 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 
 **UX pattern:**
 - Treat this as a data-connection handoff, not an activation/results dashboard.
-- Show a compact “From your setup” line: company Vault, asset class, source, first job.
-- Show the first source action: upload docs, connect email/drive, import lists/comps, or use sample data.
+- Explicitly say Step 3 only created a brief; it did not connect data.
+- Show a compact “From your setup” sequence: workspace from Step 2 → brief from Step 3 → next action is data.
+- Show the first source action: upload docs, connect email/drive, import lists/comps, or use demo data.
 - Make the post-onboarding app start as an empty assistant/workspace with documents/projects/workflows concepts, adapted from MikeOSS for CRE.
-- Only show generated opportunities, rows, maps, or memos after real source data or sample data has been explicitly chosen.
+- Only show generated opportunities, rows, maps, or memos after real source data or demo data has been explicitly chosen.
 
 **Avoid:**
 - Full live activity feeds during onboarding.
@@ -180,15 +181,13 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 **Purpose:** Provide the persistent workspace after onboarding.
 
 **Recommended primary nav:**
-- Opportunities.
+- Assistant.
 - Vault.
 - Spaces.
-- Map.
 - Agents.
-- Analysis.
-- Comps + Data.
 - Outputs.
-- Activity.
+
+Keep secondary product areas available later, but do not overwhelm the empty-state app with a long left rail before data exists.
 
 **Global rules:**
 - Compact nav.

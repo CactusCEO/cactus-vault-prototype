@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 const sourceCards = [
   {
@@ -211,63 +211,19 @@ const appNav = [
   ["Assistant", "Connect or ask", 5],
   ["Vault", "Sources + facts", 6],
   ["Spaces", "Workrooms", 7],
-  ["Map", "Locations", 8],
   ["Agents", "Workflows", 9],
-  ["Analysis", "Underwriting", 10],
-  ["Comps + Data", "Evidence", 11],
   ["Outputs", "Memos", 12],
-  ["Activity", "Learning", 13],
 ] as const;
 
-const workflowSteps = [
-  ["Connect", "Add source", 5],
-  ["Vault", "Store facts", 6],
-  ["Space", "Workroom", 7],
-  ["Analyze", "Underwrite", 10],
-  ["Output", "Memo", 12],
-  ["Automate", "Workflow", 9],
-] as const;
-
-function activeStepFor(active: number) {
-  if (active === 5) return 0;
-  if (active === 6 || active === 8 || active === 11) return 1;
-  if (active === 7) return 2;
-  if (active === 10) return 3;
-  if (active === 12) return 4;
-  if (active === 9 || active === 13) return 5;
-  return 0;
-}
-
-function AppWorkHeader({ active, go, isDark }: { active: number; go: (screenIndex: number) => void; isDark: boolean }) {
-  const current = activeStepFor(active);
+function AppWorkHeader({ go, isDark }: { go: (screenIndex: number) => void; isDark: boolean }) {
   return (
-    <div className={`sticky top-0 z-30 border-b px-8 py-4 backdrop-blur-xl ${isDark ? "border-white/10 bg-neutral-950/88" : "border-neutral-200 bg-neutral-100/88"}`}>
-      <div className="mb-3 flex items-center justify-between gap-6">
+    <div className={`sticky top-0 z-30 border-b px-6 py-3 backdrop-blur-xl ${isDark ? "border-white/10 bg-neutral-950/88" : "border-neutral-200 bg-neutral-100/88"}`}>
+      <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className={`rounded-full px-2.5 py-1 font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Setup</span>
-            <span className={isDark ? "text-neutral-400" : "text-neutral-500"}>Cactus Capital Partners · Multifamily Vault · no sources connected yet</span>
-          </div>
-          <p className={`mt-2 max-w-3xl text-sm leading-6 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
-            Start like MikeOSS: create a workspace, add documents or connectors, then chat, review tables, and automate workflows once real CRE data exists.
-          </p>
+          <p className="text-sm font-medium">Cactus Capital Partners</p>
+          <p className={`mt-0.5 truncate text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Multifamily Vault · no sources connected</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button onClick={() => go(6)} className={`rounded-full border px-4 py-2 text-sm font-medium ${isDark ? "border-white/15 text-neutral-200 hover:bg-white/10" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"}`}>Open empty Vault</button>
-          <button onClick={() => go(5)} className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Connect data</button>
-        </div>
-      </div>
-      <div className="grid grid-cols-6 gap-2">
-        {workflowSteps.map(([label, note, target], index) => (
-          <button
-            key={label}
-            onClick={() => go(target)}
-            className={`rounded-xl border px-3 py-2 text-left transition ${index === current ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-950 bg-white text-neutral-950 shadow-sm" : isDark ? "border-white/10 bg-white/[0.04] text-neutral-400 hover:bg-white/[0.08]" : "border-neutral-200 bg-white/60 text-neutral-500 hover:bg-white"}`}
-          >
-            <div className="flex items-center gap-2"><span className="text-[10px] text-neutral-400">{index + 1}</span><span className="text-xs font-semibold">{label}</span></div>
-            <p className="mt-1 truncate text-[11px] opacity-70">{note}</p>
-          </button>
-        ))}
+        <button onClick={() => go(5)} className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Connect data</button>
       </div>
     </div>
   );
@@ -690,17 +646,18 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
-          <p className={`text-sm leading-6 ${muted}`}>This came from the company Vault you just created and the first brief you selected.</p>
+          <p className={`text-sm leading-6 ${muted}`}>Step 3 created a brief. It did not connect data. To begin, choose the source Cactus can read first.</p>
 
-          <div className="mt-4 space-y-2">
-            {reviewRows.map(([label, value, origin]) => (
-              <div key={label} className={`flex items-center justify-between rounded-xl border px-3 py-3 ${surface}`}>
-                <div>
-                  <p className={`text-xs ${muted}`}>{label}</p>
-                  <p className="mt-1 text-sm font-semibold">{value}</p>
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-2">
+            {reviewRows.map(([label, value, origin], index) => (
+              <Fragment key={label}>
+                <div className={`rounded-xl border px-3 py-3 ${surface}`}>
+                  <p className={`text-xs ${muted}`}>{origin}</p>
+                  <p className="mt-1 text-sm font-semibold">{label}</p>
+                  <p className={`mt-1 truncate text-xs ${muted}`}>{value}</p>
                 </div>
-                <span className={`text-xs ${muted}`}>{origin}</span>
-              </div>
+                {index < reviewRows.length - 1 && <div className={`flex items-center text-sm ${muted}`}>→</div>}
+              </Fragment>
             ))}
           </div>
 
@@ -723,10 +680,10 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
   );
 }
 
-function Opportunities({ go }: { go: (screenIndex: number) => void }) {
+function Opportunities() {
   return (
-    <div className="grid min-h-[690px] grid-cols-[1fr_320px] gap-5 p-8">
-      <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+    <div className="p-6">
+      <main className="mx-auto min-h-[640px] max-w-5xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="mx-auto flex max-w-3xl flex-col items-center py-10 text-center">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-neutral-950 text-sm font-semibold text-white">C</div>
           <h2 className="mt-5 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Connect CRE data to start.</h2>
@@ -738,7 +695,7 @@ function Opportunities({ go }: { go: (screenIndex: number) => void }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {sourceCards.map((source) => (
             <button key={source.title} className="rounded-2xl border border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-400 hover:shadow-sm">
               <p className="text-sm font-semibold text-neutral-950">{source.title}</p>
@@ -752,19 +709,6 @@ function Opportunities({ go }: { go: (screenIndex: number) => void }) {
           <p className="mt-2">Once a source is connected, Cactus can create source-linked Vault records, review tables, maps, Spaces, and workflows.</p>
         </div>
       </main>
-
-      <aside className="rounded-[1.5rem] border border-neutral-200 bg-neutral-950 p-5 text-white shadow-sm">
-        <p className="text-sm font-medium">MikeOSS pattern, rebuilt for CRE</p>
-        <div className="mt-5 space-y-2 text-xs text-neutral-300">
-          {[
-            ["Assistant", "Ask questions against approved CRE sources."],
-            ["Vault", "Store documents, properties, facts, and citations."],
-            ["Review tables", "Turn messy files into editable diligence tables."],
-            ["Workflows", "Automate repeatable sourcing and review."],
-          ].map(([title, note]) => <div key={title} className="rounded-xl bg-white/10 px-3 py-3"><p className="font-medium text-white">{title}</p><p className="mt-1 leading-5">{note}</p></div>)}
-        </div>
-        <button onClick={() => go(6)} className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Open empty Vault</button>
-      </aside>
     </div>
   );
 }
@@ -1226,34 +1170,21 @@ export default function Home() {
     <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950"}`}>
       <ThemeToggle theme={theme} setTheme={setTheme} />
       <div className="flex min-h-screen">
-        <aside className={`sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r p-3 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
-          <button onClick={() => setActive(0)} className={`mb-7 flex items-center gap-2 rounded-xl px-2 py-2 text-left ${isDark ? "hover:bg-white/10" : "hover:bg-white"}`}>
+        <aside className={`sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r p-3 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
+          <button onClick={() => setActive(0)} className={`mb-5 flex items-center gap-2 rounded-xl px-2 py-2 text-left ${isDark ? "hover:bg-white/10" : "hover:bg-white"}`}>
             <div className={`grid h-8 w-8 place-items-center rounded-lg text-xs font-semibold ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>C</div>
-            <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Opportunity workspace</p></div>
+            <div><p className="text-lg font-light tracking-[-0.04em]">Cactus</p></div>
           </button>
 
-          <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Product areas</p>
-          <nav className="mt-3 space-y-1">
-            {appNav.map(([screen, purpose, screenIndex], index) => {
-              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition ${active === screenIndex ? isDark ? "bg-white text-neutral-950 shadow-sm" : "bg-white text-neutral-950 shadow-sm" : isDark ? "text-neutral-400 hover:bg-white/10" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span><span><span className="block leading-4">{screen}</span><span className={`mt-0.5 block text-[11px] ${active === screenIndex ? "text-neutral-400" : "text-neutral-400"}`}>{purpose}</span></span></button>;
+          <nav className="space-y-1">
+            {appNav.map(([screen, purpose, screenIndex]) => {
+              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition ${active === screenIndex ? isDark ? "bg-white text-neutral-950 shadow-sm" : "bg-white text-neutral-950 shadow-sm" : isDark ? "text-neutral-400 hover:bg-white/10" : "text-neutral-500 hover:bg-white/70"}`}><span><span className="block leading-4">{screen}</span><span className="mt-0.5 block text-[11px] text-neutral-400">{purpose}</span></span></button>;
             })}
           </nav>
-          <div className={`mt-6 rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium">Current job</p>
-              <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-amber-400/15 text-amber-200" : "bg-amber-50 text-amber-700"}`}>Pending</span>
-            </div>
-            <p className={`mt-3 text-sm leading-5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Connect your first source</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">No CRE data is connected yet. Upload docs or connect approved folders before Cactus can surface opportunities.</p>
-            <button onClick={() => setActive(5)} className={`mt-4 w-full rounded-full px-3 py-2 text-xs font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Connect data</button>
-          </div>
-          <div className={`mt-auto rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
-            <p className="text-sm font-medium">Product spine</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Connect → Vault → Space → Analyze → Output → Automate. Results only appear after approved source data exists.</p>
-          </div>
+
         </aside>
         <section className="min-w-0 flex-1">
-          <AppWorkHeader active={active} go={setActive} isDark={isDark} />
+          <AppWorkHeader go={setActive} isDark={isDark} />
           <AppScreen go={setActive} />
         </section>
       </div>
