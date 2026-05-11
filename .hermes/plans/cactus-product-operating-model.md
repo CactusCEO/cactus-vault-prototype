@@ -254,6 +254,8 @@ The UI should stay mike-like: clean, compact, direct, and whitespace-disciplined
 
 Avoid turning Cactus into a cluttered enterprise dashboard. The interface should make complex work feel simple.
 
+The post-onboarding app should present one connected operating model rather than separate pages. Persistent framing should show the active opportunity/Space and the workflow spine: Find opportunities → Fill the Vault → Work in Spaces → Analysis/playground → Outputs → Automate. Each page should feel like a lens on the same job: Opportunities explains why something surfaced, Vault shows what Cactus knows, Spaces shows where work happens, Map/Comps/Data show evidence, Analysis answers what needs to change, Outputs shows what ships, and Agents/Activity show how repeatable work improves over time.
+
 Recommended app surfaces:
 - Opportunities
 - Vault

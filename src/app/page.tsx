@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-const appScreens = ["Opportunities", "Vault", "Spaces", "Map", "Agents", "Analysis", "Comps + Data", "Outputs", "Activity"];
-
 const sourceCards = [
   {
     title: "Upload documents",
@@ -205,7 +203,73 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
         <h2 className="text-2xl font-semibold tracking-[-0.03em] text-neutral-950">{title}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">{subtitle}</p>
       </div>
-      <Pill>Mike-style prototype</Pill>
+      <Pill>Part of active workflow</Pill>
+    </div>
+  );
+}
+
+const appNav = [
+  ["Opportunities", "What surfaced?", 5],
+  ["Vault", "What do we know?", 6],
+  ["Spaces", "Where work happens", 7],
+  ["Map", "Where + why here?", 8],
+  ["Agents", "What keeps running?", 9],
+  ["Analysis", "What needs to change?", 10],
+  ["Comps + Data", "What backs it up?", 11],
+  ["Outputs", "What ships?", 12],
+  ["Activity", "What did it learn?", 13],
+] as const;
+
+const workflowSteps = [
+  ["Find", "Opportunities", 5],
+  ["Vault", "Source-linked facts", 6],
+  ["Space", "Scoped workroom", 7],
+  ["Analyze", "Playground + comps", 10],
+  ["Output", "IC memo", 12],
+  ["Automate", "Repeatable agent", 9],
+] as const;
+
+function activeStepFor(active: number) {
+  if (active === 5) return 0;
+  if (active === 6 || active === 8 || active === 11) return 1;
+  if (active === 7) return 2;
+  if (active === 10) return 3;
+  if (active === 12) return 4;
+  if (active === 9 || active === 13) return 5;
+  return 0;
+}
+
+function AppWorkHeader({ active, go, isDark }: { active: number; go: (screenIndex: number) => void; isDark: boolean }) {
+  const current = activeStepFor(active);
+  return (
+    <div className={`sticky top-0 z-30 border-b px-8 py-4 backdrop-blur-xl ${isDark ? "border-white/10 bg-neutral-950/88" : "border-neutral-200 bg-neutral-100/88"}`}>
+      <div className="mb-3 flex items-center justify-between gap-6">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className={`rounded-full px-2.5 py-1 font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Active work</span>
+            <span className={isDark ? "text-neutral-400" : "text-neutral-500"}>Riverside Flats Deal Review · Nashville · 184 units · IC memo path</span>
+          </div>
+          <p className={`mt-2 max-w-3xl text-sm leading-6 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
+            Start with what Cactus surfaced, trust the source-linked Vault, do the work in a Space, pressure-test assumptions, ship the output, then automate the repeatable workflow.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button onClick={() => go(7)} className={`rounded-full border px-4 py-2 text-sm font-medium ${isDark ? "border-white/15 text-neutral-200 hover:bg-white/10" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"}`}>Open Space</button>
+          <button onClick={() => go(12)} className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Draft IC memo</button>
+        </div>
+      </div>
+      <div className="grid grid-cols-6 gap-2">
+        {workflowSteps.map(([label, note, target], index) => (
+          <button
+            key={label}
+            onClick={() => go(target)}
+            className={`rounded-xl border px-3 py-2 text-left transition ${index === current ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-950 bg-white text-neutral-950 shadow-sm" : isDark ? "border-white/10 bg-white/[0.04] text-neutral-400 hover:bg-white/[0.08]" : "border-neutral-200 bg-white/60 text-neutral-500 hover:bg-white"}`}
+          >
+            <div className="flex items-center gap-2"><span className="text-[10px] text-neutral-400">{index + 1}</span><span className="text-xs font-semibold">{label}</span></div>
+            <p className="mt-1 truncate text-[11px] opacity-70">{note}</p>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -306,7 +370,7 @@ function ThemeToggle({ theme, setTheme }: { theme: "light" | "dark"; setTheme: (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className={`fixed right-5 top-5 z-50 grid h-9 w-9 place-items-center rounded-lg border text-sm shadow-sm backdrop-blur ${isDark ? "border-white/10 bg-white/10 text-neutral-100" : "border-neutral-200 bg-white/80 text-neutral-700"}`}
+      className={`fixed bottom-5 right-5 z-50 grid h-9 w-9 place-items-center rounded-lg border text-sm shadow-sm backdrop-blur ${isDark ? "border-white/10 bg-white/10 text-neutral-100" : "border-neutral-200 bg-white/80 text-neutral-700"}`}
     >
       {isDark ? "☀" : "☾"}
     </button>
@@ -1173,19 +1237,30 @@ export default function Home() {
             <div><p className="text-xl font-light tracking-[-0.04em]">Cactus</p><p className="text-xs text-neutral-400">Opportunity workspace</p></div>
           </button>
 
-          <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">App navigation</p>
+          <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Product areas</p>
           <nav className="mt-3 space-y-1">
-            {appScreens.map((screen, index) => {
-              const screenIndex = index + 5;
-              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex h-10 w-full items-center rounded-md px-3 text-left text-sm transition ${active === screenIndex ? isDark ? "bg-white text-neutral-950 shadow-sm" : "bg-white text-neutral-950 shadow-sm" : isDark ? "text-neutral-400 hover:bg-white/10" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span>{screen}</button>;
+            {appNav.map(([screen, purpose, screenIndex], index) => {
+              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition ${active === screenIndex ? isDark ? "bg-white text-neutral-950 shadow-sm" : "bg-white text-neutral-950 shadow-sm" : isDark ? "text-neutral-400 hover:bg-white/10" : "text-neutral-500 hover:bg-white/70"}`}><span className="mr-3 text-xs text-neutral-400">{String(index + 1).padStart(2, "0")}</span><span><span className="block leading-4">{screen}</span><span className={`mt-0.5 block text-[11px] ${active === screenIndex ? "text-neutral-400" : "text-neutral-400"}`}>{purpose}</span></span></button>;
             })}
           </nav>
+          <div className={`mt-6 rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium">Current job</p>
+              <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Active</span>
+            </div>
+            <p className={`mt-3 text-sm leading-5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Riverside Flats → IC memo decision</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Next best action: resolve T12 NOI variance, pressure-test seller rent growth, then freeze the memo snapshot.</p>
+            <button onClick={() => setActive(7)} className={`mt-4 w-full rounded-full px-3 py-2 text-xs font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Continue work</button>
+          </div>
           <div className={`mt-auto rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
             <p className="text-sm font-medium">Product spine</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Find opportunities → fill the Vault → work in Spaces → pressure-test assumptions → produce outputs → automate.</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Find → Vault → Space → Analyze → Output → Automate. The nav changes lenses; the spine keeps the job coherent.</p>
           </div>
         </aside>
-        <section className="flex-1"><AppScreen go={setActive} /></section>
+        <section className="min-w-0 flex-1">
+          <AppWorkHeader active={active} go={setActive} isDark={isDark} />
+          <AppScreen go={setActive} />
+        </section>
       </div>
     </main>
   );

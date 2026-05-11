@@ -354,6 +354,23 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 
 **Primary CTA:** Review what Cactus learned.
 
+## Cohesive redesign principle
+
+The app should not feel like nine separate dashboards. It should feel like one operating room for the same CRE job, with every surface answering a different question in the same loop:
+
+```text
+What surfaced? → What do we know? → Where is the work happening? → What does the map/data say? → What should change? → What output ships? → What should run automatically next time?
+```
+
+Durable UX rules for the redesign pass:
+
+- Keep a persistent **current work spine** after onboarding: active opportunity/Space, next best action, sources/review state, and the Find → Vault → Space → Analysis → Output → Automate loop.
+- Make **Opportunities** the start-here surface, but connect every primary action into the Riverside Flats active Space, Analysis, Output, or Agent automation instead of leaving each page as an isolated destination.
+- Use consistent page framing: plain-English page purpose, one primary action, one secondary action, and compact evidence/status chips.
+- Treat the left navigation as product areas, not the user's workflow. The visible workflow spine should explain how a non-technical user moves through the product.
+- Preserve compact mike-like styling: less chrome, smaller panels, fewer nested cards, tighter copy, and clear CTA hierarchy.
+- Every major app page should reinforce the value: Cactus finds opportunities, turns them into source-linked Vault facts, lets the team work in Spaces, pressure-tests assumptions, produces outputs, and automates repeatable work.
+
 ## Build strategy
 
 ### Build Slice 1 — Connected product prototype
