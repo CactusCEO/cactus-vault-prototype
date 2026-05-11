@@ -27,6 +27,16 @@ Cactus should help users:
 7. Build professional outputs: IC memos, debt memos, OMs, BOVs, lender/investor packages.
 8. Automate repeatable inputs, analysis, monitoring, and opportunity discovery.
 
+## App menu
+
+The persistent app menu should be a narrow icon rail, not a full text sidebar. It contains only three primary destinations:
+
+1. **Assistant** — home page for chat, documents, Vault context, and workflow creation.
+2. **Vault** — configurable CRE data grid and source of truth.
+3. **Spaces** — dashboard/history of all past work and active workrooms.
+
+Do not include the extra cube/third icon in the rail. Secondary product surfaces should be reached through Assistant/Spaces workflows rather than cluttering the primary menu.
+
 ## Vault
 
 The Vault is the master memory and source of truth. It should be visibly filled by source data, not appear pre-populated without explanation.

@@ -194,11 +194,9 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
 }
 
 const appNav = [
-  ["Assistant", "Connect or ask", 5],
-  ["Vault", "Sources + facts", 6],
-  ["Spaces", "Workrooms", 7],
-  ["Agents", "Workflows", 9],
-  ["Outputs", "Memos", 12],
+  ["Assistant", "✦", 5],
+  ["Vault", "▣", 6],
+  ["Spaces", "▦", 7],
 ] as const;
 
 function AppWorkHeader({ isDark, hasIntake }: { isDark: boolean; hasIntake: boolean }) {
@@ -984,18 +982,8 @@ function VaultTable({ hasIntake, go }: { hasIntake: boolean; go: (screenIndex: n
 
   return (
     <div className="relative min-h-[760px] bg-white p-0 pb-32 text-[#22003f]">
-      <div className="flex min-h-[760px] border-t border-neutral-200">
-        <aside className="flex w-16 shrink-0 flex-col items-center border-r border-neutral-200 bg-white py-4">
-          <button className="grid h-9 w-9 place-items-center rounded-xl bg-pink-100 text-lg text-[#2b0052]">✦</button>
-          <div className="mt-14 space-y-5 text-xl text-[#2b0052]">
-            <button className="block">▣</button>
-            <button className="block">⬡</button>
-            <button className="block">▦</button>
-          </div>
-          <button className="mt-auto grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-lg text-white">T</button>
-        </aside>
-
-        <main className="min-w-0 flex-1 overflow-hidden">
+      <div className="min-h-[760px] border-t border-neutral-200">
+        <main className="min-w-0 overflow-hidden">
           <div className="flex items-center justify-between border-b border-neutral-300 bg-white px-3 py-3">
             <div className="flex items-center gap-2">
               <button onClick={() => go(5)} className="rounded-lg bg-[#2b0052] px-4 py-2 text-sm font-medium text-white">+ Add documents</button>
@@ -1346,18 +1334,24 @@ export default function Home() {
     <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950"}`}>
       <ThemeToggle theme={theme} setTheme={setTheme} />
       <div className="flex min-h-screen">
-        <aside className={`sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r p-3 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
-          <button onClick={() => setActive(0)} className={`mb-5 flex items-center gap-2 rounded-xl px-2 py-2 text-left ${isDark ? "hover:bg-white/10" : "hover:bg-white"}`}>
-            <div className={`grid h-8 w-8 place-items-center rounded-lg text-xs font-semibold ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>C</div>
-            <div><p className="text-lg font-light tracking-[-0.04em]">Cactus</p></div>
-          </button>
-
-          <nav className="space-y-1">
-            {appNav.map(([screen, purpose, screenIndex]) => {
-              return <button key={screen} onClick={() => setActive(screenIndex)} className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition ${active === screenIndex ? isDark ? "bg-white text-neutral-950 shadow-sm" : "bg-white text-neutral-950 shadow-sm" : isDark ? "text-neutral-400 hover:bg-white/10" : "text-neutral-500 hover:bg-white/70"}`}><span><span className="block leading-4">{screen}</span><span className="mt-0.5 block text-[11px] text-neutral-400">{purpose}</span></span></button>;
+        <aside className={`sticky top-0 flex h-screen w-16 shrink-0 flex-col items-center border-r py-4 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-white"}`}>
+          <nav className="flex flex-col items-center gap-10">
+            {appNav.map(([screen, icon, screenIndex], index) => {
+              const activeNav = active === screenIndex;
+              return (
+                <button
+                  key={screen}
+                  onClick={() => setActive(screenIndex)}
+                  title={screen}
+                  aria-label={screen}
+                  className={`grid h-9 w-9 place-items-center text-lg transition ${activeNav ? "rounded-xl bg-pink-100 text-[#2b0052]" : isDark ? "text-neutral-400 hover:text-white" : "text-[#2b0052] hover:rounded-xl hover:bg-neutral-100"} ${index === 2 ? "mt-2" : ""}`}
+                >
+                  {icon}
+                </button>
+              );
             })}
           </nav>
-
+          <button onClick={() => setActive(0)} title="Cactus account" aria-label="Cactus account" className="mt-auto grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-sm font-semibold text-white">T</button>
         </aside>
         <section className="min-w-0 flex-1">
           <AppWorkHeader isDark={isDark} hasIntake={hasIntake} />

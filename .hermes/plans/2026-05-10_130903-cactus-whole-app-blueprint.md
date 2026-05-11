@@ -183,13 +183,13 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 **Purpose:** Provide the persistent workspace after onboarding.
 
 **Recommended primary nav:**
-- Assistant.
-- Vault.
-- Spaces.
-- Agents.
-- Outputs.
+- Use a narrow icon rail as the app menu.
+- Top icon: **Assistant** — the home page for adding documents, adding Vault context, creating workflows, and chatting.
+- Second icon: **Vault** — the structured CRE data grid/source of truth.
+- Third/last icon: **Spaces** — the Spaces dashboard/history of all past work.
+- Remove the extra cube/third icon from the rail; it is not a primary app area.
 
-Keep secondary product areas available later, but do not overwhelm the empty-state app with a long left rail before data exists.
+Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity available later through Assistant/Spaces workflows, but do not show them as primary left-rail items in the sparse app shell.
 
 **Global rules:**
 - Compact nav.
