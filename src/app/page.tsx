@@ -215,7 +215,7 @@ const appNav = [
   ["Outputs", "Memos", 12],
 ] as const;
 
-function AppWorkHeader({ go, isDark }: { go: (screenIndex: number) => void; isDark: boolean }) {
+function AppWorkHeader({ isDark }: { isDark: boolean }) {
   return (
     <div className={`sticky top-0 z-30 border-b px-6 py-3 backdrop-blur-xl ${isDark ? "border-white/10 bg-neutral-950/88" : "border-neutral-200 bg-neutral-100/88"}`}>
       <div className="flex items-center justify-between gap-4">
@@ -223,7 +223,6 @@ function AppWorkHeader({ go, isDark }: { go: (screenIndex: number) => void; isDa
           <p className="text-sm font-medium">Cactus Capital Partners</p>
           <p className={`mt-0.5 truncate text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Multifamily Vault · no sources connected</p>
         </div>
-        <button onClick={() => go(5)} className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Connect data</button>
       </div>
     </div>
   );
@@ -672,7 +671,7 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(3)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
-            <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Connect first source</button>
+            <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to data intake</button>
           </div>
         </div>
       </div>
@@ -681,32 +680,95 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
 }
 
 function Opportunities() {
+  const [selectedSource, setSelectedSource] = useState(0);
+  const selected = sourceCards[selectedSource];
+  const intakeCopy = [
+    ["Upload documents", "Drop OMs, T12s, rent rolls, models, PDFs, or Excel files."],
+    ["Connect email or drive", "Choose approved folders, labels, senders, and deal rooms."],
+    ["Import lists or comps", "Bring property lists, sales comps, rent comps, CRM exports, or models."],
+    ["Use demo Vault", "Load sample data only so the team can explore the workflow first."],
+  ][selectedSource];
+  const valuePath = [
+    ["Extract", "addresses, units, rents, NOI, debt, dates, owners, brokers"],
+    ["Vault", "source-linked records, citations, confidence, review state"],
+    ["Unlock", "review list, map pins, Spaces, underwriting, outputs"],
+  ];
+
   return (
     <div className="p-6">
       <main className="mx-auto min-h-[640px] max-w-5xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mx-auto flex max-w-3xl flex-col items-center py-10 text-center">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-neutral-950 text-sm font-semibold text-white">C</div>
-          <h2 className="mt-5 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Connect CRE data to start.</h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">Your workspace exists, but Cactus has not read any documents, folders, emails, or lists yet. Add a source before opportunities, Vault rows, maps, or memos appear.</p>
-          <div className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 text-left shadow-inner">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-xs font-semibold text-neutral-700">AI</span>
-            <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus what to connect first…" />
-            <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Ask</button>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Data intake</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Connect CRE data to start.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">Step 4 brought you here. Cactus still has no source data. Add documents or connectors first; then it can extract facts into the Vault and create useful review work.</p>
           </div>
+          <div className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-500">No sources connected</div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {sourceCards.map((source) => (
-            <button key={source.title} className="rounded-2xl border border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-400 hover:shadow-sm">
-              <p className="text-sm font-semibold text-neutral-950">{source.title}</p>
-              <p className="mt-2 text-xs leading-5 text-neutral-500">{source.note}</p>
-            </button>
-          ))}
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {sourceCards.map((source, index) => {
+            const active = selectedSource === index;
+            return (
+              <button key={source.title} onClick={() => setSelectedSource(index)} className={`rounded-2xl border p-4 text-left transition ${active ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-950 hover:border-neutral-400 hover:shadow-sm"}`}>
+                <p className="text-sm font-semibold">{source.title}</p>
+                <p className={`mt-2 text-xs leading-5 ${active ? "text-neutral-300" : "text-neutral-500"}`}>{source.note}</p>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="mt-5 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-500">
-          <p className="font-medium text-neutral-900">No opportunities yet</p>
-          <p className="mt-2">Once a source is connected, Cactus can create source-linked Vault records, review tables, maps, Spaces, and workflows.</p>
+        <div className="mt-5 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+          <section className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-neutral-950">{intakeCopy[0]}</p>
+                <p className="mt-1 text-xs leading-5 text-neutral-500">{intakeCopy[1]}</p>
+              </div>
+              <span className="rounded-full bg-white px-2.5 py-1 text-xs text-neutral-500">Selected</span>
+            </div>
+
+            {selected.title === "Upload documents" ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-6 text-center">
+                <p className="text-sm font-medium text-neutral-950">Drop files here</p>
+                <p className="mt-1 text-xs text-neutral-500">or choose files from your computer</p>
+                <input id="cactus-upload" type="file" multiple className="sr-only" />
+                <label htmlFor="cactus-upload" className="mt-4 inline-flex cursor-pointer rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Choose files</label>
+              </div>
+            ) : selected.title === "Connect email or drive" ? (
+              <div className="mt-4 grid gap-2 text-sm">
+                {["Google Drive", "Outlook / Gmail", "Deal room folder"].map((item) => <button key={item} className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-3 text-left"><span>{item}</span><span className="rounded-full border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-700">Choose scope</span></button>)}
+              </div>
+            ) : selected.title === "Import lists or comps" ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5 text-sm text-neutral-500">Upload CSV/XLSX lists or paste rows from a spreadsheet.</div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5 text-sm text-neutral-500">Demo data is clearly labeled and separate from your firm Vault.</div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-neutral-200 bg-white p-5">
+            <p className="text-sm font-semibold text-neutral-950">How this becomes useful</p>
+            <div className="mt-4 space-y-3">
+              {valuePath.map(([label, note], index) => (
+                <div key={label} className="flex gap-3">
+                  <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-neutral-950 text-[11px] font-medium text-white">{index + 1}</div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-950">{label}</p>
+                    <p className="mt-1 text-xs leading-5 text-neutral-500">{note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-3 text-xs leading-5 text-neutral-500">
+              Nothing is generated yet. After a source is added, Cactus shows extraction progress, citations, and review states before it surfaces opportunities.
+            </div>
+          </section>
+        </div>
+
+        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 text-left shadow-inner">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-50 text-xs font-semibold text-neutral-700">AI</span>
+          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus what to connect first…" />
+          <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Ask</button>
         </div>
       </main>
     </div>
@@ -1184,7 +1246,7 @@ export default function Home() {
 
         </aside>
         <section className="min-w-0 flex-1">
-          <AppWorkHeader go={setActive} isDark={isDark} />
+          <AppWorkHeader isDark={isDark} />
           <AppScreen go={setActive} />
         </section>
       </div>

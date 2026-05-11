@@ -164,7 +164,9 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 - Explicitly say Step 3 only created a brief; it did not connect data.
 - Show a compact “From your setup” sequence: workspace from Step 2 → brief from Step 3 → next action is data.
 - Show the first source action: upload docs, connect email/drive, import lists/comps, or use demo data.
+- Make the CTA explicitly hand off into the app's data intake screen, e.g. **Continue to data intake**, so users understand Step 4 is not the destination.
 - Make the post-onboarding app start as an empty assistant/workspace with documents/projects/workflows concepts, adapted from MikeOSS for CRE.
+- The first app screen must include an obvious upload/connect function plus a visible explanation of how source data becomes Cactus value: extract facts → create Vault records → surface review lists/Spaces/outputs.
 - Only show generated opportunities, rows, maps, or memos after real source data or demo data has been explicitly chosen.
 
 **Avoid:**
@@ -194,6 +196,8 @@ Keep secondary product areas available later, but do not overwhelm the empty-sta
 - Clear active state.
 - Search / command-style interaction should be available later.
 - Do not wrap onboarding in this shell.
+- Pre-data app landing must contain a real-looking data-intake module: upload/drop zone or connector scope controls, plus a compact value path showing `Extract facts → Vault records → Review/Spaces/Outputs`.
+- Do not make users infer that a generic `Connect data` button will handle ingestion; the upload/connect surface must be visible in the app.
 
 ---
 
