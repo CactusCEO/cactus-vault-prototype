@@ -198,9 +198,10 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 - Do not wrap onboarding in this shell.
 - Assistant is the home page. It should let users add documents, add context from the Vault, create workflows like Mike, and improve their request through an **Enhance prompt** action.
 - Pre-data app landing must contain a real-looking data-intake module: upload/drop zone or connector scope controls, plus a compact value path showing `Extract facts → Vault records → Review/Spaces/Outputs`.
-- The onboarding source choice starts with one provider/source and preferably 5-10 documents about one deal; other sources can be added later.
-- Do not make users infer that a generic `Connect data` button will handle ingestion; the upload/connect surface must be visible in the app.
-- After the user submits the first source, open the Vault while extraction is happening. The Vault should show source records/facts being added in real time, not magically appear fully populated.
+- The onboarding source choice must carry into the app. If the user chose Upload documents, Connect email/drive, Import lists/comps, or Use demo Vault, the Assistant and empty Vault should open on that exact first-source setup instead of asking them to choose again from scratch.
+- Build all four first-source paths as simple, actionable setup flows: upload/submit files, choose a connector scope, import a list/CSV, or load clearly labeled demo data. Each path should have one obvious first-win CTA.
+- Do not make users infer that a generic `Connect data` button will handle ingestion; the selected upload/connect/import/demo surface must be visible in the app.
+- After the user completes the selected first-source action, open the Vault while extraction is happening. The Vault should show source records/facts being added in real time, not magically appear fully populated.
 - Pair extraction visibility with one primary CTA: **Check extraction status + audit**. Keep **Add more sources** as a second CTA.
 - If the user connects ongoing sources, ask whether they want a continuous flow/subscription because it adds recurring monthly cost.
 - Vault should feel like a structured CRE data grid, not a generic records table. Users can add their own columns; each column is a data endpoint/prompt such as YR 1 NOI, YR 2 cap rate, owner name, demand growth, climate risk, or average 1BR rent.

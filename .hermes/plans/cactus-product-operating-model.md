@@ -42,8 +42,10 @@ Do not include the extra cube/third icon in the rail. Secondary product surfaces
 The Vault is the master memory and source of truth. It should be visibly filled by source data, not appear pre-populated without explanation.
 
 First-use flow:
-- Onboarding asks the user to choose one starting data provider/source; the preferred first run is 5-10 documents about one deal.
-- After the user submits that source, Cactus opens the empty Vault and shows extraction creating records/facts in real time.
+- Onboarding asks the user to choose one starting data provider/source: Upload documents, Connect email/drive, Import lists/comps, or Use demo Vault.
+- That choice must carry into the app so the user lands on a simple, source-specific first-win setup rather than a generic connect-data prompt.
+- Each source path should be action-complete in the prototype: submit files, approve connector scope, import list/comps, or load demo data. The user should see exactly what to click next.
+- After the user completes that first-source action, Cactus opens the empty/extracting Vault and shows extraction creating records/facts in real time.
 - The primary Vault CTA during this state is singular: **Check extraction status + audit**. This opens one review surface for extraction progress, source citations, confidence, and issues needing human confirmation.
 - A secondary CTA lets users **Add more sources**.
 - If a source is continuous (email, drive folder, deal room, scraper, provider refresh), Cactus should ask whether the user wants a continuous flow/subscription and disclose recurring monthly cost/approval scope.
