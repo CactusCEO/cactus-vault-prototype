@@ -327,3 +327,17 @@ The prototype should eventually show:
 5. Deal Analysis that can compare the current model to prior snapshots.
 6. Spaces that can be frozen or auto-updating depending on collaboration/use case.
 7. Sensitivity Playground using both latest data and historical market movement.
+
+
+## Prototype implementation note — Option B
+
+The prototype should now make cost/freshness/provenance visible in the active workflow without turning the UI into a billing dashboard.
+
+Recommended compact surfaces:
+
+- **Spaces:** a source ledger showing provider, fact supported, freshness, cost mode, confidence, and last refresh.
+- **Vault:** a data story card showing what changed over time and the underwriting impact.
+- **Deal Analysis:** a “what changed since last review” card tying market movement to IRR/value changes.
+- **Comps + Data:** provider packs should show free/paid, cached/fresh/frozen, and why a refresh is worth it.
+
+The product message is: Cactus saves credits by caching intelligently, but shows when a paid refresh changes a real investment decision.

@@ -395,16 +395,19 @@ Includes:
 - Playground block answers “What needs to change?” directly.
 - Layout stays compact and avoids disconnected dashboard sprawl.
 
-### Build Slice 2 — Trust/provenance pass
+### Build Slice 2 — Trust/provenance + cost/freshness pass
 
-Goal: make the prototype feel professional and enterprise-grade.
+Goal: make the prototype feel professional, defensible, and cost-aware. Users should understand where conclusions came from, when data was refreshed, whether it is paid/free/cached/frozen, and what changed over time.
 
 Includes:
-- Source links / citations in visible places.
-- Confidence states.
-- Timestamps.
-- Review queue states.
-- Editable assumptions.
+- Source/provider ledger in Spaces and Comps + Data.
+- Visible source links/citations, confidence states, and timestamps.
+- Data freshness labels: live, cached, frozen snapshot, monthly refresh, on-demand refresh.
+- Cost labels: free/public, included, paid refresh, premium provider, cached to save credits.
+- Space context mode: selected/latest, frozen point-in-time, or auto-updating.
+- Compact Vault “data story” card showing cap-rate/rent/supply movement and underwriting impact.
+- Deal Analysis “what changed since last review” card.
+- Review queue states and editable assumptions.
 - Audit-log placeholder.
 
 ### Build Slice 3 — Always-on agent pass
