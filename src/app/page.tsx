@@ -22,9 +22,9 @@ const sourceCards = [
     next: "Cactus turns rows into searchable properties, comps, assumptions, and map pins.",
   },
   {
-    title: "Use sample Vault",
+    title: "Use demo Vault",
     badge: "Explore first",
-    note: "Try the workflow with demo data.",
+    note: "Sample data only.",
     next: "Cactus loads a realistic demo so you can see the workflow immediately.",
   },
 ];
@@ -85,13 +85,6 @@ const comps = [
   ["Hillside Trace", "14 min", "1986", "210", "$139k/unit", "Use"],
   ["Metro Pointe", "22 min", "2003", "260", "$176k/unit", "Maybe"],
   ["East Bend", "4.8 mi", "1978", "120", "$118k/unit", "Exclude"],
-];
-
-const opportunityRows = [
-  ["East Loop Assemblage", "Tampa", "Site selection", "91", "Supply gap + traffic", "Analyze"],
-  ["Riverside Flats", "Nashville", "Acquisition", "88", "Rent gap + broker signal", "Analyze"],
-  ["Pine Hollow", "Charlotte", "Acquisition", "82", "Owner age + comp support", "Review"],
-  ["West Mesa Corridor", "Phoenix", "Site selection", "79", "Growth + zoning", "Watch"],
 ];
 
 const spaceRows = [
@@ -215,24 +208,24 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
 }
 
 const appNav = [
-  ["Opportunities", "What surfaced?", 5],
-  ["Vault", "What do we know?", 6],
-  ["Spaces", "Where work happens", 7],
-  ["Map", "Where + why here?", 8],
-  ["Agents", "What keeps running?", 9],
-  ["Analysis", "What needs to change?", 10],
-  ["Comps + Data", "What backs it up?", 11],
-  ["Outputs", "What ships?", 12],
-  ["Activity", "What did it learn?", 13],
+  ["Assistant", "Connect or ask", 5],
+  ["Vault", "Sources + facts", 6],
+  ["Spaces", "Workrooms", 7],
+  ["Map", "Locations", 8],
+  ["Agents", "Workflows", 9],
+  ["Analysis", "Underwriting", 10],
+  ["Comps + Data", "Evidence", 11],
+  ["Outputs", "Memos", 12],
+  ["Activity", "Learning", 13],
 ] as const;
 
 const workflowSteps = [
-  ["Find", "Opportunities", 5],
-  ["Vault", "Source-linked facts", 6],
-  ["Space", "Scoped workroom", 7],
-  ["Analyze", "Playground + comps", 10],
-  ["Output", "IC memo", 12],
-  ["Automate", "Repeatable agent", 9],
+  ["Connect", "Add source", 5],
+  ["Vault", "Store facts", 6],
+  ["Space", "Workroom", 7],
+  ["Analyze", "Underwrite", 10],
+  ["Output", "Memo", 12],
+  ["Automate", "Workflow", 9],
 ] as const;
 
 function activeStepFor(active: number) {
@@ -252,16 +245,16 @@ function AppWorkHeader({ active, go, isDark }: { active: number; go: (screenInde
       <div className="mb-3 flex items-center justify-between gap-6">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className={`rounded-full px-2.5 py-1 font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Active work</span>
-            <span className={isDark ? "text-neutral-400" : "text-neutral-500"}>Riverside Flats Deal Review · Nashville · 184 units · IC memo path</span>
+            <span className={`rounded-full px-2.5 py-1 font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Setup</span>
+            <span className={isDark ? "text-neutral-400" : "text-neutral-500"}>Cactus Capital Partners · Multifamily Vault · no sources connected yet</span>
           </div>
           <p className={`mt-2 max-w-3xl text-sm leading-6 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
-            Start with what Cactus surfaced, trust the source-linked Vault, do the work in a Space, pressure-test assumptions, ship the output, then automate the repeatable workflow.
+            Start like MikeOSS: create a workspace, add documents or connectors, then chat, review tables, and automate workflows once real CRE data exists.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button onClick={() => go(7)} className={`rounded-full border px-4 py-2 text-sm font-medium ${isDark ? "border-white/15 text-neutral-200 hover:bg-white/10" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"}`}>Open Space</button>
-          <button onClick={() => go(12)} className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Draft IC memo</button>
+          <button onClick={() => go(6)} className={`rounded-full border px-4 py-2 text-sm font-medium ${isDark ? "border-white/15 text-neutral-200 hover:bg-white/10" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"}`}>Open empty Vault</button>
+          <button onClick={() => go(5)} className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Connect data</button>
         </div>
       </div>
       <div className="grid grid-cols-6 gap-2">
@@ -712,17 +705,17 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
           </div>
 
           <div className={`mt-4 rounded-2xl border p-4 ${soft}`}>
-            <p className="text-sm font-semibold">Before Cactus runs</p>
+            <p className="text-sm font-semibold">Before Cactus can run</p>
             <div className="mt-3 grid gap-2 text-sm">
-              <p><span className={muted}>1.</span> Choose the files or folders Cactus can use.</p>
+              <p><span className={muted}>1.</span> Upload documents or connect approved folders.</p>
               <p><span className={muted}>2.</span> Confirm markets and buy-box criteria.</p>
-              <p><span className={muted}>3.</span> Review the first opportunity list before automation continues.</p>
+              <p><span className={muted}>3.</span> Then Cactus can create the first review list.</p>
             </div>
           </div>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(3)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
-            <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Approve and build</button>
+            <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Connect first source</button>
           </div>
         </div>
       </div>
@@ -732,38 +725,45 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
 
 function Opportunities({ go }: { go: (screenIndex: number) => void }) {
   return (
-    <div className="grid min-h-[690px] grid-cols-[1fr_340px] gap-5 p-8">
+    <div className="grid min-h-[690px] grid-cols-[1fr_320px] gap-5 p-8">
       <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Opportunity engine" title="Find deals and sites before intake" subtitle="Cactus keeps watching approved markets, sources, broker activity, ownership signals, permits, supply gaps, and site-selection factors so deal intake starts with context already built." />
+        <div className="mx-auto flex max-w-3xl flex-col items-center py-10 text-center">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-neutral-950 text-sm font-semibold text-white">C</div>
+          <h2 className="mt-5 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Connect CRE data to start.</h2>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">Your workspace exists, but Cactus has not read any documents, folders, emails, or lists yet. Add a source before opportunities, Vault rows, maps, or memos appear.</p>
+          <div className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 text-left shadow-inner">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-xs font-semibold text-neutral-700">AI</span>
+            <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus what to connect first…" />
+            <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Ask</button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-4 gap-3">
-          {["19 leads surfaced", "6 sites ranked", "4 markets watched", "3 need review"].map((stat) => (
-            <div key={stat} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="text-xl font-semibold tracking-[-0.04em] text-neutral-950">{stat.split(" ")[0]}</p>
-              <p className="mt-1 text-xs text-neutral-500">{stat.split(" ").slice(1).join(" ")}</p>
-            </div>
+          {sourceCards.map((source) => (
+            <button key={source.title} className="rounded-2xl border border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-400 hover:shadow-sm">
+              <p className="text-sm font-semibold text-neutral-950">{source.title}</p>
+              <p className="mt-2 text-xs leading-5 text-neutral-500">{source.note}</p>
+            </button>
           ))}
         </div>
-        <div className="mt-5 overflow-hidden rounded-2xl border border-neutral-200">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-50 text-xs text-neutral-500"><tr>{["Opportunity", "Market", "Type", "Score", "Why surfaced", "Action"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-3 font-medium">{h}</th>)}</tr></thead>
-            <tbody>{opportunityRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 5 ? <button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-700 hover:border-neutral-950 hover:text-neutral-950">{cell}</button> : cell}</td>)}</tr>)}</tbody>
-          </table>
-        </div>
-        <div className="mt-5 grid grid-cols-3 gap-4">
-          {[
-            ["Deal finding", "Broker signals, listings, owner age, taxes, distress, and off-market patterns."],
-            ["Site selection", "Demographics, traffic density, zoning, flood risk, supply/demand, and nearby comps."],
-            ["Learning loop", "Approvals, rejects, edits, and assumptions change future rankings automatically."],
-          ].map(([title, copy]) => <div key={title} className="rounded-2xl border border-neutral-200 p-4"><p className="text-sm font-medium text-neutral-950">{title}</p><p className="mt-2 text-xs leading-5 text-neutral-500">{copy}</p></div>)}
+
+        <div className="mt-5 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-500">
+          <p className="font-medium text-neutral-900">No opportunities yet</p>
+          <p className="mt-2">Once a source is connected, Cactus can create source-linked Vault records, review tables, maps, Spaces, and workflows.</p>
         </div>
       </main>
+
       <aside className="rounded-[1.5rem] border border-neutral-200 bg-neutral-950 p-5 text-white shadow-sm">
-        <p className="text-sm font-medium">Why this is faster than intake alone</p>
-        <p className="mt-4 text-3xl font-semibold leading-[1] tracking-[-0.06em]">The context is built before the deal arrives.</p>
-        <div className="mt-6 space-y-2 text-xs text-neutral-300">
-          {['Watches markets continuously', 'Scores locations and owner signals', 'Pre-builds comps and map context', 'Learns what the team rejects', 'Turns strong leads into analysis packets'].map((item) => <div key={item} className="rounded-xl bg-white/10 px-3 py-2">{item}</div>)}
+        <p className="text-sm font-medium">MikeOSS pattern, rebuilt for CRE</p>
+        <div className="mt-5 space-y-2 text-xs text-neutral-300">
+          {[
+            ["Assistant", "Ask questions against approved CRE sources."],
+            ["Vault", "Store documents, properties, facts, and citations."],
+            ["Review tables", "Turn messy files into editable diligence tables."],
+            ["Workflows", "Automate repeatable sourcing and review."],
+          ].map(([title, note]) => <div key={title} className="rounded-xl bg-white/10 px-3 py-3"><p className="font-medium text-white">{title}</p><p className="mt-1 leading-5">{note}</p></div>)}
         </div>
-        <button onClick={() => go(13)} className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Teach Cactus criteria</button>
+        <button onClick={() => go(6)} className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Open empty Vault</button>
       </aside>
     </div>
   );
@@ -1241,15 +1241,15 @@ export default function Home() {
           <div className={`mt-6 rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-medium">Current job</p>
-              <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Active</span>
+              <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-amber-400/15 text-amber-200" : "bg-amber-50 text-amber-700"}`}>Pending</span>
             </div>
-            <p className={`mt-3 text-sm leading-5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Riverside Flats → IC memo decision</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Next best action: resolve T12 NOI variance, pressure-test seller rent growth, then freeze the memo snapshot.</p>
-            <button onClick={() => setActive(7)} className={`mt-4 w-full rounded-full px-3 py-2 text-xs font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Continue work</button>
+            <p className={`mt-3 text-sm leading-5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Connect your first source</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">No CRE data is connected yet. Upload docs or connect approved folders before Cactus can surface opportunities.</p>
+            <button onClick={() => setActive(5)} className={`mt-4 w-full rounded-full px-3 py-2 text-xs font-medium ${isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white"}`}>Connect data</button>
           </div>
           <div className={`mt-auto rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
             <p className="text-sm font-medium">Product spine</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Find → Vault → Space → Analyze → Output → Automate. The nav changes lenses; the spine keeps the job coherent.</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Connect → Vault → Space → Analyze → Output → Automate. Results only appear after approved source data exists.</p>
           </div>
         </aside>
         <section className="min-w-0 flex-1">

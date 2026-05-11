@@ -136,7 +136,7 @@ Use plain-English actions instead of developer vocabulary:
 - Upload documents.
 - Connect email or drive.
 - Import lists or comps.
-- Use sample Vault.
+- Use demo Vault.
 
 **First always-on system options:**
 - Opportunity Finder — find acquisition targets and deal signals.
@@ -155,20 +155,21 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 
 ### 5. Plan review / activation
 
-**Purpose:** Bridge setup into the product without feeling like Cactus magically generated a dashboard. The user should understand where the plan came from: company workspace defaults and asset class from Step 2, plus the selected source and first job from Step 3.
+**Purpose:** Bridge setup into a MikeOSS-like empty product shell without pretending Cactus already has data. The user should understand that Step 2 created the workspace/Vault boundary and Step 3 created the first brief; the next required step is connecting or uploading real data.
 
-**Primary CTA:** Approve and build.
+**Primary CTA:** Connect first source.
 
 **UX pattern:**
-- Keep this screen simpler than the full app. It is a review/approval checkpoint, not a dashboard.
+- Treat this as a data-connection handoff, not an activation/results dashboard.
 - Show a compact “From your setup” line: company Vault, asset class, source, first job.
-- Show only the first plan: source scope, starting markets/buy box, first output.
-- Let the user see that nothing runs until they approve scope.
-- Move detailed live activity, tables, metrics, and outputs into the app workspace after approval.
+- Show the first source action: upload docs, connect email/drive, import lists/comps, or use sample data.
+- Make the post-onboarding app start as an empty assistant/workspace with documents/projects/workflows concepts, adapted from MikeOSS for CRE.
+- Only show generated opportunities, rows, maps, or memos after real source data or sample data has been explicitly chosen.
 
 **Avoid:**
 - Full live activity feeds during onboarding.
-- Large tables of generated opportunities before the user has approved scope.
+- Large tables of generated opportunities before the user has approved source data.
+- Dropping the user into a fake populated dashboard after onboarding.
 - Copy written from the system’s perspective like “The user approves…”
 - Vague “AI magic” copy.
 
