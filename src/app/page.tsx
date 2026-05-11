@@ -56,24 +56,6 @@ const systemCards = [
   },
 ];
 
-const extractionEvents = [
-  ["Watching approved markets", "Nashville, Tampa, Charlotte, Phoenix, and Dallas opportunity signals", "done"],
-  ["Finding deals + sites", "19 acquisition leads and 6 development zones surfaced for review", "running"],
-  ["Creating Vault records", "Properties, owners, submarkets, sources, and status fields are appearing", "running"],
-  ["Scoring site-selection signals", "Demographics, traffic, flood risk, zoning, supply pipeline, and comps checked", "done"],
-  ["Extracting deal facts", "612 fields pulled with citations back to source pages and files", "done"],
-  ["Learning your criteria", "Cactus saved buy-box preferences and rejection reasons for future rankings", "review"],
-];
-
-const buildRows = [
-  ["Riverside Flats", "Nashville", "184", "Deal signal + OM", "Ready"],
-  ["East Loop Assemblage", "Tampa", "Site", "Permit + zoning", "Scoring"],
-  ["Pine Hollow", "Charlotte", "132", "Broker email", "Mapped"],
-  ["Cedar Point", "Tampa", "96", "Ownership signal", "Needs review"],
-];
-
-const unlockedOutputs = ["Opportunity list", "Vault table", "Map layers", "Site memo", "IC memo drafting"];
-
 const vaultRows = [
   ["Riverside Flats", "Nashville", "184", "1988", "$24.6M", "$133k", "5.8%", "$1,462", "A-", "Email + OM"],
   ["Pine Hollow", "Charlotte", "132", "1976", "$15.9M", "$120k", "6.2%", "$1,318", "B+", "Scraper"],
@@ -694,63 +676,54 @@ function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "
 
 function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const isDark = theme === "dark";
-  const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
-  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
+  const page = isDark ? "bg-neutral-950 text-white" : "bg-[#f7f4ee] text-neutral-950";
+  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white/90";
   const surface = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white";
   const soft = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50";
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
   const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
+  const reviewRows = [
+    ["Workspace", "Cactus Capital Partners · Multifamily", "from Step 2"],
+    ["Source", "Upload documents", "from Step 3"],
+    ["First job", "Opportunity Finder", "from Step 3"],
+  ];
 
   return (
     <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
-      <div className="w-full max-w-6xl">
-        <div className="mb-4 flex items-end justify-between gap-6">
-          <div>
-            <div className="flex items-baseline gap-3">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Approve the plan, then watch Cactus build</h2>
-              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 4 of 4</span>
-            </div>
-            <p className={`mt-2 max-w-3xl text-sm leading-6 ${muted}`}>The user approves the source scope first. Then Cactus shows the work: finding deals and sites, scoring signals, creating Vault rows, linking citations, learning criteria, and preparing outputs.</p>
-          </div>
-          <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Open opportunity engine</button>
+      <div className="w-full max-w-3xl">
+        <div className="mb-5 flex items-baseline gap-3">
+          <h2 className="text-2xl font-semibold tracking-[-0.03em]">Review the first plan</h2>
+          <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 4 of 4</span>
         </div>
 
-        <div className={`grid grid-cols-[1fr_330px] gap-5 rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
-          <div className="space-y-4">
-            <div className={`rounded-2xl border shadow-sm ${surface}`}>
-              <div className={`flex items-center justify-between border-b px-4 py-3 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
-                <div><p className="text-sm font-semibold">Opportunities and Vault records appearing live</p><p className={`mt-1 text-xs ${muted}`}>Rows fill as Cactus finds opportunities, scores sites, extracts facts, and links evidence.</p></div>
-                <Pill tone="green">19 opportunities found</Pill>
-              </div>
-              <table className="w-full text-left text-sm">
-                <thead className={`text-xs ${isDark ? "bg-white/[0.04] text-neutral-400" : "bg-neutral-50 text-neutral-500"}`}><tr>{["Property", "Market", "Units", "Sources", "Status"].map((h) => <th key={h} className={`border-b px-4 py-2.5 font-medium ${isDark ? "border-white/10" : "border-neutral-200"}`}>{h}</th>)}</tr></thead>
-                <tbody>{buildRows.map((row) => <tr key={row[0]} className={isDark ? "hover:bg-white/[0.03]" : "hover:bg-neutral-50"}>{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b px-4 py-3 ${isDark ? "border-white/10" : "border-neutral-100"} ${i === 0 ? "font-medium" : muted}`}>{i === 4 ? <span className={`rounded-full px-2 py-1 text-xs ${cell === "Ready" ? "bg-emerald-500/15 text-emerald-300" : cell === "Needs review" ? "bg-amber-500/15 text-amber-300" : "bg-blue-500/15 text-blue-300"}`}>{cell}</span> : cell}</td>)}</tr>)}</tbody>
-              </table>
-            </div>
+        <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
+          <p className={`text-sm leading-6 ${muted}`}>This came from the company Vault you just created and the first brief you selected.</p>
 
-            <div className="grid grid-cols-3 gap-3">
-              {["19 leads surfaced", "6 sites ranked", "4 learnings saved"].map((stat) => <div key={stat} className={`rounded-xl border p-4 text-sm font-medium ${soft}`}>{stat}<p className={`mt-2 text-xs font-normal ${muted}`}>Source-linked, ranked, and reviewable.</p></div>)}
+          <div className="mt-4 space-y-2">
+            {reviewRows.map(([label, value, origin]) => (
+              <div key={label} className={`flex items-center justify-between rounded-xl border px-3 py-3 ${surface}`}>
+                <div>
+                  <p className={`text-xs ${muted}`}>{label}</p>
+                  <p className="mt-1 text-sm font-semibold">{value}</p>
+                </div>
+                <span className={`text-xs ${muted}`}>{origin}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={`mt-4 rounded-2xl border p-4 ${soft}`}>
+            <p className="text-sm font-semibold">Before Cactus runs</p>
+            <div className="mt-3 grid gap-2 text-sm">
+              <p><span className={muted}>1.</span> Choose the files or folders Cactus can use.</p>
+              <p><span className={muted}>2.</span> Confirm markets and buy-box criteria.</p>
+              <p><span className={muted}>3.</span> Review the first opportunity list before automation continues.</p>
             </div>
           </div>
 
-          <aside className="space-y-3">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-950 p-4 text-white shadow-sm">
-              <p className="text-sm font-semibold">Cactus activity</p>
-              <div className="mt-4 space-y-3">
-                {extractionEvents.map(([name, detail, status]) => (
-                  <div key={name} className="flex gap-3">
-                    <div className={`mt-1.5 h-2.5 w-2.5 rounded-full ${status === "running" ? "animate-pulse bg-blue-300" : status === "review" ? "bg-amber-300" : "bg-emerald-300"}`} />
-                    <div><p className="text-xs font-medium text-white">{name}</p><p className="mt-1 text-[11px] leading-4 text-neutral-400">{detail}</p></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className={`rounded-2xl border p-4 shadow-sm ${surface}`}>
-              <p className="text-sm font-semibold">Outputs unlocking</p>
-              <div className="mt-3 flex flex-wrap gap-2">{unlockedOutputs.map((output, index) => <span key={output} className={`rounded-full border px-3 py-1.5 text-xs ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-900 bg-neutral-950 text-white" : isDark ? "border-white/10 text-neutral-400" : "border-neutral-200 text-neutral-500"}`}>{output}</span>)}</div>
-              <p className={`mt-4 text-xs leading-5 ${muted}`}>The user sees an always-on system becoming useful instead of staring at a loading bar.</p>
-            </div>
-          </aside>
+          <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
+            <button onClick={() => go(3)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
+            <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Approve and build</button>
+          </div>
         </div>
       </div>
     </div>

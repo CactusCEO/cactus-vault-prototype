@@ -153,26 +153,23 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 
 ---
 
-### 5. Live build / activation
+### 5. Plan review / activation
 
-**Purpose:** Make users feel they activated an always-on system, not a one-time upload.
+**Purpose:** Bridge setup into the product without feeling like Cactus magically generated a dashboard. The user should understand where the plan came from: company workspace defaults and asset class from Step 2, plus the selected source and first job from Step 3.
 
-**Primary CTA:** Open opportunity engine.
+**Primary CTA:** Approve and build.
 
-**Show visible artifacts:**
-- Opportunity shortlist being created.
-- Site-selection signals being scored.
-- Vault rows being created.
-- Properties detected.
-- Addresses mapped.
-- Facts extracted.
-- Citations attached.
-- Review statuses assigned.
-- Learned preferences captured.
-- Outputs unlocking.
+**UX pattern:**
+- Keep this screen simpler than the full app. It is a review/approval checkpoint, not a dashboard.
+- Show a compact “From your setup” line: company Vault, asset class, source, first job.
+- Show only the first plan: source scope, starting markets/buy box, first output.
+- Let the user see that nothing runs until they approve scope.
+- Move detailed live activity, tables, metrics, and outputs into the app workspace after approval.
 
 **Avoid:**
-- Generic loading bars.
+- Full live activity feeds during onboarding.
+- Large tables of generated opportunities before the user has approved scope.
+- Copy written from the system’s perspective like “The user approves…”
 - Vague “AI magic” copy.
 
 ---
