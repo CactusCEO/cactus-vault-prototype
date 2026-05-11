@@ -203,7 +203,10 @@ Keep secondary product areas available later, but do not overwhelm the empty-sta
 - After the user submits the first source, open the Vault while extraction is happening. The Vault should show source records/facts being added in real time, not magically appear fully populated.
 - Pair extraction visibility with one primary CTA: **Check extraction status + audit**. Keep **Add more sources** as a second CTA.
 - If the user connects ongoing sources, ask whether they want a continuous flow/subscription because it adds recurring monthly cost.
-- Vault should include filtering, multi-select, folder creation, and a sticky hover chat for asking questions about Vault context.
+- Vault should feel like a structured CRE data grid, not a generic records table. Users can add their own columns; each column is a data endpoint/prompt such as YR 1 NOI, YR 2 cap rate, owner name, demand growth, climate risk, or average 1BR rent.
+- Vault rows can be property-level or market-level. A row may represent a subject property, city, MSA, U.S. national benchmark, submarket, comp set, or provider/broker report geography that helps analyze a property.
+- Vault should include filtering, multi-select, folder creation, and a sticky hover chat for asking questions about selected Vault context.
+- Chat with the Vault should be gated until the user selects at least one row; multi-select defines the context boundary for chat.
 - Chatting about selected Vault context should create a Space. Folders should also have their own hover chat and can become Spaces.
 - Spaces are where work gets done: shareable with edit/view access, able to accept additional documents, and similar to a Claude project with scoped context.
 
@@ -230,12 +233,17 @@ Keep secondary product areas available later, but do not overwhelm the empty-sta
 **Purpose:** The structured source of truth for assets, deals, sites, comps, documents, sources, and extracted facts.
 
 **Core elements:**
-- Rows for properties / deals / sites / documents.
-- Columns for asset class, address, market, status, source, confidence, last updated.
-- Review states: Ready, Extracting, Needs review, Mapped.
-- Source/citation access.
+- Spreadsheet-like grid, not a generic dashboard table.
+- Rows represent properties, deals, sites, markets, submarkets, cities, MSAs, national benchmarks, provider reports, or broker-shared market reports.
+- Users can create custom columns. Each column is a data endpoint/prompt Cactus fills and cites, such as YR 1 NOI, YR 2 cap rate, owner name, NOI growth, demand growth, climate risk, or average 1BR rent.
+- Columns can have label, format, extraction prompt, source scope, confidence/review state, and citations.
+- Location/geography rows can be used as context for property-level analysis; e.g. Subject Property, City, MSA, and U.S. National rows can all support one deal review.
+- Filters and templates for common CRE grids.
+- Multi-select rows to create folders or launch chat.
+- Vault chat is enabled only after at least one row is selected; selected rows define the context boundary.
+- Source/citation access and extraction/audit states remain visible.
 
-**Primary CTA:** Analyze selected opportunity or Add source.
+**Primary CTA:** Check extraction status + audit, Add documents/source, or Chat with selected rows.
 
 ---
 ### 9. Spaces

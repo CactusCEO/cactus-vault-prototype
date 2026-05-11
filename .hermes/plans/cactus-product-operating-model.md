@@ -39,9 +39,13 @@ First-use flow:
 - If a source is continuous (email, drive folder, deal room, scraper, provider refresh), Cactus should ask whether the user wants a continuous flow/subscription and disclose recurring monthly cost/approval scope.
 
 Vault interaction model:
+- Vault should feel like a configurable CRE data grid, not just a fixed list of extracted records.
+- Rows can represent properties, deals, sites, markets, submarkets, cities, MSAs, national benchmarks, provider reports, or broker-shared market reports. Market-level and national rows are valuable because they become context for property-level analysis.
+- Columns are user-created data endpoints/prompts. Examples: YR 1 NOI, YR 2 cap rate, owner name, NOI growth, demand growth, climate risk, average 1BR rent, sale comp range, supply pipeline, tax reassessment risk.
+- Each custom column should preserve label, format, prompt, source/provider scope, geography/asset-class filter, citations, confidence, and review state.
 - Vault rows can be filtered, searched, and multi-selected.
 - Multi-select can create folders/subfolders that preserve scoped context.
-- The Vault has a sticky hover chat for asking questions about the whole Vault or the selected records.
+- Vault chat is enabled only after at least one row is selected; the selected rows define what the chat can use.
 - Each folder can also have its own hover chat.
 - Chatting with selected Vault context or a folder should create a Space so the conversation becomes durable work, not a lost one-off chat.
 

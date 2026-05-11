@@ -945,20 +945,37 @@ function Agents() {
 }
 
 function VaultTable({ hasIntake, go }: { hasIntake: boolean; go: (screenIndex: number) => void }) {
-  const [selectedRows, setSelectedRows] = useState(["Riverside Flats"]);
-  const extractingRows = [
-    ["Riverside Flats", "Deal", "OM + rent roll", "184 units · Nashville", "Extracting", "92%"],
-    ["T12 NOI", "Fact", "T12 p.8", "$1.42M", "Needs audit", "76%"],
-    ["Avg rent", "Fact", "Rent roll", "$1,462", "Added", "94%"],
-    ["Debt quote", "Document", "PDF", "5.95% quote", "Reading", "61%"],
-    ["Broker email", "Source", "Email", "Seller process + deadline", "Added", "89%"],
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [showColumnBuilder, setShowColumnBuilder] = useState(false);
+  const [columns, setColumns] = useState([
+    { key: "location", label: "Location", prompt: "Identify the property or market geography.", format: "Text" },
+    { key: "client", label: "Client Name", prompt: "Extract the client or source relationship if available.", format: "Text" },
+    { key: "irr", label: "IRR Risk Adjusted", prompt: "Return risk-adjusted IRR from the model or Cactus base case.", format: "Percent" },
+    { key: "cap", label: "Cap Rate Nominal", prompt: "Extract or benchmark the nominal cap rate.", format: "Percent" },
+    { key: "noi", label: "NOI Growth\n(Asset-class filtered)", prompt: "Extract NOI growth for the matching geography and asset class.", format: "Percent" },
+    { key: "demand", label: "Demand Growth\n(Asset-class filtered)", prompt: "Extract demand growth for the matching geography and asset class.", format: "Percent" },
+    { key: "climate", label: "Climate Risk", prompt: "Summarize flood, disaster, and insurance risk from approved sources.", format: "Score" },
+    { key: "rent", label: "Avg 1BR Rent\n(Class A)", prompt: "Extract average monthly 1BR rent for Class A multifamily properties in the subject ZIP code. Return $X,XXX (±Y% · n=Z).", format: "Number" },
+  ]);
+  const vaultRows = [
+    { id: "subject", kind: "Property", location: "Subject Property\n(geo-mapped)", client: "Fidelity\nInvestments", irr: "8.6%", cap: "5.1%", noi: "3.4%", demand: "2.8%", climate: "Low", rent: "$1,510 (±4% · n=22)" },
+    { id: "city", kind: "Market", location: "City", client: "", irr: "", cap: "", noi: "3.1%", demand: "2.5%", climate: "Medium", rent: "$1,460 (±4% · n=22)" },
+    { id: "msa", kind: "Market", location: "MSA", client: "", irr: "", cap: "", noi: "2.8%", demand: "2.2%", climate: "Medium", rent: "$1,420 (±4% · n=22)" },
+    { id: "national", kind: "Benchmark", location: "U.S. National\n(same asset class)", client: "", irr: "", cap: "", noi: "2.2%", demand: "1.8%", climate: "Varies", rent: "$1,310 (±4% · n=22)" },
+    { id: "provider-report", kind: "Report", location: "Green Street report\n(Southeast MF)", client: "", irr: "", cap: "5.4%", noi: "2.9%", demand: "2.1%", climate: "Source", rent: "" },
   ];
+  const selectedCount = selectedRows.length;
+  const toggleRow = (id: string) => setSelectedRows((current) => current.includes(id) ? current.filter((row) => row !== id) : [...current, id]);
+  const addColumn = () => {
+    setColumns((current) => [...current, { key: `custom-${current.length}`, label: "YR 1 NOI", prompt: "Extract Year 1 NOI from the selected documents or model and cite the source line.", format: "Currency" }]);
+    setShowColumnBuilder(false);
+  };
 
   if (!hasIntake) {
     return (
       <div className="p-8">
         <main className="mx-auto max-w-4xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-          <SectionHeader eyebrow="Empty Vault" title="Submit a first source to fill the Vault" subtitle="The Vault starts empty. Add 5-10 documents from Assistant, then Cactus will open this table while facts are extracted and audited." />
+          <SectionHeader eyebrow="Empty Vault" title="Submit a first source to fill the Vault" subtitle="The Vault starts as a configurable grid. Add 5-10 documents from Assistant, then Cactus fills property and market rows with source-linked columns." />
           <button onClick={() => go(5)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Add first source</button>
         </main>
       </div>
@@ -966,69 +983,115 @@ function VaultTable({ hasIntake, go }: { hasIntake: boolean; go: (screenIndex: n
   }
 
   return (
-    <div className="relative p-8 pb-28">
-      <div className="mb-5 flex items-end justify-between gap-4">
-        <SectionHeader eyebrow="Vault · Riverside Flats first run" title="Your Vault is filling from 7 submitted documents" subtitle="Cactus is extracting source-linked facts into records. Audit uncertain fields before using them in analysis or outputs." />
-        <div className="flex shrink-0 gap-2">
-          <button className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Check extraction status + audit</button>
-          <button onClick={() => go(5)} className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-600">Add more sources</button>
-        </div>
-      </div>
-
-      <div className="mb-4 grid gap-3 md:grid-cols-4">
-        {[
-          ["7 docs", "submitted from onboarding"],
-          ["5 records", "being added now"],
-          ["2 audit items", "need human review"],
-          ["Continuous flow", "off · ask before monthly cost"],
-        ].map(([metric, note]) => <div key={metric} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-sm font-semibold text-neutral-950">{metric}</p><p className="mt-1 text-xs text-neutral-500">{note}</p></div>)}
-      </div>
-
-      <div className="overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 px-5 py-4">
-          <div className="flex flex-wrap gap-2">
-            {['All', 'Documents', 'Facts', 'Needs audit', 'High confidence'].map((filter, index) => <button key={filter} className={`rounded-full border px-3 py-1.5 text-xs ${index === 0 ? 'border-neutral-950 bg-neutral-950 text-white' : 'border-neutral-200 text-neutral-600'}`}>{filter}</button>)}
+    <div className="relative min-h-[760px] bg-white p-0 pb-32 text-[#22003f]">
+      <div className="flex min-h-[760px] border-t border-neutral-200">
+        <aside className="flex w-16 shrink-0 flex-col items-center border-r border-neutral-200 bg-white py-4">
+          <button className="grid h-9 w-9 place-items-center rounded-xl bg-pink-100 text-lg text-[#2b0052]">✦</button>
+          <div className="mt-14 space-y-5 text-xl text-[#2b0052]">
+            <button className="block">▣</button>
+            <button className="block">⬡</button>
+            <button className="block">▦</button>
           </div>
-          <div className="flex gap-2">
-            <button className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Create folder from selected</button>
-            <button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Chat → create Space</button>
+          <button className="mt-auto grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-lg text-white">T</button>
+        </aside>
+
+        <main className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center justify-between border-b border-neutral-300 bg-white px-3 py-3">
+            <div className="flex items-center gap-2">
+              <button onClick={() => go(5)} className="rounded-lg bg-[#2b0052] px-4 py-2 text-sm font-medium text-white">+ Add documents</button>
+              <button className="rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-[#2b0052]">▣ Templates</button>
+              <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Filter</button>
+              <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Folder: none</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="rounded-full bg-[#2b0052] px-4 py-2 text-xs font-medium text-white">Check extraction status + audit</button>
+              <button onClick={() => setShowColumnBuilder(true)} className="grid h-9 w-9 place-items-center rounded-full bg-pink-100 text-2xl leading-none text-[#2b0052]">+</button>
+            </div>
           </div>
-        </div>
-        <table className="w-full border-collapse text-left text-sm">
-          <thead className="bg-neutral-50 text-xs text-neutral-500">
-            <tr>{["", "Record", "Type", "Source", "Extracted value", "Status", "Confidence"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-3 font-medium">{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {extractingRows.map((row) => {
-              const checked = selectedRows.includes(row[0]);
-              return (
-                <tr key={row[0]} className="hover:bg-neutral-50">
-                  <td className="border-b border-neutral-100 px-4 py-4"><input type="checkbox" checked={checked} onChange={() => setSelectedRows(checked ? selectedRows.filter((item) => item !== row[0]) : [...selectedRows, row[0]])} /></td>
-                  {row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 4 ? <span className={`rounded-full px-2 py-1 text-xs ${cell === 'Needs audit' ? 'bg-amber-50 text-amber-700' : cell === 'Extracting' || cell === 'Reading' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{cell}</span> : cell}</td>)}
+
+          <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
+            7 docs submitted · extraction filling this grid · rows may be properties, markets, or provider reports · columns are data endpoints you can create
+          </div>
+
+          <div className="relative overflow-auto">
+            <table className="min-w-[1380px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-neutral-200 bg-white">
+                  {columns.map((column, index) => (
+                    <th key={column.key} className={`relative h-[50px] border-r border-neutral-200 px-3 text-sm font-semibold leading-tight text-[#22003f] ${index === 0 ? "sticky left-0 z-20 w-[210px] bg-white" : "min-w-[165px]"}`}>
+                      <div className="flex items-start gap-2">
+                        <input type="checkbox" className="mt-1 h-3 w-3 accent-[#2b0052]" aria-label={`select ${column.label}`} />
+                        <span className="whitespace-pre-line">{column.label}</span>
+                      </div>
+                    </th>
+                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {vaultRows.map((row, rowIndex) => {
+                  const selected = selectedRows.includes(row.id);
+                  return (
+                    <tr key={row.id} className={`${selected ? "bg-[#fbf4ff]" : rowIndex % 2 ? "bg-white" : "bg-white"} hover:bg-[#fbf4ff]`}>
+                      {columns.map((column, index) => {
+                        const value = row[column.key as keyof typeof row] as string | undefined;
+                        return (
+                          <td key={`${row.id}-${column.key}`} className={`h-[64px] border-b border-r border-neutral-200 px-3 align-middle ${index === 0 ? "sticky left-0 z-10 bg-inherit font-medium text-[#22003f]" : "text-[#22003f]"}`}>
+                            <div className="flex items-center gap-2">
+                              {index === 0 && <input type="checkbox" checked={selected} onChange={() => toggleRow(row.id)} className="h-3 w-3 accent-[#2b0052]" aria-label={`select ${row.location}`} />}
+                              {value ? <span className="whitespace-pre-line leading-5">{value}</span> : <span className="block h-6 w-full rounded bg-neutral-100" />}
+                            </div>
+                            {index === 0 && <p className="ml-5 mt-1 text-[11px] text-neutral-400">{row.kind}</p>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+                {Array.from({ length: 5 }).map((_, rowIndex) => (
+                  <tr key={`blank-${rowIndex}`}>
+                    {columns.map((column, index) => <td key={`blank-${rowIndex}-${column.key}`} className={`h-[52px] border-b border-r border-neutral-200 px-3 ${index === 0 ? "sticky left-0 bg-white" : ""}`}><span className="block h-6 rounded bg-neutral-100" /></td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </main>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-[1fr_320px]">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between"><p className="text-sm font-semibold text-neutral-950">Folder: Riverside Flats diligence</p><button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Open folder chat</button></div>
-          <p className="mt-2 text-xs leading-5 text-neutral-500">Created from selected Vault records. Folder chat uses only these records unless more context is added.</p>
+      {showColumnBuilder && (
+        <div className="absolute right-14 top-28 z-40 w-[360px] rounded-2xl border border-neutral-200 bg-white p-5 text-[#22003f] shadow-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2b0052]">New data endpoint</p>
+          <label className="mt-4 block text-xs font-semibold">Label</label>
+          <input className="mt-1 w-full rounded-lg border border-pink-300 px-3 py-2 text-sm outline-none" defaultValue="Avg 1BR Rent" />
+          <label className="mt-4 block text-xs font-semibold">Format</label>
+          <button className="mt-1 flex w-40 items-center justify-between rounded-lg bg-neutral-100 px-3 py-2 text-sm text-neutral-600">Number <span>↓</span></button>
+          <label className="mt-4 block text-xs font-semibold">Prompt</label>
+          <textarea className="mt-1 h-36 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm leading-5 outline-none" defaultValue={"Extract the average monthly 1BR rent for Class A multifamily properties in the subject ZIP code.\n\nReturn the value in this format:\n$X,XXX (±Y% · n=Z)\n\nWhere ±Y% is the variance or range if available, and n is the number of data points used."} />
+          <div className="mt-4 flex items-center justify-between text-xs text-neutral-400"><span>Use @ to mention columns</span><button onClick={addColumn} className="rounded-full bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">AI generate</button></div>
         </div>
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-xs leading-5 text-neutral-500">
-          Connected sources can become continuous flows. Cactus asks before watching folders or inboxes because it may add monthly subscription cost.
-        </div>
-      </div>
+      )}
 
-      <div className="fixed bottom-5 right-6 z-40 w-[360px] rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Vault chat</p>
-        <div className="mt-2 flex items-center gap-2">
-          <input className="min-w-0 flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none" placeholder="Ask this Vault or selected rows…" />
-          <button onClick={() => go(7)} className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space</button>
+      {selectedCount === 0 ? (
+        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm text-neutral-500 shadow-xl">
+          Select at least one Vault row to chat or create a Space.
         </div>
-      </div>
+      ) : (
+        <div className="fixed bottom-6 left-1/2 z-40 w-[760px] -translate-x-1/2 rounded-2xl border-4 border-[#2b0052] bg-white p-5 shadow-2xl">
+          <textarea className="h-20 w-full resize-none bg-transparent text-xl font-medium text-[#22003f] outline-none placeholder:text-neutral-400" placeholder={`Ask about ${selectedCount} selected Vault row${selectedCount === 1 ? "" : "s"}…`} />
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex gap-2 text-sm">
+              <span className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">▣ Vault</span>
+              <span className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">⚡ Skills</span>
+              <span className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">◎ Web</span>
+              <button className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">Create folder</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500">⌕</button>
+              <button onClick={() => go(7)} className="grid h-10 w-10 place-items-center rounded-full bg-[#2b0052] text-lg text-white">↑</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
