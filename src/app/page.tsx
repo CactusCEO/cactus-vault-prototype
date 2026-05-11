@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-const appScreens = ["Opportunities", "Vault", "Map", "Agents", "Deal Analysis", "Comps + Data", "Outputs", "Activity"];
+const appScreens = ["Opportunities", "Vault", "Spaces", "Map", "Agents", "Analysis", "Comps + Data", "Outputs", "Activity"];
 
 const sourceCards = [
   {
@@ -88,6 +88,39 @@ const opportunityRows = [
   ["Riverside Flats", "Nashville", "Acquisition", "88", "Rent gap + broker signal", "Analyze"],
   ["Pine Hollow", "Charlotte", "Acquisition", "82", "Owner age + comp support", "Review"],
   ["West Mesa Corridor", "Phoenix", "Site selection", "79", "Growth + zoning", "Watch"],
+];
+
+const spaceRows = [
+  ["Riverside Flats Deal Review", "Acquisition", "Vault context", "Internal team", "IC memo", "Active"],
+  ["Tampa Site Selection Sprint", "Development", "Auto-updating", "Team + broker", "Site memo", "Review"],
+  ["East Loop Lender Package", "Debt", "Frozen May 10", "External lender", "Debt memo", "Draft"],
+  ["Pine Hollow BOV", "Broker", "Blank + selected files", "Broker team", "BOV", "Needs data"],
+];
+
+const spaceContext = [
+  ["Vault context", "Riverside Flats OM, rent roll, T12, Nashville rent comps, Southeast value-add criteria", "Included"],
+  ["Market data", "Green Street cap benchmark, ATTOM ownership/tax, HelloData rent comps, FEMA flood, Walk Score", "Fresh"],
+  ["Customer template", "Tyler value-add Excel model · assumptions mapped to Acquisition tab", "Ready"],
+  ["Excluded context", "Full portfolio financials, private partner notes, unrelated Tampa watchlist", "Hidden"],
+];
+
+const extractionItems = [
+  ["Extracted to model", "184 units, T12 NOI, rent roll averages, taxes, debt terms", "Ready"],
+  ["Needs review", "T12 NOI and repair reserve differ from seller summary", "2 items"],
+  ["Push to Excel", "Mapped fields can be exported into the customer template", "Available"],
+];
+
+const scenarioRows = [
+  ["Seller case", "15.8%", "6.0% rent growth", "Aggressive"],
+  ["Cactus base", "12.9%", "3.8% rent growth + 5.85% exit", "Supported"],
+  ["What works", "16.0%", "$1.3M price cut or +9% NOI", "Needs change"],
+];
+
+const benchmarkRows = [
+  ["Exit cap", "5.25%", "5.7–6.1%", "Aggressive"],
+  ["Rent growth", "6.0%", "3.4–4.2%", "Above market"],
+  ["Renovation cost", "$8.5k/unit", "$7–10k/unit", "Supported"],
+  ["Flood risk", "None", "Zone X", "Supported"],
 ];
 
 const agentCards = [
@@ -588,7 +621,7 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
   );
 }
 
-function Opportunities() {
+function Opportunities({ go }: { go: (screenIndex: number) => void }) {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_340px] gap-5 p-8">
       <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
@@ -604,7 +637,7 @@ function Opportunities() {
         <div className="mt-5 overflow-hidden rounded-2xl border border-neutral-200">
           <table className="w-full text-left text-sm">
             <thead className="bg-neutral-50 text-xs text-neutral-500"><tr>{["Opportunity", "Market", "Type", "Score", "Why surfaced", "Action"].map((h) => <th key={h} className="border-b border-neutral-200 px-4 py-3 font-medium">{h}</th>)}</tr></thead>
-            <tbody>{opportunityRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 5 ? <span className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-700">{cell}</span> : cell}</td>)}</tr>)}</tbody>
+            <tbody>{opportunityRows.map((row) => <tr key={row[0]} className="hover:bg-neutral-50">{row.map((cell, i) => <td key={`${row[0]}-${cell}`} className={`border-b border-neutral-100 px-4 py-4 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-600"}`}>{i === 5 ? <button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-700 hover:border-neutral-950 hover:text-neutral-950">{cell}</button> : cell}</td>)}</tr>)}</tbody>
           </table>
         </div>
         <div className="mt-5 grid grid-cols-3 gap-4">
@@ -621,8 +654,133 @@ function Opportunities() {
         <div className="mt-6 space-y-2 text-xs text-neutral-300">
           {['Watches markets continuously', 'Scores locations and owner signals', 'Pre-builds comps and map context', 'Learns what the team rejects', 'Turns strong leads into analysis packets'].map((item) => <div key={item} className="rounded-xl bg-white/10 px-3 py-2">{item}</div>)}
         </div>
-        <button className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Teach Cactus criteria</button>
+        <button onClick={() => go(13)} className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Teach Cactus criteria</button>
       </aside>
+    </div>
+  );
+}
+
+function Spaces({ go }: { go: (screenIndex: number) => void }) {
+  return (
+    <div className="grid min-h-[690px] grid-cols-[360px_1fr] gap-5 p-8">
+      <aside className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-neutral-950">Spaces</p>
+            <p className="mt-1 text-xs leading-5 text-neutral-500">Focused rooms where Cactus uses scoped Vault context to do work.</p>
+          </div>
+          <button className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-medium text-white">New</button>
+        </div>
+        <div className="mt-5 space-y-2">
+          {spaceRows.map(([name, type, context, people, output, status], index) => (
+            <button key={name} onClick={() => go(index === 0 ? 7 : index === 1 ? 8 : 12)} className={`w-full rounded-2xl border p-4 text-left transition ${index === 0 ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-950 hover:border-neutral-300"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{name}</p>
+                  <p className={`mt-1 text-xs ${index === 0 ? "text-neutral-400" : "text-neutral-500"}`}>{type} · {output}</p>
+                </div>
+                <span className={`rounded-full px-2 py-1 text-[11px] ${index === 0 ? "bg-white text-neutral-950" : "bg-neutral-100 text-neutral-500"}`}>{status}</span>
+              </div>
+              <p className={`mt-3 text-xs leading-5 ${index === 0 ? "text-neutral-300" : "text-neutral-500"}`}>{context} · {people}</p>
+            </button>
+          ))}
+        </div>
+        <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Context rule</p>
+          <p className="mt-3 text-sm leading-6 text-neutral-600">Spaces can use selected Vault context, a folder, auto-updating data, frozen point-in-time data, or no prior context.</p>
+        </div>
+      </aside>
+
+      <main className="space-y-5">
+        <section className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex items-start justify-between gap-6">
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Deal Space · active workroom</p>
+              <h2 className="text-2xl font-semibold tracking-[-0.04em] text-neutral-950">Riverside Flats Deal Review</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">One compact room for the whole loop: scoped Vault context, extraction into the customer model, assumption pressure-test, output draft, and automation handoff.</p>
+            </div>
+            <div className="flex gap-2">
+              <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-600">Share</button>
+              <button onClick={() => go(12)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Generate IC memo</button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-3">
+            {["Context: selected", "Model: Excel mapped", "Question: hit 16% IRR", "Next: memo draft"].map((item) => (
+              <div key={item} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                <p className="text-sm font-medium text-neutral-950">{item.split(":")[0]}</p>
+                <p className="mt-1 text-xs text-neutral-500">{item.split(": ")[1]}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid grid-cols-6 gap-2 text-xs">
+            {["Opportunity", "Space", "Extract", "Playground", "Output", "Automate"].map((step, index) => (
+              <button key={step} onClick={() => go(index === 0 ? 5 : index === 4 ? 12 : index === 5 ? 9 : 7)} className={`rounded-full border px-3 py-2 text-left ${index === 1 ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-500 hover:border-neutral-400"}`}>{index + 1}. {step}</button>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid grid-cols-[1fr_340px] gap-5">
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-neutral-950">Vault context in this Space</p>
+              <Pill tone="green">Visible boundary</Pill>
+            </div>
+            <div className="mt-4 space-y-3">
+              {spaceContext.map(([title, detail, status]) => (
+                <div key={title} className="rounded-2xl border border-neutral-200 p-4">
+                  <div className="flex items-center justify-between gap-4"><p className="text-sm font-medium text-neutral-950">{title}</p><Pill tone={status === "Hidden" ? "amber" : "default"}>{status}</Pill></div>
+                  <p className="mt-2 text-xs leading-5 text-neutral-500">{detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-neutral-950 p-5 text-white shadow-sm">
+            <p className="text-sm font-medium">Analyst chat + voice</p>
+            <p className="mt-4 text-2xl font-semibold leading-tight tracking-[-0.05em]">“What needs to change for this to hit 16% IRR?”</p>
+            <p className="mt-4 text-sm leading-6 text-neutral-400">At current price, the deal needs either a $1.3M price reduction or NOI 9% above the Cactus base case. Seller rent growth is above market support.</p>
+            <div className="mt-5 rounded-2xl bg-white/10 p-3 text-xs text-neutral-300">Ask by voice, update assumptions, draft memo language, or push changes into Excel.</div>
+            <div className="mt-4 grid grid-cols-2 gap-2"><button onClick={() => go(10)} className="rounded-full bg-white px-3 py-2 text-xs font-medium text-neutral-950">Open analysis</button><button onClick={() => go(11)} className="rounded-full border border-white/20 px-3 py-2 text-xs text-white">Review comps</button></div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-3 gap-5">
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between"><p className="text-sm font-medium text-neutral-950">Custom extraction</p><button onClick={() => go(10)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Open model</button></div>
+            <div className="mt-4 space-y-3">
+              {extractionItems.map(([title, note, status]) => <div key={title} className="rounded-2xl bg-neutral-50 p-4"><div className="flex justify-between gap-3"><p className="text-sm font-medium text-neutral-950">{title}</p><span className="text-xs text-neutral-400">{status}</span></div><p className="mt-2 text-xs leading-5 text-neutral-500">{note}</p></div>)}
+            </div>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-neutral-950">What needs to change?</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">To hit 16% IRR, price needs to fall $1.3M or NOI must run 9% above Cactus base.</p>
+            <table className="mt-3 w-full text-left text-xs">
+              <tbody>{scenarioRows.map((row) => <tr key={row[0]}>{row.map((cell, i) => <td key={cell} className={`border-b border-neutral-100 py-2.5 ${i === 0 ? "font-medium text-neutral-950" : "text-neutral-500"}`}>{cell}</td>)}</tr>)}</tbody>
+            </table>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-neutral-950">Market benchmarks</p>
+            <div className="mt-4 space-y-2">
+              {benchmarkRows.map(([metric, user, market, view]) => <div key={metric} className="rounded-xl border border-neutral-200 p-3"><div className="flex justify-between text-xs"><span className="font-medium text-neutral-950">{metric}</span><span className="text-neutral-400">{view}</span></div><p className="mt-1 text-xs text-neutral-500">User {user} · Market {market}</p></div>)}
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-[1fr_340px] gap-5">
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between"><p className="text-sm font-medium text-neutral-950">Output draft</p><button onClick={() => go(12)} className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Open outputs</button></div>
+            <div className="mt-4 rounded-2xl bg-neutral-50 p-4 text-sm leading-6 text-neutral-600">Cactus drafted the IC memo thesis, assumption checks, downside case, source appendix, and lender-ready summary from this Space context.</div>
+          </div>
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-neutral-950">Automate next time</p>
+            <p className="mt-3 text-sm leading-6 text-neutral-500">Turn this review into a repeatable workflow: intake broker email, enrich with market data, populate Excel, run base case, and draft IC memo.</p>
+            <button onClick={() => go(9)} className="mt-5 w-full rounded-full border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700">Create agent from this Space</button>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
@@ -714,7 +872,7 @@ function DealAnalysis() {
         {['Overview', 'Opportunity thesis', 'Extracted facts', 'Site signals', 'Market', 'Rent comps', 'Sales comps', 'Memo'].map((item, i) => <div key={item} className={`rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{item}</div>)}
       </aside>
       <main className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <SectionHeader eyebrow="Deal + site workspace" title="Analyze an opportunity, deal, or site" subtitle="Select an opportunity from the engine, open a Vault row, enter an address, or add documents. Cactus combines site-selection signals, comps, source facts, and learned criteria into one reviewable analysis." />
+        <SectionHeader eyebrow="Analysis" title="Analyze an opportunity, deal, or site" subtitle="Select an opportunity from the engine, open a Vault row, enter an address, or add documents. Cactus combines site-selection signals, comps, source facts, and learned criteria into one reviewable analysis." />
         <div className="grid grid-cols-2 gap-4">
           {dealFacts.map(([field, value, source, status]) => <div key={field} className="rounded-2xl border border-neutral-200 p-4"><div className="flex justify-between"><p className="text-xs text-neutral-400">{field}</p><Pill tone={status === "Review" ? "amber" : "green"}>{status}</Pill></div><p className="mt-3 text-lg font-medium tracking-[-0.03em]">{value}</p><p className="mt-2 text-xs text-neutral-400">Source: {source}</p></div>)}
         </div>
@@ -786,7 +944,7 @@ export default function Home() {
   const [active, setActive] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const isDark = theme === "dark";
-  const AppScreen = useMemo(() => [Opportunities, VaultTable, VaultMap, Agents, DealAnalysis, CompsData, Outputs, Activity][active - 5], [active]);
+  const AppScreen = useMemo(() => [Opportunities, VaultTable, Spaces, VaultMap, Agents, DealAnalysis, CompsData, Outputs, Activity][active - 5] ?? Opportunities, [active]);
 
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
   if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} /></>;
@@ -813,10 +971,10 @@ export default function Home() {
           </nav>
           <div className={`mt-auto rounded-2xl border p-4 ${isDark ? "border-white/10 bg-white/[0.06]" : "border-neutral-200 bg-white"}`}>
             <p className="text-sm font-medium">Product spine</p>
-            <p className="mt-2 text-xs leading-5 text-neutral-500">Find deals/sites → analyze with Vault/map/comps → review evidence → teach Cactus → generate outputs.</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Find opportunities → fill the Vault → work in Spaces → pressure-test assumptions → produce outputs → automate.</p>
           </div>
         </aside>
-        <section className="flex-1"><AppScreen /></section>
+        <section className="flex-1"><AppScreen go={setActive} /></section>
       </div>
     </main>
   );

@@ -177,9 +177,10 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 **Recommended primary nav:**
 - Opportunities.
 - Vault.
+- Spaces.
 - Map.
 - Agents.
-- Deal Analysis.
+- Analysis.
 - Comps + Data.
 - Outputs.
 - Activity.
@@ -221,8 +222,29 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 **Primary CTA:** Analyze selected opportunity or Add source.
 
 ---
+### 9. Spaces
 
-### 9. Map
+**Purpose:** Focused workrooms where Cactus uses scoped Vault context to do actual work with teammates and outside collaborators.
+
+**Core elements:**
+- Active Spaces list: deal review, site selection, lender package, broker BOV, IC memo, market watch.
+- Selected Vault context and excluded context shown clearly.
+- Documents/custom extraction into customer Excel/templates.
+- Market evidence and provider benchmarks.
+- Playground capability inside the Space: scenarios, sensitivities, “what needs to change?” analysis.
+- Analyst chat/voice that changes assumptions, creates scenarios, drafts output sections, and pushes data to templates.
+- Output draft and automation suggestion.
+
+**Primary CTA:** Generate output or Automate this workflow.
+
+**Rules:**
+- Spaces are shareable; Vault is private by default.
+- Spaces can be selected-context, folder-context, blank/no prior context, frozen point-in-time, or auto-updating.
+- Keep context boundaries visible so users know what Cactus is and is not using.
+
+---
+
+### 10. Map
 
 **Purpose:** Let professional users understand geography, market context, and portfolio/deal/site distribution visually.
 
@@ -238,7 +260,7 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 
 ---
 
-### 10. Agents
+### 11. Agents
 
 **Purpose:** Show the always-on systems that keep working over time.
 
@@ -266,7 +288,7 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 
 ---
 
-### 11. Deal Analysis
+### 12. Analysis
 
 **Purpose:** Help answer: should I spend time on this deal/site?
 
@@ -284,7 +306,7 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 
 ---
 
-### 12. Comps + Data
+### 13. Comps + Data
 
 **Purpose:** Make Cactus feel stronger than generic LLM summaries by showing structured, editable market evidence.
 
@@ -300,7 +322,7 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 
 ---
 
-### 13. Outputs
+### 14. Outputs
 
 **Purpose:** Convert Vault and opportunity intelligence into professional artifacts.
 
@@ -318,7 +340,7 @@ Start with one system and one source. Cactus will keep watching, ranking, analyz
 
 ---
 
-### 14. Activity / Learning
+### 15. Activity / Learning
 
 **Purpose:** Make continuous improvement visible.
 
@@ -346,9 +368,10 @@ Includes:
 - Main app shell.
 - Opportunities surface.
 - Vault table.
+- Spaces overview and one detailed deal Space.
 - Map with site-selection and opportunity signals.
 - Agents surface.
-- Deal Analysis.
+- Analysis with playground/pro forma context inside Spaces.
 - Outputs placeholder.
 - Realistic sample CRE data.
 
@@ -359,6 +382,18 @@ Excludes:
 - Payment.
 - Full live scrapers.
 - Full GIS/data-provider integrations.
+
+### Build Slice 1A — Spaces clickability + mike-style compression
+
+Goal: make the first Spaces-centered flow feel like a real product demo before expanding trust/data/output detail.
+
+Includes:
+- Opportunity action opens the active Space.
+- Space header states the full work loop in one compact room.
+- Space workflow rail: Opportunity → Space → Extract → Playground → Output → Automate.
+- CTAs connect to Analysis, Comps + Data, Outputs, Agents, and Activity.
+- Playground block answers “What needs to change?” directly.
+- Layout stays compact and avoids disconnected dashboard sprawl.
 
 ### Build Slice 2 — Trust/provenance pass
 
@@ -399,17 +434,15 @@ Includes:
 
 ## Suggested execution workflow
 
-1. Inspect current code and routes.
-2. Update the blueprint and prototype copy around always-on opportunity intelligence.
-3. Update shared navigation to include Opportunities and Agents.
-4. Add Opportunity Engine screen.
-5. Add Agents/Learning screen.
-6. Update onboarding/Vault setup/live build to activate first always-on systems.
-7. Update Vault/Map/Deal Analysis/Outputs copy to reference deal finding and site selection, not only deal intake.
-8. Run lint/build.
-9. Browser QA the full clickthrough.
-10. Do a final mike-style compression pass.
-11. Present Tyler with review buckets instead of page-by-page questions.
+1. Inspect current code, docs, and routes.
+2. Update the blueprint/context docs before product changes.
+3. Add Spaces as the work center between Vault and Map.
+4. Connect an Opportunity row into a detailed Space.
+5. Show selected Vault context, custom extraction, market evidence, playground scenarios, analyst chat/voice, output draft, and automation suggestion.
+6. Keep the UI mike-like: compact, direct, no heavy enterprise clutter.
+7. Run lint/build.
+8. Browser QA the full clickthrough: onboarding → Opportunities → Space → Output/Agent.
+9. Present Tyler with review buckets instead of page-by-page questions.
 
 ## Review buckets for Tyler
 
@@ -417,9 +450,10 @@ After the connected prototype is built, Tyler should review in this order:
 
 1. **Onboarding:** signup, corporate setup, opportunity/Vault setup, live activation.
 2. **Opportunity engine:** deal finding, site selection, agent cards, learning loop.
-3. **Core Vault:** table, map, property/deal/site detail.
-4. **Investor workflow:** deal analysis, comps, outputs, hitlists.
-5. **Polish:** spacing, copy, CTAs, dark mode, overall mike-style fit.
+3. **Spaces workflow:** context boundary, extraction, playground, collaboration, output, automation.
+4. **Core Vault:** table, map, property/deal/site detail.
+5. **Investor workflow:** analysis, comps, outputs, hitlists.
+6. **Polish:** spacing, copy, CTAs, dark mode, overall mike-style fit.
 
 ## Open decisions
 
