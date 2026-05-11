@@ -149,6 +149,30 @@ const providerPacks = [
   ["ATTOM tax + ownership", "Paid", "On demand", "Owner, parcel, tax assessment", "Refresh $0.60–$1"],
 ];
 
+const outputArtifacts = [
+  ["IC memo", "Riverside Flats", "Needs review", "Active Space"],
+  ["Debt memo", "East Loop Lender Package", "Draft", "Frozen May 10"],
+  ["BOV", "Pine Hollow", "Needs data", "Broker Space"],
+  ["Weekly hitlist", "Southeast value-add", "Ready", "Auto-updating"],
+];
+
+const memoSections = [
+  ["Investment thesis", "Value-add multifamily fits unit-count and market-growth criteria, but seller pricing only works with a lower basis or stronger NOI proof.", "OM · Green Street · HelloData", "Review"],
+  ["Assumption checks", "Exit cap and rent growth are above market-supported ranges; renovation cost is supported by comps and prior portfolio actuals.", "Excel model · Green Street · prior decisions", "Needs review"],
+  ["Cactus devil's advocate", "The deal is not broken, but the current seller case depends on two aggressive assumptions at once: 6.0% rent growth and 5.25% exit cap.", "Benchmarks · data story", "Included"],
+  ["What needs to change", "To hit 16% IRR, price needs to fall $1.3M or NOI must run 9% above Cactus base. A refreshed ATTOM tax pull may change the tax reserve.", "Playground · ATTOM", "Action"],
+  ["Diligence asks", "Confirm T12 NOI variance, tax reassessment exposure, renovation reserve, and whether new supply changes lease-up timing.", "T12 · rent roll · FEMA", "Open"],
+];
+
+const memoEvidence = [
+  ["Space", "Riverside Flats Deal Review", "Latest Vault context"],
+  ["Snapshot", "May 10 provider cache", "Freeze before external share"],
+  ["Model", "Tyler value-add Excel", "Acquisition tab mapped"],
+  ["Sources", "OM, T12, rent roll, Green Street, HelloData, ATTOM, FEMA", "Appendix ready"],
+];
+
+const artifactActions = ["Export PDF", "Push to PowerPoint", "Share Space", "Save to Vault"];
+
 const agentCards = [
   ["Opportunity Finder", "Watching brokers, listings, owner signals, permits", "18 min ago", "19 leads found", "3 need review"],
   ["Site Selection", "Scoring demographics, traffic, zoning, flood, supply", "Today", "6 zones ranked", "1 memo ready"],
@@ -966,13 +990,134 @@ function CompsData() {
   );
 }
 
-function Outputs() {
+function Outputs({ go }: { go: (screenIndex: number) => void }) {
   return (
-    <div className="p-8">
-      <SectionHeader eyebrow="Output builder" title="Generate hitlists, site memos, IC, and bank-ready outputs" subtitle="Convert ranked opportunities, site-selection signals, facts, comps, assumptions, and citations into professional materials the team can review or send." />
-      <div className="grid grid-cols-3 gap-5">
-        {['Weekly hitlist', 'Site-selection memo', 'IC memo', 'Bank package'].map((output, i) => <div key={output} className="rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm"><Pill tone={i === 2 ? "default" : "green"}>{i === 2 ? "Later" : "Ready"}</Pill><h3 className="mt-16 text-2xl font-semibold tracking-[-0.05em]">{output}</h3><p className="mt-3 text-sm leading-6 text-neutral-500">Opportunity thesis, site/deal evidence, comps, market support, risks, citations, and appendix-ready source links.</p><button className="mt-6 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Preview</button></div>)}
-      </div>
+    <div className="grid min-h-[690px] grid-cols-[320px_1fr_340px] gap-5 p-8">
+      <aside className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-neutral-950">Output artifacts</p>
+            <p className="mt-1 text-xs leading-5 text-neutral-500">Work products generated from Spaces.</p>
+          </div>
+          <Pill tone="green">4 drafts</Pill>
+        </div>
+        <div className="mt-5 space-y-2">
+          {outputArtifacts.map(([type, name, status, context], index) => (
+            <button key={`${type}-${name}`} className={`w-full rounded-2xl border p-4 text-left transition ${index === 0 ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-950 hover:border-neutral-300"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{type}</p>
+                  <p className={`mt-1 text-xs ${index === 0 ? "text-neutral-400" : "text-neutral-500"}`}>{name}</p>
+                </div>
+                <span className={`rounded-full px-2 py-1 text-[11px] ${index === 0 ? "bg-white text-neutral-950" : "bg-neutral-100 text-neutral-500"}`}>{status}</span>
+              </div>
+              <p className={`mt-3 text-xs ${index === 0 ? "text-neutral-300" : "text-neutral-500"}`}>{context}</p>
+            </button>
+          ))}
+        </div>
+        <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Artifact rule</p>
+          <p className="mt-3 text-sm leading-6 text-neutral-600">Every shared output should know its Space, Vault snapshot, source appendix, model version, and review state.</p>
+        </div>
+      </aside>
+
+      <main className="space-y-5">
+        <section className="rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex items-start justify-between gap-6">
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">IC memo artifact · generated from Space</p>
+              <h2 className="text-2xl font-semibold tracking-[-0.04em] text-neutral-950">Riverside Flats Investment Committee Memo</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">Cactus turned the active Space into a reviewable memo: source-linked thesis, extraction into Tyler&apos;s Excel model, market benchmarks, downside case, diligence asks, and appendix-ready evidence.</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => go(7)} className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-600">Open Space</button>
+              <button className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Freeze for IC</button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-3">
+            {[
+              ["Status", "Needs review"],
+              ["Snapshot", "Latest Vault"],
+              ["Model", "Excel mapped"],
+              ["Sources", "7 cited"],
+              ["Next", "Freeze + share"],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                <p className="text-xs text-neutral-400">{label}</p>
+                <p className="mt-2 text-sm font-medium text-neutral-950">{value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-neutral-950">Memo sections</p>
+              <p className="mt-1 text-xs text-neutral-500">Each section keeps the source trail visible so the team can trust, edit, or approve it.</p>
+            </div>
+            <Pill tone="amber">2 review items</Pill>
+          </div>
+          <div className="mt-4 space-y-3">
+            {memoSections.map(([title, copy, sources, status]) => (
+              <div key={title} className="rounded-2xl border border-neutral-200 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-950">{title}</p>
+                    <p className="mt-2 text-sm leading-6 text-neutral-600">{copy}</p>
+                  </div>
+                  <Pill tone={status === "Needs review" || status === "Action" || status === "Open" ? "amber" : "default"}>{status}</Pill>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3 text-xs text-neutral-400">
+                  <span>Sources: {sources}</span>
+                  <button className="rounded-full border border-neutral-200 px-3 py-1.5 text-neutral-600">Edit section</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid grid-cols-[1fr_300px] gap-5">
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-neutral-950">Export and share</p>
+            <div className="mt-4 grid grid-cols-4 gap-2">
+              {artifactActions.map((action, index) => <button key={action} className={`rounded-full px-3 py-2 text-xs font-medium ${index === 0 ? "bg-neutral-950 text-white" : "border border-neutral-200 text-neutral-600"}`}>{action}</button>)}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-neutral-500">Freezing the memo preserves the exact Vault snapshot, model case, sources, and assumptions shared with IC.</p>
+          </div>
+          <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-neutral-950">Save learning</p>
+            <p className="mt-3 text-sm leading-6 text-neutral-500">If IC edits this memo, Cactus saves the approved case and decision back to the Vault.</p>
+          </div>
+        </section>
+      </main>
+
+      <aside className="space-y-5">
+        <div className="rounded-[1.5rem] border border-neutral-200 bg-neutral-950 p-5 text-white shadow-sm">
+          <p className="text-sm font-medium">Cactus recommendation</p>
+          <p className="mt-4 text-2xl font-semibold leading-tight tracking-[-0.05em]">Proceed only if basis improves or NOI support strengthens.</p>
+          <p className="mt-3 text-sm leading-6 text-neutral-400">The memo is ready for team review, but Cactus recommends refreshing ATTOM taxes and resolving T12 NOI variance before external sharing.</p>
+          <button onClick={() => go(9)} className="mt-5 w-full rounded-full bg-white px-4 py-3 text-sm font-medium text-neutral-950">Create IC memo agent</button>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-neutral-950">Evidence trail</p>
+          <div className="mt-4 space-y-2">
+            {memoEvidence.map(([label, value, note]) => (
+              <div key={label} className="rounded-xl border border-neutral-200 p-3">
+                <div className="flex justify-between gap-3 text-xs"><span className="font-medium text-neutral-950">{label}</span><span className="text-neutral-400">{note}</span></div>
+                <p className="mt-1 text-xs leading-5 text-neutral-500">{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-neutral-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-neutral-950">Appendix ready</p>
+          <p className="mt-3 text-sm leading-6 text-neutral-500">Source appendix includes OM pages, T12 lines, rent roll fields, provider refresh timestamps, and scenario versions.</p>
+        </div>
+      </aside>
     </div>
   );
 }

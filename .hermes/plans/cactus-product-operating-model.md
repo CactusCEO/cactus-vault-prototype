@@ -293,6 +293,20 @@ Avoid phrases that feel too technical:
 
 The Playground is a capability within Spaces. It should be available wherever the user is doing work on a deal/site/portfolio/market, rather than being treated as a separate isolated product area.
 
+## Prototype implementation note — Option C
+
+The first output artifact should be an IC memo because it demonstrates the investor workflow end-to-end: opportunity intelligence, scoped Space context, custom extraction, financial analysis, market evidence, sensitivity work, and a professional decision package.
+
+The Outputs screen should show:
+
+- an IC memo draft generated from the Riverside Flats Space,
+- artifact status and review states: draft, needs review, frozen snapshot, ready to share,
+- source-linked sections for thesis, assumptions, devil's advocate, what needs to change, diligence, and appendix,
+- export/share actions such as PDF, PowerPoint, share Space, push to customer template, and save to Vault,
+- and a prompt to automate the reviewed workflow into a repeatable IC memo agent.
+
+The product message is: Cactus does the work inside the user's environment, produces a real artifact, preserves the evidence trail, and then turns repeatable work into automation.
+
 ## Next prototype implication
 
 The next connected prototype pass should show a Space as the center of real work:

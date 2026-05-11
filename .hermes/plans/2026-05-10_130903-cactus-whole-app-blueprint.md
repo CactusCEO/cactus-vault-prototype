@@ -410,7 +410,19 @@ Includes:
 - Review queue states and editable assumptions.
 - Audit-log placeholder.
 
-### Build Slice 3 — Always-on agent pass
+### Build Slice 3 — Output artifact experience
+
+Goal: show that Cactus does real CRE work by converting Space context, extraction, assumptions, market evidence, and source history into a professional artifact.
+
+Includes:
+- IC memo draft as the first investor workflow artifact.
+- Memo sections with source/provenance chips: thesis, deal summary, assumption checks, devil's advocate, what needs to change, diligence questions, and source appendix.
+- Artifact status: Draft, needs review, approved, frozen snapshot, ready to share.
+- Export/share actions: PDF, PowerPoint, share Space, push to customer template, save to Vault.
+- Evidence trail showing which Space, Vault snapshot, Excel model, and provider sources support the memo.
+- Reusable automation prompt: create an IC memo agent from this reviewed workflow.
+
+### Build Slice 4 — Always-on agent pass
 
 Goal: make Cactus feel like a system that gets better over time.
 
@@ -423,7 +435,7 @@ Includes:
 - What Cactus learned.
 - Feedback actions: approve, reject, teach, ignore, edit criteria.
 
-### Build Slice 4 — Polish / mike-style pass
+### Build Slice 5 — Polish / mike-style pass
 
 Goal: compress, simplify, and visually align all screens.
 
