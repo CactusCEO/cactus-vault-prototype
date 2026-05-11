@@ -5,31 +5,55 @@ import { useMemo, useState } from "react";
 const sourceCards = [
   {
     title: "Upload documents",
-    badge: "Best first step",
-    note: "OMs, T12s, rent rolls, market reports, spreadsheets.",
+    badge: "Best first source",
+    note: "OMs, T12s, rent rolls, models.",
+    next: "Cactus reads the files you approve and creates the first Vault records.",
   },
   {
     title: "Connect email or drive",
     badge: "Broker flow + folders",
-    note: "Gmail, Outlook, Drive, OneDrive, deal rooms.",
+    note: "Approved senders and folders only.",
+    next: "Cactus watches only those senders/folders and queues new packages for review.",
   },
   {
     title: "Import lists or comps",
-    badge: "Market data + saved work",
-    note: "Property lists, comps, CRM exports, underwriting models.",
+    badge: "Saved work",
+    note: "Property lists, comps, CRM exports.",
+    next: "Cactus turns rows into searchable properties, comps, assumptions, and map pins.",
   },
   {
     title: "Use sample Vault",
     badge: "Explore first",
-    note: "Open a finished Vault before adding real data.",
+    note: "Try the workflow with demo data.",
+    next: "Cactus loads a realistic demo so you can see the workflow immediately.",
   },
 ];
 
-const agentPreview = [
-  ["Watch", "approved markets, sources, brokers"],
-  ["Find", "deals, sites, signals, risks"],
-  ["Analyze", "maps, comps, citations, rankings"],
-  ["Learn", "team feedback + rejected deals"],
+const systemCards = [
+  {
+    title: "Opportunity Finder",
+    prompt: "Find acquisition targets that fit my buy box.",
+    note: "New deals and owner signals.",
+    artifact: "weekly target list",
+  },
+  {
+    title: "Site Selection",
+    prompt: "Rank markets and parcels for development.",
+    note: "Demand, traffic, zoning, risk.",
+    artifact: "site-selection map",
+  },
+  {
+    title: "Deal Intake",
+    prompt: "Process incoming packages into review-ready Spaces.",
+    note: "Extract facts and diligence gaps.",
+    artifact: "deal review Space",
+  },
+  {
+    title: "Portfolio Monitor",
+    prompt: "Watch owned assets and tell me what changed.",
+    note: "Rents, comps, taxes, risk.",
+    artifact: "portfolio change brief",
+  },
 ];
 
 const extractionEvents = [
@@ -581,88 +605,86 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 }
 
 function VaultSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
-  const [selected, setSelected] = useState(0);
+  const [selectedSource, setSelectedSource] = useState(0);
+  const [selectedSystem, setSelectedSystem] = useState(0);
   const isDark = theme === "dark";
-  const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
-  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
-  const card = isDark ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]" : "border-neutral-200 bg-neutral-50/70 text-neutral-950 hover:bg-white";
-  const selectedCard = isDark ? "border-white/60 bg-white text-neutral-950 ring-1 ring-white/20" : "border-neutral-900 bg-[#f4f1ea] text-neutral-950 ring-1 ring-neutral-900/10";
+  const source = sourceCards[selectedSource];
+  const system = systemCards[selectedSystem];
+  const page = isDark ? "bg-neutral-950 text-white" : "bg-[#f7f4ee] text-neutral-950";
+  const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white/90";
+  const card = isDark ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]" : "border-neutral-200 bg-white text-neutral-950 hover:border-neutral-400";
+  const selectedCard = isDark ? "border-white bg-white text-neutral-950" : "border-neutral-950 bg-[#f1ede4] text-neutral-950";
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
   const soft = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-neutral-50";
   const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
 
   return (
     <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
-      <div className="w-full max-w-5xl">
-        <div className="mb-4">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start your opportunity engine</h2>
-            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
-          </div>
-          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Choose one source and one always-on system. Cactus will start finding deals/sites, building records, mapping facts, and learning what matters.</p>
-          <p className={`mt-2 text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>Start simple today. Add more sources, agents, and criteria later.</p>
+      <div className="w-full max-w-4xl">
+        <div className="mb-5 flex items-baseline gap-3">
+          <h2 className="text-2xl font-semibold tracking-[-0.03em]">Brief your Cactus analyst</h2>
+          <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
-          <div className="grid grid-cols-[1fr_300px] gap-5">
-            <section>
-              <p className="text-sm font-semibold">Choose the first source Cactus can learn from</p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                {sourceCards.map((source, index) => {
-                  const isSelected = selected === index;
+          <section className={`rounded-2xl border p-3 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-[#fbfaf7]"}`}>
+            <div className="flex items-center gap-2">
+              <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs ${cta}`}>AI</div>
+              <div className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-3 py-2 ${isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-white"}`}>
+                <span className={`min-w-0 flex-1 truncate text-sm ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>{system.prompt}</span>
+                <button className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>Ask</button>
+                <button className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>🎙</button>
+              </div>
+            </div>
+            <p className={`mt-3 text-sm ${muted}`}>Choose one source and one first job. Cactus will show the plan before anything runs.</p>
+          </section>
+
+          <div className="mt-5 grid grid-cols-2 gap-5">
+            <div>
+              <p className="text-sm font-semibold">1. Source</p>
+              <div className="mt-2 space-y-2">
+                {sourceCards.map((item, index) => {
+                  const isSelected = selectedSource === index;
                   return (
-                    <button key={source.title} onClick={() => setSelected(index)} className={`min-h-[118px] rounded-xl border p-4 text-left shadow-sm transition ${isSelected ? selectedCard : card}`}>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className={`text-[10px] font-medium uppercase tracking-[0.14em] ${isSelected && !isDark ? "text-neutral-600" : "text-neutral-400"}`}>{source.badge}</span>
-                        <span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
+                    <button key={item.title} onClick={() => setSelectedSource(index)} className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left transition ${isSelected ? selectedCard : card}`}>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold tracking-[-0.02em]">{item.title}</h3>
+                        <p className={`mt-1 truncate text-xs ${isSelected && isDark ? "text-neutral-600" : isSelected ? "text-neutral-600" : muted}`}>{item.note}</p>
                       </div>
-                      <h3 className="mt-4 text-base font-semibold tracking-[-0.03em]">{source.title}</h3>
-                      <p className={`mt-2 text-sm leading-5 ${isSelected ? isDark ? "text-neutral-600" : "text-neutral-600" : muted}`}>{source.note}</p>
+                      <span aria-hidden="true" className={`grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
                     </button>
                   );
                 })}
               </div>
-              <div className="mt-4">
-                <p className="text-sm font-semibold">Choose the first always-on system</p>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  {[
-                    ["Opportunity Finder", "Find acquisition targets and deal signals."],
-                    ["Site Selection", "Rank areas/sites using demand, traffic, risk, and comps."],
-                    ["Deal Intake", "Process incoming packages faster with context already built."],
-                    ["Portfolio Monitor", "Watch owned assets and market changes."],
-                  ].map(([title, copy], index) => (
-                    <button key={title} className={`rounded-xl border p-3 text-left shadow-sm transition ${index === 0 ? selectedCard : card}`}>
-                      <div className="flex items-center justify-between"><p className="text-sm font-semibold">{title}</p><span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index === 0 ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{index === 0 ? "✓" : ""}</span></div>
-                      <p className={`mt-2 text-xs leading-5 ${index === 0 ? "text-neutral-600" : muted}`}>{copy}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
+            </div>
 
-            <aside className={`rounded-2xl border p-4 ${soft}`}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Cactus will keep working</p>
-                <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isDark ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>Agent ready</span>
+            <div>
+              <p className="text-sm font-semibold">2. First job</p>
+              <div className="mt-2 space-y-2">
+                {systemCards.map((item, index) => {
+                  const isSelected = selectedSystem === index;
+                  return (
+                    <button key={item.title} onClick={() => setSelectedSystem(index)} className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left transition ${isSelected ? selectedCard : card}`}>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold tracking-[-0.02em]">{item.title}</h3>
+                        <p className={`mt-1 truncate text-xs ${isSelected && isDark ? "text-neutral-600" : isSelected ? "text-neutral-600" : muted}`}>{item.note}</p>
+                      </div>
+                      <span aria-hidden="true" className={`grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="mt-4 space-y-2">
-                {agentPreview.map(([verb, detail], index) => (
-                  <div key={verb} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-white"}`}>
-                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-semibold ${index === 0 ? cta : isDark ? "bg-white/10 text-neutral-300" : "bg-neutral-100 text-neutral-500"}`}>{index + 1}</span>
-                    <div><p className="text-sm font-medium">{verb}</p><p className={`text-xs ${muted}`}>{detail}</p></div>
-                  </div>
-                ))}
-              </div>
-              <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${soft} ${muted}`}>You approve every source. Cactus only watches what you allow and keeps org-specific learning inside your organization.</div>
-            </aside>
+            </div>
+          </div>
+
+          <div className={`mt-5 flex items-center justify-between rounded-2xl border px-4 py-3 ${soft}`}>
+            <p className="text-sm"><span className={muted}>Plan:</span> <strong>{source.title}</strong> → <strong>{system.title}</strong> → approve scope</p>
+            <span className={`hidden text-xs md:block ${muted}`}>Nothing runs until you approve it.</span>
           </div>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(2)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
-            <div className="flex items-center gap-4">
-              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>More sources and agents can be added anytime.</span>
-              <button onClick={() => go(4)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Start live activation</button>
-            </div>
+            <button onClick={() => go(4)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Review plan</button>
           </div>
         </div>
       </div>
@@ -685,10 +707,10 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
         <div className="mb-4 flex items-end justify-between gap-6">
           <div>
             <div className="flex items-baseline gap-3">
-              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Cactus is activating your engine</h2>
+              <h2 className="text-2xl font-semibold tracking-[-0.03em]">Approve the plan, then watch Cactus build</h2>
               <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 4 of 4</span>
             </div>
-            <p className={`mt-2 max-w-3xl text-sm leading-6 ${muted}`}>No generic loading screen. Cactus shows the always-on work: finding deals and sites, scoring signals, creating Vault rows, linking citations, learning criteria, and preparing outputs.</p>
+            <p className={`mt-2 max-w-3xl text-sm leading-6 ${muted}`}>The user approves the source scope first. Then Cactus shows the work: finding deals and sites, scoring signals, creating Vault rows, linking citations, learning criteria, and preparing outputs.</p>
           </div>
           <button onClick={() => go(5)} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Open opportunity engine</button>
         </div>

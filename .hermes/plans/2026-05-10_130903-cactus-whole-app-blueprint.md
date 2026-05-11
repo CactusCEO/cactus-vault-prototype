@@ -121,9 +121,16 @@ Use plain-English actions instead of developer vocabulary:
 
 ### 4. Opportunity + Vault setup
 
-**Purpose:** Let the user choose what Cactus should start watching/finding and where it should learn from first.
+**Purpose:** Make the user feel like they are briefing an AI CRE analyst, not filling out a SaaS setup form. The screen should explain what Cactus needs, what the user is choosing, and what will happen next.
 
-**Primary CTA:** Start live build.
+**Primary CTA:** Start this build.
+
+**UX pattern:**
+- Keep this screen sparse. It should feel like a calm analyst brief, not a dense configuration dashboard.
+- Use one short analyst prompt with chat/voice affordances, then two plain decision groups: **1 source** and **1 first job**.
+- Remove redundant explainers, badges, helper labels, and stacked side panels. One sentence should explain the rule: pick a source and first job; Cactus shows the plan before anything runs.
+- Show the selected brief in a compact one-line preview near the CTA.
+- Voice/chat should be present as an alternate natural input, but should not create a large chat widget on this first setup screen.
 
 **First-source options:**
 - Upload documents.
@@ -134,11 +141,11 @@ Use plain-English actions instead of developer vocabulary:
 **First always-on system options:**
 - Opportunity Finder — find acquisition targets and deal signals.
 - Site Selection — find promising areas/sites using demographics, supply/demand, traffic, zoning, flood risk, comps, and market gaps.
-- Deal Intake — process incoming broker packages/deal rooms quickly.
+- Deal Intake — process incoming packages faster with context already built.
 - Portfolio Monitor — watch owned assets and market movement.
 
 **Message:**
-Start with one system and one source. Cactus will keep watching, ranking, analyzing, and learning. Add more sources and agents later.
+Pick one source and one first job. Cactus will show a plan before anything runs. Keep the detailed activation artifacts for the next screen, not this setup screen.
 
 **Security/trust:**
 - User controls folders, labels, senders, and approved sources.
