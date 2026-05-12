@@ -451,3 +451,17 @@ Recommended Tasks + Activity UI:
 - Team members shown in tasks, Spaces, and collaboration surfaces should be clickable. Clicking a teammate opens a team/member drawer where the user can add/remove team members, adjust access, or reassign work.
 - Creating or assigning a task should visibly queue an email notification to the assignee in prototype state; backend email delivery will later own the real notification.
 - Activity rows should be searchable and linked back to the underlying Space, Vault row, workflow run, connector, assignee, or notification event.
+
+## Scraper workflow builder
+
+Scraper workflows should be created through a specific, non-technical workflow UI rather than a generic automation form. The core setup should ask:
+
+1. **Type of workflow** — e.g. Scraper / source watcher, AI analysis, output drafter, review/approval.
+2. **Source URL** — listing search, broker page, county source, lender/provider page, etc.
+3. **Cadence** — daily, weekly, monthly, quarterly; show that costs/cadence require approval before background runs.
+4. **What to pull** — fields/data endpoints such as property name, address, units, asking price, broker, owner, rents, taxes, fees, cap rate, listing URL, source date.
+5. **Format/schema** — Vault columns/table, CSV, JSON, PDF/source attachment, or saved micro-vault.
+6. **Output** — default is add/update Vault rows with citation, timestamp, confidence, and review state.
+7. **Next workflow** — optionally run a financial analysis skill or market analysis skill on each new deal/row entering the Vault; outputs should be a Space, task, score, memo section, or review queue item.
+
+The builder should preview the chain as `Scrape source → normalize fields → write to Vault → analyze new rows → create tasks/Spaces/outputs`, with human approval before continuous scraping or side effects.

@@ -178,6 +178,7 @@ const appNav = [
 
 
 const workflowLibrary = [
+  { name: "Crexi multifamily scraper → Vault", group: "Sourcing", mode: "Ongoing", trigger: "Weekly scraper on approved Crexi URL", output: "New deal rows in Vault + financial/market analysis tasks", context: "Source URL + Vault schema + analysis skills" },
   { name: "Off-market deal sniffer", group: "Sourcing", mode: "Ongoing", trigger: "CoStar, Crexi, LoopNet, broker blasts, county records", output: "Scored buy-box leads", context: "Buy box + market rows" },
   { name: "OM parser", group: "Screening", mode: "Template", trigger: "OM PDF added", output: "Rent roll, T12, unit mix, asking price, cap rate", context: "Documents → Vault" },
   { name: "Rent roll normalizer", group: "Screening", mode: "Template", trigger: "Yardi, RealPage, Excel rent roll", output: "Standardized rent roll schema", context: "File + model template" },
@@ -1171,9 +1172,16 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [runState, setRunState] = useState("Ready");
-  const [newMode, setNewMode] = useState("Ongoing");
-  const [newStart, setNewStart] = useState("Assistant command");
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
+  const [workflowType, setWorkflowType] = useState("Scraper / source watcher");
+  const [sourceUrl, setSourceUrl] = useState("https://www.crexi.com/properties?place=Nashville&types=multifamily");
+  const [cadence, setCadence] = useState("Weekly");
+  const [pullFields, setPullFields] = useState<string[]>(["Property name", "Address", "Units", "Asking price", "Broker", "Listing URL"]);
+  const [outputFormat, setOutputFormat] = useState("Vault columns");
+  const [outputTarget, setOutputTarget] = useState("Add/update Vault rows");
+  const [analysisSkill, setAnalysisSkill] = useState("Financial analysis skill");
+  const [approvalState, setApprovalState] = useState("Draft — not scheduled");
+  const togglePullField = (field: string) => setPullFields((current) => current.includes(field) ? current.filter((item) => item !== field) : [...current, field]);
   const filtered = workflowLibrary
     .filter((workflow) => activeTab === "all" || (activeTab === "ongoing" ? workflow.mode === "Ongoing" : workflow.mode === "Template"))
     .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output].join(" ").toLowerCase().includes(search.toLowerCase()));
@@ -1286,30 +1294,46 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       )}
 
       {newOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-          <div className="w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
-            <div className="flex justify-between"><div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">Save repeatable CRE work as a one-off template or ongoing automation.</p></div><button onClick={() => setNewOpen(false)}>×</button></div>
-            <input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Weekly multifamily deal intake" />
-            <p className="mt-4 text-xs font-medium text-neutral-500">Mode</p><div className="mt-2 flex gap-2 text-xs">{["Ongoing", "Template"].map((mode)=><button key={mode} onClick={() => setNewMode(mode)} className={`rounded-md border px-3 py-2 ${newMode===mode ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{mode}</button>)}</div>
-            <p className="mt-4 text-xs font-medium text-neutral-500">Trigger / entry point</p>
-            <div className="mt-2 grid grid-cols-2 gap-2 text-xs">{[
-              ["Assistant command", "User asks: run this workflow"],
-              ["Selected Vault rows", "Runs on chosen properties/markets"],
-              ["Space", "Runs inside a workroom"],
-              ["Source watcher", "Email, scraper, Drive, deal room"],
-              ["Schedule", "Daily/weekly/monthly"],
-              ["Blank", "Build from scratch"]
-            ].map(([item, note])=><button key={item} onClick={() => setNewStart(item)} className={`rounded-lg border px-3 py-2 text-left hover:bg-neutral-50 ${newStart===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}><span className="block font-medium">{item}</span><span className="mt-1 block text-neutral-400">{note}</span></button>)}</div>
-            <p className="mt-4 text-xs font-medium text-neutral-500">Steps</p>
-            <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 text-xs">
-              {[
-                ["1", "Extract email + attachments", "approved sender/folder only"],
-                ["2", "Prompt + analyze", "use Vault rows and source citations"],
-                ["3", "Draft email reply", "human approval required"],
-                ["4", "Create task / update Space", "owner, due date, maintenance state"]
-              ].map(([num, title, tag]) => <div key={num} className="flex items-center gap-3 border-b border-neutral-100 px-3 py-2 last:border-b-0"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{num}</span><span className="font-medium">{title}</span><span className="ml-auto text-neutral-400">{tag}</span></div>)}
-            </div>
-            <button onClick={() => { setNewOpen(false); setRunState(`${newMode} workflow draft created from ${newStart} · 4 steps · task queue ready`); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Save workflow template</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6">
+          <div className="flex max-h-[92vh] w-[980px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
+            <section className="w-[620px] overflow-auto p-5">
+              <div className="flex justify-between"><div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">Build a scraper that writes to Vault, then optionally runs analysis on every new deal row.</p></div><button onClick={() => setNewOpen(false)}>×</button></div>
+              <input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Weekly Crexi multifamily deal scraper" />
+
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                <div><p className="font-medium text-neutral-500">Type of workflow</p><div className="mt-2 grid grid-cols-2 gap-2">{["Scraper / source watcher", "AI analysis", "Output drafter", "Review / approval"].map((type)=><button key={type} onClick={() => setWorkflowType(type)} className={`rounded-lg border px-3 py-2 text-left ${workflowType===type ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{type}</button>)}</div></div>
+                <div><p className="font-medium text-neutral-500">Cadence</p><div className="mt-2 grid grid-cols-2 gap-2">{["Daily", "Weekly", "Monthly", "Quarterly"].map((item)=><button key={item} onClick={() => setCadence(item)} className={`rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div></div>
+              </div>
+
+              <p className="mt-4 text-xs font-medium text-neutral-500">Source URL</p>
+              <input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" placeholder="Paste listing search, broker page, county record, provider page…" />
+
+              <p className="mt-4 text-xs font-medium text-neutral-500">What should Cactus pull?</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">{["Property name", "Address", "Units", "Asking price", "Broker", "Owner", "Cap rate", "NOI", "Rents", "Occupancy", "Listing URL", "Source date"].map((field)=><button key={field} onClick={() => togglePullField(field)} className={`rounded-full border px-3 py-1.5 ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{field}</button>)}</div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                <div><p className="font-medium text-neutral-500">Format / schema</p><div className="mt-2 space-y-2">{["Vault columns", "CSV export", "JSON schema", "Micro-vault"].map((format)=><button key={format} onClick={() => setOutputFormat(format)} className={`block w-full rounded-lg border px-3 py-2 text-left ${outputFormat===format ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{format}</button>)}</div></div>
+                <div><p className="font-medium text-neutral-500">Output</p><div className="mt-2 space-y-2">{["Add/update Vault rows", "Create review task", "Create Space", "Draft output"].map((target)=><button key={target} onClick={() => setOutputTarget(target)} className={`block w-full rounded-lg border px-3 py-2 text-left ${outputTarget===target ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{target}</button>)}</div></div>
+              </div>
+
+              <p className="mt-4 text-xs font-medium text-neutral-500">Then analyze each new Vault deal with</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Financial analysis skill", "Market analysis skill", "Lender screen skill", "Broker BOV/listing skill", "No analysis — review only"].map((skill)=><button key={skill} onClick={() => setAnalysisSkill(skill)} className={`rounded-lg border px-3 py-2 text-left ${analysisSkill===skill ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{skill}</button>)}</div>
+
+              <button onClick={() => { setApprovalState(`${workflowType} ready for approval · ${cadence} · ${pullFields.length} fields · ${analysisSkill}`); setRunState(`Scraper workflow draft: ${sourceUrl} → ${outputTarget} → ${analysisSkill}`); }} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create workflow draft for approval</button>
+            </section>
+            <aside className="w-[360px] border-l border-neutral-100 bg-neutral-50 p-5">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workflow preview</p>
+              <div className="mt-4 space-y-2 text-sm">
+                {[
+                  ["1", "Scrape source", sourceUrl || "Source URL required"],
+                  ["2", "Normalize fields", `${pullFields.length} fields → ${outputFormat}`],
+                  ["3", "Write to Vault", `${outputTarget} with citations + timestamps`],
+                  ["4", "Analyze new rows", analysisSkill],
+                  ["5", "Create tasks / Spaces / outputs", "Human review before side effects"]
+                ].map(([num, title, note]) => <div key={num} className="rounded-xl border border-neutral-200 bg-white p-3"><div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{num}</span><span className="font-medium">{title}</span></div><p className="mt-2 text-xs leading-5 text-neutral-500">{note}</p></div>)}
+              </div>
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><p className="font-medium">Approval gate</p><p className="mt-1 leading-5">{approvalState}. Cactus will not run scheduled scrapers, spend money, send emails, or update trusted Vault facts until approved.</p></div>
+            </aside>
           </div>
         </div>
       )}

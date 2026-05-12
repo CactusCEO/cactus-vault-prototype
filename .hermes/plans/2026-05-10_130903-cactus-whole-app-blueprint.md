@@ -211,9 +211,17 @@ For internal/product review, explain each primary page's job in chat or docs rat
 - Tasks should roll up work from Vault review, workflow maintenance, Spaces collaboration, investor workflows, lender workflows, broker workflows, connectors, scrapers, and output approvals.
 - The page should support role/job filters (Investor, Lender, Broker, Internal), task views (My tasks, Team, Maintenance, Vault review, Activity), search, and a detail drawer with evidence/context, related Space/Vault/workflow, assignee, due state, actions, assignment controls, and a visible email-notification state when a task is created or assigned.
 - Team member chips/avatars across Tasks and Spaces should be clickable and open a member/team drawer where the user can add/remove teammates or change assignment/access.
+- Member/collaborator surfaces should support add/remove/access management, and task creation/assignment should visibly queue email notification to the assignee.
 - Activity should show meaningful product events — source connected, extraction completed, fact approved/rejected, workflow failed/retried, scraper repaired, Space created, output drafted/sent — not just technical logs.
- 
- **Global rules:**
+
+**Scraper/source workflow builder:**
+- A new workflow flow should support a dedicated `Scraper / source watcher` type.
+- Required fields: source URL, cadence (`Daily`, `Weekly`, `Monthly`, `Quarterly`), what to pull, format/schema, output target, and optional follow-on analysis skill.
+- Default output should be `Add/update Vault rows` with provenance, timestamp, confidence, and review status.
+- Follow-on workflows should let each new Vault row/deal run through financial analysis, market analysis, lender analysis, broker BOV/listing analysis, or review-only task creation.
+- UI should preview the chain: `Scrape source → normalize fields → add to Vault → analyze new rows → create Space/task/output`, with approval before scheduled/background runs.
+
+**Global rules:**
 - Compact nav.
 - Clear active state.
 - Search / command-style interaction should be available later.
