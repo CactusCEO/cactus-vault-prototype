@@ -189,20 +189,6 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
   );
 }
 
-function PageGoal({ page, goal, connects }: { page: string; goal: string; connects: string }) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Page goal</p>
-          <p className="mt-1 font-medium text-neutral-950">{page}: {goal}</p>
-        </div>
-        <p className="max-w-xl text-xs leading-5 text-neutral-500">{connects}</p>
-      </div>
-    </div>
-  );
-}
-
 const appNav = [
   ["Assistant", "✦", 5],
   ["Spaces", "□", 7],
@@ -693,8 +679,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
 
       <main className="flex flex-1 flex-col items-center justify-center px-8 pb-10">
         <div className="w-full max-w-4xl">
-          <PageGoal page="Assistant" goal="start or steer any CRE job" connects="Add the first source, attach selected Vault context, create a Space for durable work, or turn a repeated task into a Workflow." />
-          <div className="mb-8 mt-8 flex items-center justify-center gap-4">
+          <div className="mb-8 flex items-center justify-center gap-4">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-sm font-semibold text-white">C</div>
             <h1 className="font-serif text-4xl font-light tracking-[-0.03em] text-neutral-900">Hi, Tyler</h1>
           </div>
@@ -703,7 +688,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
             <textarea className="h-28 w-full resize-none px-3 py-3 text-[15px] outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to review a deal, create a Space, build a Vault data endpoint, or run a CRE workflow…" />
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-2 pt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">+ Documents</button>
+                <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">+ Source</button>
                 <button onClick={() => setContextOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▣ Vault context</button>
                 <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▤ Workflow</button>
                 <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Enhance prompt</button>
@@ -792,8 +777,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
         </header>
         <main className="grid min-h-0 flex-1 grid-cols-[260px_1fr_360px] overflow-hidden">
           <aside className="border-r border-neutral-200 bg-neutral-50 p-4">
-            <PageGoal page="Space" goal="do the actual work" connects="A Space is created from Assistant or selected Vault rows. It holds scoped context, analysis/playground, files, tasks, outputs, and sharing." />
-            <div className="mt-4 space-y-1">
+            <div className="space-y-1">
               {[["work", "Work"], ["playground", "Playground"], ["outputs", "Outputs"]].map(([key, label]) => <button key={key} onClick={() => setSpaceTab(key as "work" | "playground" | "outputs")} className={`w-full rounded-md px-3 py-2 text-left text-sm ${spaceTab === key ? "bg-white font-medium text-neutral-950 shadow-sm" : "text-neutral-600 hover:bg-white"}`}>{label}</button>)}
             </div>
             <div className="mt-5 rounded-xl border border-neutral-200 bg-white p-3">
@@ -866,9 +850,8 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
       </div>
 
       <main className="overflow-auto p-6">
-        <PageGoal page="Spaces" goal="make Cactus work durable" connects="Vault rows or Assistant chats become Spaces. This is where analysis, playground, tasks, sharing, and outputs happen before repeatable work becomes a Workflow." />
         {view === "grid" && (
-          <div className="mt-5 grid grid-cols-3 gap-5">
+          <div className="grid grid-cols-3 gap-5">
             {workspaceLibrary.map((workspace) => (
               <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="min-h-[166px] rounded-xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:border-[#2b0052] hover:shadow-md">
                 <div className="flex items-start justify-between gap-4">
@@ -903,71 +886,75 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
 }
 
 function Workflows({ go }: { go: (screenIndex: number) => void }) {
-  const [selected, setSelected] = useState("Deal intake review");
+  const [activeTab, setActiveTab] = useState<"all" | "built" | "custom">("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
   const workflows = [
-    ["Deal intake review", "Upload/drive source → Vault extraction → audit → Space", "7 docs", "Ready"],
-    ["Weekly owner signals", "ATTOM + broker notes + approved markets", "3 datasets", "Draft"],
-    ["IC memo builder", "Selected Vault rows → model checks → memo sections", "Vault context", "Ready"],
-    ["BOV package", "Property row + comps + market narrative", "2 Spaces", "Template"],
+    { name: "Deal intake review", type: "Assistant", practice: "Acquisitions", source: "Cactus", status: "Built-in", context: "Upload/source → Vault → Space" },
+    { name: "IC memo builder", type: "Assistant", practice: "Investment committee", source: "Cactus", status: "Built-in", context: "Space → output" },
+    { name: "Tabular comp review", type: "Vault", practice: "Comps", source: "Cactus", status: "Built-in", context: "Vault rows" },
+    { name: "Owner signal watch", type: "Assistant", practice: "Sourcing", source: "Tyler", status: "Custom", context: "ATTOM + broker notes" },
+    { name: "BOV package", type: "Assistant", practice: "Brokerage", source: "Cactus", status: "Built-in", context: "Space → BOV" },
+    { name: "Market rent refresh", type: "Vault", practice: "Asset management", source: "Tyler", status: "Custom", context: "Market rows + rent comps" },
   ];
-  const dataSets = ["Green Street market outlook", "HelloData rent comps", "ATTOM ownership + tax", "FEMA flood layer"];
+  const filtered = workflows
+    .filter((workflow) => activeTab === "all" || (activeTab === "built" ? workflow.status === "Built-in" : workflow.status === "Custom"))
+    .filter((workflow) => !search || workflow.name.toLowerCase().includes(search.toLowerCase()) || workflow.practice.toLowerCase().includes(search.toLowerCase()));
+  const toggle = (name: string) => setSelectedIds((current) => current.includes(name) ? current.filter((id) => id !== name) : [...current, name]);
+  const allSelected = filtered.length > 0 && filtered.every((workflow) => selectedIds.includes(workflow.name));
 
   return (
     <div className="flex h-screen flex-col bg-white text-neutral-950">
-      <header className="flex h-14 items-center justify-between border-b border-neutral-200 px-8">
-        <div>
-          <p className="text-sm font-medium">Workflows</p>
-          <p className="text-xs text-neutral-500">Repeatable CRE work using Vault context and approved data sets.</p>
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
+        <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Workflows</h1>
+        <div className="flex items-center gap-2">
+          <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-8 w-56 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search workflows…" />
+          <button className="grid h-8 w-8 place-items-center rounded-md text-lg text-neutral-500 hover:bg-neutral-100">+</button>
         </div>
-        <button className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ New workflow</button>
       </header>
-      <div className="border-b border-neutral-200 bg-white px-8 py-3">
-        <PageGoal page="Workflows" goal="automate repeatable CRE work" connects="Workflows are created after Assistant/Vault/Spaces reveal a repeatable process, then they reuse approved Vault rows, data sets, and output templates." />
-      </div>
-      <main className="grid min-h-0 flex-1 grid-cols-[380px_1fr] overflow-hidden">
-        <aside className="overflow-auto border-r border-neutral-200 bg-neutral-50 p-4">
-          {workflows.map(([name, detail, context, status]) => (
-            <button key={name} onClick={() => setSelected(name)} className={`mb-2 w-full rounded-xl border p-4 text-left ${selected === name ? "border-neutral-300 bg-white shadow-sm" : "border-transparent bg-transparent hover:bg-white"}`}>
-              <div className="flex items-start justify-between gap-3"><p className="text-sm font-medium text-neutral-900">{name}</p><span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{status}</span></div>
-              <p className="mt-2 text-xs leading-5 text-neutral-500">{detail}</p>
-              <p className="mt-3 text-[11px] text-neutral-400">Context: {context}</p>
-            </button>
+
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
+        <div className="flex items-center gap-5 text-sm">
+          {[["all", "All Workflows"], ["built", "Built-in"], ["custom", "Custom"]].map(([key, label]) => (
+            <button key={key} onClick={() => setActiveTab(key as "all" | "built" | "custom")} className={`${activeTab === key ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{label}</button>
           ))}
-        </aside>
-        <section className="overflow-auto p-8">
-          <div className="max-w-4xl">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <h2 className="text-3xl font-semibold tracking-[-0.05em]">{selected}</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">Build it like Mike workflows, but every step understands Cactus context: selected Vault rows, source citations, CRE data sets, approval scopes, and output artifacts.</p>
-              </div>
-              <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Choose Vault rows</button>
-            </div>
+        </div>
+        <div className="flex items-center gap-4 text-xs text-neutral-400">
+          {selectedIds.length > 0 && <button className="text-neutral-700">Actions</button>}
+          <button>Filter by type</button>
+          <button>Filter by practice</button>
+        </div>
+      </div>
 
-            <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-              <p className="text-sm font-medium">Workflow prompt</p>
-              <textarea className="mt-3 h-32 w-full resize-none rounded-xl border border-neutral-200 p-3 text-sm outline-none" defaultValue="When new deal documents are added, extract the core property and market rows into Vault, flag missing diligence, attach market data sets where helpful, then create a Space for review." />
-              <div className="mt-3 flex items-center justify-between">
-                <div className="flex gap-2 text-xs text-neutral-500"><span className="rounded-md border border-neutral-200 px-2 py-1">@Vault rows</span><span className="rounded-md border border-neutral-200 px-2 py-1">@Selected data sets</span><span className="rounded-md border border-neutral-200 px-2 py-1">@Space output</span></div>
-                <button className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Save workflow</button>
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-neutral-200 p-5">
-                <p className="text-sm font-medium">Vault context</p>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">Users select property, market, report, or benchmark rows before a workflow runs.</p>
-                <div className="mt-4 space-y-2 text-sm">{["Subject Property", "Nashville MSA", "Green Street Southeast MF"].map((row) => <div key={row} className="rounded-lg bg-neutral-50 px-3 py-2">{row}</div>)}</div>
-              </div>
-              <div className="rounded-2xl border border-neutral-200 p-5">
-                <p className="text-sm font-medium">Additional data sets</p>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">Approved paid/free data can be attached when it improves the workflow.</p>
-                <div className="mt-4 space-y-2 text-sm">{dataSets.map((set) => <div key={set} className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2"><span>{set}</span><span className="text-xs text-neutral-400">Add</span></div>)}</div>
-              </div>
-            </div>
+      <main className="min-h-0 flex-1 overflow-auto">
+        <div className="min-w-[880px]">
+          <div className="flex h-9 items-center border-b border-neutral-200 pr-8 text-xs font-medium text-neutral-500">
+            <div className="grid w-8 place-items-center"><input type="checkbox" checked={allSelected} onChange={() => setSelectedIds(allSelected ? [] : filtered.map((workflow) => workflow.name))} className="h-2.5 w-2.5 accent-black" /></div>
+            <div className="w-[320px] px-2">Name</div>
+            <div className="ml-auto w-28">Type</div>
+            <div className="w-44">Practice</div>
+            <div className="w-28">Source</div>
+            <div className="w-40">Context</div>
+            <div className="w-8" />
           </div>
-        </section>
+          {filtered.map((workflow) => (
+            <div key={workflow.name} className="group flex h-11 items-center border-b border-neutral-50 pr-8 text-sm hover:bg-neutral-50">
+              <div className="grid w-8 place-items-center"><input type="checkbox" checked={selectedIds.includes(workflow.name)} onChange={() => toggle(workflow.name)} className="h-2.5 w-2.5 accent-black" /></div>
+              <button className="w-[320px] truncate px-2 text-left text-neutral-800">{workflow.name}</button>
+              <div className="ml-auto w-28 text-xs font-medium text-neutral-600">{workflow.type}</div>
+              <div className="w-44 text-xs text-neutral-600">{workflow.practice}</div>
+              <div className="w-28 text-xs text-neutral-600">{workflow.source}</div>
+              <div className="w-40 truncate text-xs text-neutral-400">{workflow.context}</div>
+              <div className="w-8 text-right text-neutral-300">⋯</div>
+            </div>
+          ))}
+        </div>
       </main>
+
+      <div className="border-t border-neutral-100 px-8 py-3 text-xs text-neutral-400">
+        Workflows are reusable instructions. They should stay quiet until the user opens or creates one.
+        <button onClick={() => go(6)} className="ml-3 text-neutral-700">Choose Vault rows</button>
+      </div>
     </div>
   );
 }
@@ -1049,7 +1036,7 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
         <main className="min-w-0 overflow-hidden">
           <div className="flex items-center justify-between border-b border-neutral-300 bg-white px-3 py-3">
             <div className="flex items-center gap-2">
-              <button onClick={() => go(5)} className="rounded-lg bg-[#2b0052] px-4 py-2 text-sm font-medium text-white">+ Add documents</button>
+              <button onClick={() => go(5)} className="rounded-lg bg-[#2b0052] px-4 py-2 text-sm font-medium text-white">+ Add source</button>
               <button className="rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-[#2b0052]">▣ Templates</button>
               <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Filter</button>
               <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Folder: none</button>
@@ -1066,9 +1053,6 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
 
           <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
             {sourceRun} · extraction filling this grid · rows may be properties, markets, or provider reports · columns are data endpoints you can create
-          </div>
-          <div className="border-b border-neutral-200 bg-white px-4 py-3">
-            <PageGoal page="Vault" goal="turn source data into structured CRE memory" connects="Vault feeds every other page: select rows for Assistant context, create Spaces from row chat, or use row sets as Workflow inputs." />
           </div>
 
           {vaultView === "table" ? (

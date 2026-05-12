@@ -190,13 +190,9 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 
 Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity available through Assistant/Spaces/Workflows rather than cluttering the main app shell.
 
-Each primary page should explicitly state its job in the system and how it relates to the other pages:
-- Assistant = command center for starting work, adding data, attaching Vault context, and creating Spaces/Workflows.
-- Spaces = durable workrooms/history created from Assistant or Vault context, where analysis/playground/outputs live.
-- Vault = source-linked memory/data grid that feeds Assistant, Spaces, and Workflows.
-- Workflows = repeatable automations built from Vault context and Space/output patterns.
+For internal/product review, explain each primary page's job in chat or docs rather than adding visible “Page goal” explainer blocks to the app UI. The product itself should communicate through layout, labels, and next actions, not meta-commentary.
 
-The prototype should be clickable enough that users can move between these pages in the intended loop: add source in Assistant → extract into Vault → select rows/chat → create/open Space → choose output/playground actions → turn repeated work into a Workflow.
+The prototype should be clickable enough that users can move between these pages in the intended loop: add a source in Assistant → extract into Vault → select rows/chat → create/open Space → choose output/playground actions → turn repeated work into a Workflow.
 
 **Global rules:**
 - Compact nav.

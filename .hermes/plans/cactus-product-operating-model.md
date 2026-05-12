@@ -36,13 +36,12 @@ The persistent app menu should now mirror Mike's system model, translated into C
 3. **Vault** — Mike Tabular Review renamed and expanded. The Vault is the source-linked tabular CRE memory where uploaded/connected data auto-creates extracting rows, citations, confidence states, and custom data endpoint columns.
 4. **Workflows** — same Mike concept, adapted to CRE repeatable workflows such as package intake, comps, BOVs, IC memos, owner signals, and portfolio monitoring.
 
-The shell should feel like Mike: quiet sidebar, compact toolbars, dense tables, assistant-first interaction, and no extra dashboard chrome.
+The shell should feel like Mike: quiet sidebar, compact toolbars, dense tables, assistant-first interaction, and no extra dashboard chrome. Do not add visible “Page goal” explainer blocks to the app; page goals are for chat/docs review, while the product UI should communicate through names, hierarchy, and actions.
 
-Clickable page goals:
-- **Assistant** starts the loop. It explains what the user can do next, lets them add data, attach Vault rows, or start a Space/Workflow.
-- **Vault** proves where data goes. It shows extraction, custom datapoint columns, provenance/review states, and selected context that can be used by Assistant, Spaces, or Workflows.
-- **Spaces** make work durable. They are the place for analysis/playground, tasks, files, assumptions, sharing, and outputs created from selected Vault context or Assistant requests.
-- **Workflows** automate what became repeatable. They package Vault context, selected data sets, and Space/output patterns into reusable CRE work instructions.
+Workflow page correction:
+- Mirror Mike's Workflows page more closely: a calm list/table with tabs, search/filter controls, small plus action, checkboxes, and compact rows.
+- Avoid a busy split-pane builder with side explanations, large prompt editors, data-set panels, or too many simultaneous controls.
+- Opening/creating a workflow can reveal details later, but the default page should be a quiet workflow library.
 
 ## Vault
 
