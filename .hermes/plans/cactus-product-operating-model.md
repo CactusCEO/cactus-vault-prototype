@@ -406,3 +406,11 @@ The next connected prototype pass should show a Space as the center of real work
 - Spaces are where multi-step CRE work happens. Space detail should be split screen: left chat/work/task stream with @person and /action shortcuts; right artifact canvas for documents, maps, tables, outputs, and results. Workflows can run inside Spaces and repeated work can be saved as a template.
 - Vault should support AI search, searchable micro-vault/folder dropdowns with a back path to main Vault, column resizing, cleaner top toolbar, and map-driven micro-vault creation from selected properties or dropped pins with radius/drive-time filters.
 - Account menu from the bottom-left profile should open org/settings surfaces: Account, Organization, Members, Billing/plan/trial, Integrations, Security/audit, Notifications, and Logout.
+
+## Latest UX corrections — account shell, Assistant, Vault setup, Spaces
+
+- Account shell: bottom-left profile menu is the home for account, organization, members, billing/trial, integrations, security/audit, notifications, appearance/theme, and logout. Each item should show distinct content. The floating light/dark toggle should be removed after onboarding and moved into this menu.
+- Sidebar hamburger collapses/expands the app menu; account popovers close when clicking outside.
+- Assistant: keep the composer simple. `Vault context` opens a focused context picker, not a confusing generic feature. Send is an icon button; mic is a separate voice affordance with a small glowing talk state. Sending should route into a Space/chat workroom so the request becomes durable.
+- Empty Vault setup: after onboarding source selection, route directly to the relevant source action. Upload documents means choose/drop deal files immediately, with review/audit noted secondarily. The user should not have to decode an explanatory three-step card.
+- Spaces should use depth/texture carefully to explain hierarchy: history/list first, then individual Space as split workroom with left chat/workstream and right output canvas/tasks/context.

@@ -561,3 +561,13 @@ Before showing Tyler the next full prototype:
 - Workflows page should make multi-step workflow construction obvious: step blocks with source/extract/prompt/review/draft/action/tasks; `Share` language should become `Save template` for workflow artifacts.
 - Add a Tasks surface or task drawer for workflow maintenance, scraper failures, review gates, and Space assignments.
 - Spaces detail should prioritize a left-side chat/work stream and a right-side output/artifact canvas for docs/maps/results, with assignable tasks and @person or /action command shortcuts.
+
+## Latest interaction corrections — auth, onboarding, assistant, Vault, shell
+
+- Login and signup should be distinct flows: signup starts the free trial/company setup; login is for returning users and should not reuse the same trial/create-account mental model.
+- Step 2 final CTA should be plain `Continue`; Step 2 team-access rows need editable controls that visibly mutate or open edit state, not inert buttons.
+- Step 3 should progressively reveal: show Step 3.1 first-source choices first; only reveal Step 3.2 first-job choices after a source is selected. The Step 3 AI prompt is there to help the user choose a path or ask about Cactus, not to imply setup has already run. Copy should say users can connect multiple sources to the company Vault during the trial.
+- Empty Vault after onboarding should go directly to the selected action path. For upload documents, show a simple drop/choose-files action and minimal review path; avoid a centered explanatory card with multiple fake steps.
+- Spaces need texture/depth and clearer hierarchy: quieter history, cleaner split workroom, left chat/workstream, right output canvas. Avoid busy undifferentiated boxes.
+- Global theme belongs inside the bottom-left account menu, not as a floating button. The app hamburger must collapse/expand the sidebar. Clicking outside the account menu should close it.
+- Assistant Vault Context should be a simple context picker: current context chips, search/select Vault rows/datasets, and a clear apply/open Vault action. Assistant send uses an icon; mic uses a small voice/talk affordance with a subtle glow. Sending opens/creates a Mike-like chat/Space page instead of just showing a small result card.

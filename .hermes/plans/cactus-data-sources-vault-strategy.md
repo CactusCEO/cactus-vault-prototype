@@ -193,3 +193,7 @@ Cactus should show users not just conclusions, but the evidence behind conclusio
 - Portfolio uploads often lack clean addresses. The ingestion flow should create provisional property rows from file/folder names, owner/entity names, PM/accounting IDs, bank references, parcel/city hints, and time periods, then route unresolved matches to a review queue before trusted Vault write.
 - Email and drive connectors must start with scoped filters: approved folders/labels, senders/domains, date ranges, file types, thread types, and deal-room paths. Extraction should capture attachments plus email-body metadata: broker/contact names, phone numbers, addresses, owner/entity names, deadlines, asking price, and related documents.
 - Recurring connectors and scrapers require maintenance tasks when auth expires, source formats change, selectors fail, confidence drops, or refreshes become stale/costly.
+
+## Latest Vault creation simplification
+
+For the first selected onboarding source, Vault setup should go directly to the action path. Upload documents should show a file drop/choose-files surface immediately. Connect email/drive should show scope/filter controls immediately. Import lists/comps should show list/import mapping immediately. Review/audit, provenance, and micro-vault outputs remain visible but secondary.
