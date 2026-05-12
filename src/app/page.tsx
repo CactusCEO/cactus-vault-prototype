@@ -207,85 +207,6 @@ const workflowLibrary = [
   { name: "CRE macro snapshot", group: "Market Intel", mode: "Ongoing", trigger: "Daily schedule", output: "Treasury, SOFR, CMBS, cap trends", context: "Macro feeds" },
 ];
 
-const vaultSourceGroups = [
-  {
-    title: "One-off files",
-    kind: "one-off",
-    note: "Fastest way to fill Vault from deal packages and internal workpapers.",
-    items: [
-      { name: "OM PDFs", scope: "Choose OM files or a deal-room export", maps: "Property, asking price, unit mix, rent roll, T-12, broker notes", cadence: "One-time extraction", review: "PDF page citations + approve/edit/reject" },
-      { name: "T12s", scope: "Upload PDF, Excel, or lender package T-12", maps: "Revenue, opex, NOI, one-time items, reserves, owner-paid utilities", cadence: "One-time or replace latest period", review: "Line-item audit against original statement" },
-      { name: "Rent rolls", scope: "Upload Yardi, RealPage, Excel, or broker rent roll", maps: "Units, beds/baths, rent, concessions, vacant/occupied, lease dates", cadence: "One-time or monthly roll-forward", review: "Cell-level mapping + normalized schema" },
-      { name: "Excel models", scope: "Upload underwriting model or template", maps: "Assumptions, tabs, named ranges, outputs, scenario cells", cadence: "One-time template mapping", review: "Push clean facts into selected model cells" },
-      { name: "Debt quotes", scope: "Upload term sheets or lender emails", maps: "Rate, proceeds, term, amortization, covenants, DSCR, fees", cadence: "One-time comparison table", review: "Quote-by-quote source evidence" },
-      { name: "Broker emails", scope: "Drop .eml/.msg or paste email thread", maps: "Deal terms, broker, deadline, tour dates, source docs", cadence: "One-time thread extraction", review: "Email line citations" },
-      { name: "Notes", scope: "Paste call notes, tour notes, IC notes, diligence notes", maps: "Risks, assumptions, team decisions, follow-ups", cadence: "One-time or append to Space", review: "User-confirmed note facts" },
-    ],
-  },
-  {
-    title: "Imported lists + comps",
-    kind: "import",
-    note: "Turn spreadsheets and CRM exports into property, owner, comp, and watchlist rows.",
-    items: [
-      { name: "Property lists", scope: "Import CSV/XLS with property/address columns", maps: "Property rows, owner fields, market, status, buy-box tags", cadence: "Frozen import or refreshable list", review: "Column mapping + dedupe preview" },
-      { name: "Sales comps", scope: "Import sales comp table or broker comp sheet", maps: "Comp rows, sale price, date, units/SF, cap rate, buyer/seller", cadence: "One-time comp set", review: "Comp quality + similarity weighting" },
-      { name: "Lease comps", scope: "Import rent/lease comp table", maps: "Rent comp rows, unit type, asking/effective rent, concessions", cadence: "One-time or market refresh", review: "Field normalization + outlier flags" },
-      { name: "CRM exports", scope: "Import Salesforce/Airtable/HubSpot CSV", maps: "Owners, brokers, buyers, lenders, activity, pipeline status", cadence: "Manual import or scheduled sync", review: "Contact/entity dedupe" },
-      { name: "Watchlists", scope: "Import target list with properties/owners/markets", maps: "Opportunity rows, scoring criteria, next action, owner signals", cadence: "Manual refresh or ongoing watch", review: "Criteria fit + source status" },
-      { name: "Portfolio schedules", scope: "Import owned assets, debt, leases, capex, valuations", maps: "Portfolio/property rows, expirations, debt maturities, NOI, KPIs", cadence: "Monthly/quarterly update", review: "Versioned portfolio snapshot" },
-    ],
-  },
-  {
-    title: "Live folders + inbox",
-    kind: "live",
-    note: "Recurring sources need read scope, sync cadence, and cost/freshness approval.",
-    items: [
-      { name: "Gmail", scope: "Select labels, senders, date range, broker domains", maps: "Incoming deals, source docs, contacts, deadlines, tasks", cadence: "Manual, hourly, or daily watcher", review: "Review queue before Vault write" },
-      { name: "Outlook", scope: "Select folders, senders, domains, attachment rules", maps: "Broker packages, debt quotes, tour scheduling, capital calls", cadence: "Manual, hourly, or daily watcher", review: "Review queue + sender approval" },
-      { name: "Google Drive", scope: "Choose folders/subfolders and file types", maps: "Documents, models, reports, source folders, Spaces", cadence: "Manual, daily, or weekly sync", review: "New-file review + folder audit" },
-      { name: "OneDrive", scope: "Choose folders/subfolders and file types", maps: "Documents, models, reports, source folders, Spaces", cadence: "Manual, daily, or weekly sync", review: "New-file review + folder audit" },
-      { name: "Deal rooms", scope: "Paste/share deal-room folder URL or sync export", maps: "OMs, diligence files, folders, access-limited Space context", cadence: "Manual refresh or daily during active deal", review: "Source folder diff + new-doc queue" },
-      { name: "Approved broker senders", scope: "Whitelist senders/domains and package keywords", maps: "Deal leads, broker contacts, deadline dates, package docs", cadence: "Daily watcher", review: "Sender-level approval and unsubscribe controls" },
-    ],
-  },
-  {
-    title: "Listing + records watchers",
-    kind: "watch",
-    note: "Always-on sourcing, public-record, distress, and market-signal feeds.",
-    items: [
-      { name: "CoStar", scope: "Saved search, markets, asset class, units/SF, price/cap filters", maps: "Listing rows, comps, broker/source, opportunity score", cadence: "Daily watcher", review: "Dedupe against Vault + buy-box score" },
-      { name: "Crexi", scope: "Saved search, geographies, property type, price/size filters", maps: "Listing rows, broker notes, asking terms, links", cadence: "Daily watcher", review: "Cross-platform dedupe" },
-      { name: "LoopNet", scope: "Saved search and geo/asset-class filters", maps: "Listing rows, broker links, availability signals", cadence: "Daily watcher", review: "Cross-platform dedupe" },
-      { name: "County records", scope: "Jurisdictions, parcel IDs, ownership/tax/sale event types", maps: "Owner, sale, assessment, tax, parcel facts", cadence: "Weekly/monthly watcher", review: "Public-record source links" },
-      { name: "Foreclosure filings", scope: "Counties, borrowers, property types, filing stages", maps: "Distress events, borrower/owner, debt risk, deadlines", cadence: "Daily/weekly watcher", review: "Filing citation + severity" },
-      { name: "CMBS watchlists", scope: "Servicer lists, loan names, markets, special-servicer status", maps: "Debt distress, maturity/refi risk, special servicing signals", cadence: "Weekly/monthly watcher", review: "Servicer/source confidence" },
-    ],
-  },
-  {
-    title: "Provider + public data APIs",
-    kind: "provider",
-    note: "Provider facts write to Vault with cost, cache, freshness, and license labels.",
-    items: [
-      { name: "Green Street", scope: "Market/submarket/zip/property bundle and asset class", maps: "Cap rates, growth, sale comps, grades, supply/demand", cadence: "Monthly or on-demand premium refresh", review: "Premium-call approval + snapshot history" },
-      { name: "ATTOM", scope: "Property address/APN and optional history/neighborhood calls", maps: "Owner, mortgage, tax, assessment, sale chain, demographics", cadence: "On-demand then cached refresh", review: "Endpoint/cost disclosure + conflict review" },
-      { name: "ReportAll", scope: "Parcel boundary/building footprint by APN/address", maps: "Parcel geometry, building footprint, lot attributes", cadence: "On-demand cache", review: "Map preview + parcel match" },
-      { name: "HelloData", scope: "Multifamily address/market", maps: "Rent comps, rent upside, property comp set", cadence: "On-demand or monthly during active Space", review: "Comp set justification" },
-      { name: "Radius Plus", scope: "Self-storage address/market", maps: "Storage rent comps and market context", cadence: "On-demand or monthly", review: "Comp set justification" },
-      { name: "Census ACS", scope: "Tract/ZIP/MSA and demographic fields", maps: "Income, population, rent burden, vacancy, commute", cadence: "Release cadence / cached", review: "Public-source freshness label" },
-      { name: "FRED", scope: "MSA/macro series and rate indicators", maps: "SOFR/Treasury/macro, permits, employment signals", cadence: "Daily/weekly series refresh", review: "Time-series snapshot" },
-      { name: "FEMA", scope: "Address/parcel flood lookup", maps: "Flood zone, insurance/diligence risk", cadence: "On-demand cache", review: "Map overlay + zone citation" },
-      { name: "Walk Score", scope: "Property lat/lng", maps: "Walk/transit/bike scores", cadence: "90-day cache", review: "Provider freshness label" },
-      { name: "Google Places", scope: "Lat/lng, radius, amenity categories", maps: "POI counts, nearest amenities, tenant-demand signals", cadence: "90-day cache / on-demand", review: "Quota/cost label + POI sample" },
-      { name: "CrimeOMeter", scope: "Lat/lng radius and crime categories", maps: "Safety score, incident counts, trend/risk flags", cadence: "Monthly/on-demand premium refresh", review: "Radius + paid-call approval" },
-      { name: "GreatSchools", scope: "Address and school radius", maps: "School ratings, names, grades, distance", cadence: "Quarterly/on-demand", review: "License/freshness label" },
-      { name: "BLS", scope: "County/MSA industry and employment series", maps: "Employment concentration, economic risk", cadence: "Release cadence", review: "Public-source citation" },
-      { name: "FBI", scope: "County/agency crime series", maps: "Market-level crime trend and benchmark", cadence: "Release cadence", review: "Public-source citation" },
-      { name: "FEMA NRI/USGS", scope: "Tract/county hazard and earthquake layers", maps: "Natural hazard risk, insurance/diligence flags", cadence: "Annual/release cadence", review: "Hazard-layer citation" },
-      { name: "Shovels", scope: "Address/parcel/market permits and contractors", maps: "Permits, capex, condition, supply pipeline, contractor signals", cadence: "Monthly/on-demand premium refresh", review: "Paid-call approval + permit evidence" },
-    ],
-  },
-] as const;
-
 function AvatarStack({ team, size = "sm" }: { team: readonly string[] | string[]; size?: "sm" | "md" }) {
   const dim = size === "md" ? "h-8 w-8 text-xs" : "h-6 w-6 text-[10px]";
   return (
@@ -1134,8 +1055,8 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
   const [templateOpen, setTemplateOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
-  const [selectedSourceName, setSelectedSourceName] = useState("OM PDFs");
   const [sourceSetupStatus, setSourceSetupStatus] = useState("Not started");
+  const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected">("deal");
   const [folderName, setFolderName] = useState("none");
   const [columns, setColumns] = useState([
     { key: "location", label: "Location", prompt: "Identify the property or market geography.", format: "Text" },
@@ -1157,16 +1078,120 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
   const selectedCount = selectedRows.length;
   const sourceRun = sourceRunLabels[sourceIndex];
   const sourceTitle = sourceCards[sourceIndex].title;
-  const allVaultSources = vaultSourceGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.title, kind: group.kind })));
-  const selectedSource = allVaultSources.find((item) => item.name === selectedSourceName) ?? allVaultSources[0];
-  const setupSteps = [
-    ["Scope", selectedSource.scope],
-    ["Map", selectedSource.maps],
-    ["Refresh", selectedSource.cadence],
-    ["Review", selectedSource.review],
-  ];
-  const primarySetupAction = selectedSource.kind === "one-off" ? "Choose files + create review queue" : selectedSource.kind === "import" ? "Import table + map columns" : selectedSource.kind === "live" ? "Approve read-only scope" : selectedSource.kind === "watch" ? "Start watcher in review mode" : "Approve provider bundle";
   const toggleRow = (id: string) => setSelectedRows((current) => current.includes(id) ? current.filter((row) => row !== id) : [...current, id]);
+  const vaultSetupModes = [
+    {
+      key: "deal" as const,
+      title: "Deal documents",
+      subtitle: "Add a single deal package or diligence folder.",
+      examples: "T-12, rent roll, occupancy report, management summary, OM, market report, debt quote · PDF / Excel / CSV",
+      primary: "Choose deal files",
+      scope: "One property or one deal room",
+      maps: "Property row, deal row, source documents, financial endpoints, market-report rows",
+      review: "Citations from PDF pages, Excel cells, CSV rows, and report sections before facts become trusted",
+      chips: ["T-12", "Rent roll", "Occupancy", "Management summary", "OM", "Market report", "Excel model"],
+    },
+    {
+      key: "portfolio" as const,
+      title: "Portfolio data",
+      subtitle: "Build a multi-property Vault from historicals and systems.",
+      examples: "Property schedules, trailing financials over time, missing-address files, PM/accounting exports, banking feeds",
+      primary: "Start portfolio setup",
+      scope: "Multiple properties, historical periods, systems, and unresolved addresses",
+      maps: "Portfolio rows, property rows, time-series snapshots, missing-address review queue, KPI columns",
+      review: "Address matching, property dedupe, period/version history, and source-system confidence before writes",
+      chips: ["Portfolio schedule", "Historical T-12s", "Yardi", "RealPage", "AppFolio", "Accounting", "Banking"],
+    },
+    {
+      key: "connected" as const,
+      title: "Inbox + drive",
+      subtitle: "Let Cactus watch approved folders and senders.",
+      examples: "Gmail, Outlook, Google Drive, OneDrive, broker senders, shared folders, deal rooms",
+      primary: "Approve read-only scope",
+      scope: "Specific labels, folders, senders, domains, date ranges, and file types only",
+      maps: "Incoming deal docs, broker contacts, deadlines, source folders, review queues, Space context",
+      review: "New items enter review first; recurring sync, freshness, and permissions stay visible",
+      chips: ["Gmail", "Outlook", "Google Drive", "OneDrive", "Deal rooms", "Broker senders"],
+    },
+  ];
+  const selectedSetup = vaultSetupModes.find((mode) => mode.key === selectedSetupMode) ?? vaultSetupModes[0];
+  const sourceSetupModal = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25">
+      <div className="max-h-[86vh] w-[980px] overflow-hidden rounded-2xl border border-neutral-200 bg-white text-neutral-950 shadow-2xl">
+        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
+          <div>
+            <p className="text-sm font-semibold">Add to Vault</p>
+            <p className="mt-1 text-xs text-neutral-500">Start with the type of CRE data you have. Cactus will scope it, map it, and ask you to review before anything becomes trusted.</p>
+          </div>
+          <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+        </div>
+
+        <div className="grid max-h-[calc(86vh-73px)] grid-cols-[310px_1fr] overflow-hidden">
+          <aside className="border-r border-neutral-200 bg-neutral-50 p-4">
+            <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-neutral-400">What are you adding?</p>
+            <div className="space-y-2">
+              {vaultSetupModes.map((mode) => {
+                const active = selectedSetupMode === mode.key;
+                return (
+                  <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`w-full rounded-xl border p-4 text-left ${active ? "border-neutral-950 bg-white shadow-sm" : "border-neutral-200 bg-white/70 hover:bg-white"}`}>
+                    <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold">{mode.title}</p><span className="text-neutral-300">›</span></div>
+                    <p className="mt-1 text-xs leading-5 text-neutral-500">{mode.subtitle}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-5 rounded-xl border border-neutral-200 bg-white p-3">
+              <p className="text-xs font-medium text-neutral-950">Advanced sources later</p>
+              <p className="mt-1 text-xs leading-5 text-neutral-500">Provider APIs, public data, listings, county records, and market watchers can be added after the first Vault path is clear.</p>
+            </div>
+          </aside>
+
+          <main className="overflow-auto p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs text-neutral-400">Vault setup path</p>
+                <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em]">{selectedSetup.title}</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">{selectedSetup.examples}</p>
+              </div>
+              <span className={`rounded-md px-2 py-1 text-[11px] ${sourceSetupStatus.includes("Approved") || sourceSetupStatus.includes("created") ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{sourceSetupStatus}</span>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {selectedSetup.chips.map((chip) => <button key={chip} onClick={() => setSourceSetupStatus(`${chip} selected`)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">{chip}</button>)}
+            </div>
+
+            <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200">
+              {[
+                ["1", "Scope", selectedSetup.scope],
+                ["2", "Map", selectedSetup.maps],
+                ["3", "Review", selectedSetup.review],
+              ].map(([number, label, text]) => (
+                <button key={label} onClick={() => setSourceSetupStatus(`${label} ready`)} className="grid w-full grid-cols-[48px_110px_1fr] border-b border-neutral-100 px-4 py-4 text-left last:border-b-0 hover:bg-neutral-50">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-neutral-950 text-[11px] text-white">{number}</span>
+                  <span className="text-sm font-medium">{label}</span>
+                  <span className="text-sm leading-6 text-neutral-500">{text}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-3 text-xs">
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-950">No blind import</p><p className="mt-1 leading-5 text-neutral-500">Facts stay in review until approved, edited, or rejected.</p></div>
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-950">Source-linked</p><p className="mt-1 leading-5 text-neutral-500">Every value keeps file, page, cell, email, or system provenance.</p></div>
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-950">Controlled sync</p><p className="mt-1 leading-5 text-neutral-500">Recurring sources need scope, cadence, and cost approval.</p></div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
+              <p className="text-xs text-neutral-500">Next: create a review queue, then write approved rows and endpoint columns into the Vault.</p>
+              <div className="flex gap-2">
+                <button onClick={() => setSourceSetupStatus(`${selectedSetup.title} setup created`)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">{selectedSetup.primary}</button>
+                <button onClick={() => { setSourceSetupStatus(`Approved ${selectedSetup.title}`); setSourceCenterOpen(false); }} className="rounded-md border border-neutral-200 px-4 py-2 text-xs font-medium text-neutral-700">Approve + add</button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
   const addColumn = () => {
     setColumns((current) => [...current, { key: `custom-${current.length}`, label: "YR 1 NOI", prompt: "Extract Year 1 NOI from the selected documents or model and cite the source line.", format: "Currency" }]);
     setShowColumnBuilder(false);
@@ -1180,84 +1205,7 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
           <button onClick={() => setSourceCenterOpen(true)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Add first source</button>
         </main>
 
-        {sourceCenterOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25">
-            <div className="max-h-[88vh] w-[1120px] overflow-hidden rounded-2xl border border-neutral-200 bg-white text-[#22003f] shadow-2xl">
-              <div className="flex items-center justify-between border-b border-neutral-200 p-5">
-                <div>
-                  <p className="text-sm font-semibold">Vault creation setup</p>
-                  <p className="mt-1 text-xs text-neutral-500">Choose a source, scope it, map it into Vault rows/data endpoints, set refresh + cost rules, then review before activation.</p>
-                </div>
-                <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
-              </div>
-              <div className="grid max-h-[calc(88vh-78px)] grid-cols-[360px_1fr_260px] overflow-hidden">
-                <div className="overflow-auto border-r border-neutral-200 p-4">
-                  <div className="space-y-4">
-                    {vaultSourceGroups.map((group) => (
-                      <section key={group.title}>
-                        <div className="mb-2 flex items-center justify-between">
-                          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">{group.title}</p>
-                          <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500">{group.kind}</span>
-                        </div>
-                        <div className="space-y-1">
-                          {group.items.map((item) => {
-                            const active = selectedSourceName === item.name;
-                            return (
-                              <button key={item.name} onClick={() => { setSelectedSourceName(item.name); setSourceSetupStatus("Not started"); }} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-xs ${active ? "border-[#2b0052] bg-[#fbf4ff] text-[#22003f]" : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"}`}>
-                                <span className="font-medium">{item.name}</span>
-                                <span className="text-neutral-300">›</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                </div>
-
-                <main className="overflow-auto p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs text-neutral-400">{selectedSource.group}</p>
-                      <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-neutral-950">{selectedSource.name}</h3>
-                      <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-500">This is the first-source setup path. It creates or updates Vault rows, endpoint columns, citations, confidence, freshness, and review status.</p>
-                    </div>
-                    <span className={`rounded-md px-2 py-1 text-[11px] ${sourceSetupStatus.includes("Approved") || sourceSetupStatus.includes("created") ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{sourceSetupStatus}</span>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-4 gap-2">
-                    {setupSteps.map(([label, value], index) => (
-                      <div key={label} className="rounded-xl border border-neutral-200 bg-white p-3">
-                        <div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{index + 1}</span><p className="text-xs font-semibold text-neutral-950">{label}</p></div>
-                        <p className="mt-2 text-xs leading-5 text-neutral-500">{value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                    <p className="text-sm font-medium text-neutral-950">Setup preview</p>
-                    <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                      <button onClick={() => setSourceSetupStatus("Scope selected")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">1. Select scope</span><span className="mt-1 block leading-5 text-neutral-500">Files, folders, senders, markets, provider endpoints, or saved search criteria.</span></button>
-                      <button onClick={() => setSourceSetupStatus("Vault mapping ready")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">2. Map to Vault</span><span className="mt-1 block leading-5 text-neutral-500">Choose row types, endpoint columns, dedupe, and source priority.</span></button>
-                      <button onClick={() => setSourceSetupStatus("Review queue created")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">3. Review + activate</span><span className="mt-1 block leading-5 text-neutral-500">Create audit queue before rows become trusted Vault facts.</span></button>
-                    </div>
-                  </div>
-                </main>
-
-                <aside className="overflow-auto border-l border-neutral-200 bg-neutral-50 p-5">
-                  <p className="text-sm font-semibold text-neutral-950">Approval checklist</p>
-                  <div className="mt-4 space-y-3 text-xs text-neutral-600">
-                    {[["Scope", "Least-privilege access only."], ["Cadence", "One-time, manual, daily, weekly, monthly, or on-demand."], ["Cost", "Free, cached, included, paid refresh, or premium call shown before spend."], ["Audit", "Facts remain needs-review until approved."], ["Automation", "Recurring sources can create review queues, Spaces, or workflow triggers."]].map(([title, note]) => (
-                      <div key={title} className="rounded-xl border border-neutral-200 bg-white p-3"><p className="font-medium text-neutral-950">{title}</p><p className="mt-1 leading-5">{note}</p></div>
-                    ))}
-                  </div>
-                  <button onClick={() => setSourceSetupStatus(`${selectedSource.name} setup created`)} className="mt-5 w-full rounded-md bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">{primarySetupAction}</button>
-                  <button onClick={() => { setSourceSetupStatus(`Approved ${selectedSource.name}`); setSourceCenterOpen(false); }} className="mt-2 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Approve + add to Vault</button>
-                </aside>
-              </div>
-            </div>
-          </div>
-        )}
+        {sourceCenterOpen && sourceSetupModal}
       </div>
     );
   }
@@ -1438,101 +1386,7 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
         </div>
       )}
 
-      {sourceCenterOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25">
-          <div className="max-h-[88vh] w-[1120px] overflow-hidden rounded-2xl border border-neutral-200 bg-white text-[#22003f] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-200 p-5">
-              <div>
-                <p className="text-sm font-semibold">Vault creation setup</p>
-                <p className="mt-1 text-xs text-neutral-500">Choose any source type, scope it, map it into Vault rows/data endpoints, set refresh + cost rules, then review before activation.</p>
-              </div>
-              <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
-            </div>
-            <div className="grid max-h-[calc(88vh-78px)] grid-cols-[360px_1fr_260px] overflow-hidden">
-              <div className="overflow-auto border-r border-neutral-200 p-4">
-                <div className="space-y-4">
-                  {vaultSourceGroups.map((group) => (
-                    <section key={group.title}>
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">{group.title}</p>
-                        <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500">{group.kind}</span>
-                      </div>
-                      <div className="space-y-1">
-                        {group.items.map((item) => {
-                          const active = selectedSourceName === item.name;
-                          return (
-                            <button
-                              key={item.name}
-                              onClick={() => { setSelectedSourceName(item.name); setSourceSetupStatus("Not started"); }}
-                              className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-xs ${active ? "border-[#2b0052] bg-[#fbf4ff] text-[#22003f]" : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"}`}
-                            >
-                              <span className="font-medium">{item.name}</span>
-                              <span className="text-neutral-300">›</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              </div>
-
-              <main className="overflow-auto p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs text-neutral-400">{selectedSource.group}</p>
-                    <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-neutral-950">{selectedSource.name}</h3>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-500">This setup creates or updates Vault rows, custom endpoint columns, citations, confidence, freshness, and review status from the selected source.</p>
-                  </div>
-                  <span className={`rounded-md px-2 py-1 text-[11px] ${sourceSetupStatus.includes("Approved") || sourceSetupStatus.includes("created") ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{sourceSetupStatus}</span>
-                </div>
-
-                <div className="mt-5 grid grid-cols-4 gap-2">
-                  {setupSteps.map(([label, value], index) => (
-                    <div key={label} className="rounded-xl border border-neutral-200 bg-white p-3">
-                      <div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{index + 1}</span><p className="text-xs font-semibold text-neutral-950">{label}</p></div>
-                      <p className="mt-2 text-xs leading-5 text-neutral-500">{value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200">
-                  <div className="grid grid-cols-[150px_1fr] border-b border-neutral-100 text-sm"><div className="bg-neutral-50 px-3 py-3 text-xs text-neutral-400">Creates rows</div><div className="px-3 py-3 text-neutral-700">Properties, owners, deals, comps, market rows, reports, risks, contacts, tasks, or provider snapshots depending on mapping.</div></div>
-                  <div className="grid grid-cols-[150px_1fr] border-b border-neutral-100 text-sm"><div className="bg-neutral-50 px-3 py-3 text-xs text-neutral-400">Creates columns</div><div className="px-3 py-3 text-neutral-700">Source-specific endpoints such as Owner Name, YR 1 NOI, Debt Quote, Market Rent Growth, Flood Zone, Cap Rate, Tax Risk, or Demand Growth.</div></div>
-                  <div className="grid grid-cols-[150px_1fr] border-b border-neutral-100 text-sm"><div className="bg-neutral-50 px-3 py-3 text-xs text-neutral-400">Trust state</div><div className="px-3 py-3 text-neutral-700">Every fact gets source, citation/page/cell/URL, confidence, freshness, cost/cache state, and review status.</div></div>
-                  <div className="grid grid-cols-[150px_1fr] text-sm"><div className="bg-neutral-50 px-3 py-3 text-xs text-neutral-400">Activation</div><div className="px-3 py-3 text-neutral-700">Nothing recurring runs until scope, cadence, and monthly/premium cost rules are approved.</div></div>
-                </div>
-
-                <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                  <p className="text-sm font-medium text-neutral-950">Setup preview</p>
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                    <button onClick={() => setSourceSetupStatus("Scope selected")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">1. Select scope</span><span className="mt-1 block leading-5 text-neutral-500">Files, folders, senders, markets, provider endpoints, or saved search criteria.</span></button>
-                    <button onClick={() => setSourceSetupStatus("Vault mapping ready")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">2. Map to Vault</span><span className="mt-1 block leading-5 text-neutral-500">Choose row types, endpoint columns, dedupe, and source priority.</span></button>
-                    <button onClick={() => setSourceSetupStatus("Review queue created")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">3. Review + activate</span><span className="mt-1 block leading-5 text-neutral-500">Create audit queue before rows become trusted Vault facts.</span></button>
-                  </div>
-                </div>
-              </main>
-
-              <aside className="overflow-auto border-l border-neutral-200 bg-neutral-50 p-5">
-                <p className="text-sm font-semibold text-neutral-950">Approval checklist</p>
-                <div className="mt-4 space-y-3 text-xs text-neutral-600">
-                  {[
-                    ["Scope", "Least-privilege access: folders, labels, senders, providers, markets, or saved searches only."],
-                    ["Cadence", "One-time, manual refresh, daily watcher, weekly pulse, monthly provider refresh."],
-                    ["Cost", "Free/public, cached, included, paid refresh, or premium provider call shown before spend."],
-                    ["Audit", "Facts remain needs-review until approved, edited, or rejected."],
-                    ["Automation", "Recurring sources can create review queues, Spaces, or workflow triggers."],
-                  ].map(([title, note]) => (
-                    <div key={title} className="rounded-xl border border-neutral-200 bg-white p-3"><p className="font-medium text-neutral-950">{title}</p><p className="mt-1 leading-5">{note}</p></div>
-                  ))}
-                </div>
-                <button onClick={() => setSourceSetupStatus(`${selectedSource.name} setup created`)} className="mt-5 w-full rounded-md bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">{primarySetupAction}</button>
-                <button onClick={() => { setSourceSetupStatus(`Approved ${selectedSource.name}`); setSourceCenterOpen(false); }} className="mt-2 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Approve + add to Vault</button>
-              </aside>
-            </div>
-          </div>
-        </div>
-      )}
+      {sourceCenterOpen && sourceSetupModal}
 
       {selectedCount === 0 ? (
         <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm text-neutral-500 shadow-xl">

@@ -131,7 +131,15 @@ Recommended structure:
 
 ## Vault creation setup model
 
-The Vault source center should give every source type a clear creation path, not just a list of possible integrations. Each source setup should answer five questions in a compact flow:
+The Vault source center should give every source type a clear creation path, not just a list of possible integrations. The default UI should be organized around the three jobs users understand first:
+
+1. **Deal documents** — T-12s, rent rolls, occupancy reports, management summaries, OMs, market reports, debt quotes, and Excel/CSV/PDF deal materials.
+2. **Portfolio data** — historical multi-property documents, files with missing addresses, property-management/accounting software, and potentially banking data.
+3. **Inbox + drive** — Gmail, Outlook, Google Drive, OneDrive, broker senders, and deal-room folders.
+
+Provider APIs, public data, and listing/records watchers should be available as secondary/advanced additions, not the first thing users have to parse.
+
+Each source setup should answer five questions in a compact flow:
 
 1. **Choose source type** — one-off file, imported list/comps, live inbox/folder, listing/record watcher, or provider/public data API.
 2. **Scope** — exact files, folders, senders, markets, saved searches, providers, endpoints, asset classes, and geography levels Cactus may use.
