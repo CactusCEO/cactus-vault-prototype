@@ -14,6 +14,7 @@ The product should feel less like file storage and more like activating persiste
 
 Initial wedge:
 - Multifamily investors and operators.
+- Mid-market to high-mid-market private equity and family-office CRE teams where defensibility matters because debt, partnerships, underwriting models, approvals, and reporting are nuanced.
 
 Expansion paths:
 - Portfolio asset managers.

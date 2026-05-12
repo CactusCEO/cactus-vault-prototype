@@ -477,3 +477,18 @@ After the scraper builder, the next workflow UX should expose example templates 
 - **Market pulse / trigger monitor**: trigger from scheduled market/provider/news refresh; pull permits, deliveries, transactions, employer news, treasury/SOFR; output market rows, opportunity flags, and Space/task creation.
 
 Templates should load the builder with prefilled trigger/source, cadence, pull fields, output, and follow-on skill. The UI should keep the flow compact: pick example → inspect chain → edit fields → create draft for approval.
+
+## Defensibility for PE / family-office complexity
+
+Cactus should optimize for mid-market and high-mid-market private equity and family-office CRE users who need more than generic summaries. The product must respect complex, subjective workflows around debt, partnerships, waterfalls, assumptions, underwriting models, governance, and investor/lender reporting.
+
+Workflow outputs should therefore be treated as defensible artifacts, not final AI answers:
+
+- **Datapoints**: source-linked Vault cells/endpoints with confidence, freshness, and review status.
+- **Model inputs**: mapped values for the user's Excel/model/template, with allowed-write scopes and change logs.
+- **Assumptions**: editable assumption tables with citations, rationale, sensitivity impact, and approval state.
+- **Analysis blocks**: NOI bridge, debt sizing, DSCR/LTV/debt yield, return sensitivity, risk/reward, and “what must be true” sections.
+- **Partnership/capital artifacts**: waterfall inputs, promote/equity split assumptions, capital-call/K-1/investor update tasks, and approval gates.
+- **Reports/dashboards**: assembled from reviewed artifacts rather than generated from scratch; each section should retain provenance and approval history.
+
+Underwriting workflows should default to “prepare, check, map, and explain the underwriting,” not “Cactus owns the model.” Users should choose whether Cactus maps into their Excel model, creates a Cactus template, or produces review-only assumptions. Generative UI should stay bounded: Cactus can fill known output blocks, not invent arbitrary interfaces before the workflow/artifact model is trusted.
