@@ -425,3 +425,27 @@ Before wiring auth, AI APIs, OCR, Google Maps, email/Drive connectors, scrapers,
 - Vault audit should be focused by row/cell/fact selection so source verification feels connected to the grid.
 - Workflow library search/filter must not leave stale detail drawers open when the selected workflow is hidden; maintenance issues should become task chips/drawers users can assign, retry, or review.
 - Static prototype controls should either mutate visible state, open a drawer/modal, navigate, or clearly say what backend endpoint will own them later.
+
+## Tasks and activity operating model
+
+Cactus needs a first-class **Tasks + Activity** surface before backend integration. It should be the cross-product work inbox for investors, lenders, brokers, and internal teams, while Spaces remain the place where individual deal/workflow tasks are executed.
+
+Task sources:
+
+- **Vault review**: low-confidence extracted facts, unmatched portfolio rows, missing addresses, duplicate property/entity resolution, citation approval, stale market/provider rows.
+- **Workflow maintenance**: connector auth expired, scraper selector changed, source refresh failed, cadence/cost approval, scheduled workflow overdue, automation retry needed.
+- **Spaces collaboration**: `@person` assignments, `/task` commands, diligence asks, output approvals, lender/broker/client follow-ups.
+- **Investor workflows**: acquisition screen, underwriting review, IC memo sections, investor update approvals, portfolio risk flags, capital call/K-1 status.
+- **Lender workflows**: debt package requests, DSCR/LTV checks, missing diligence, quote comparison, credit memo review, borrower follow-up.
+- **Broker workflows**: BOV/listing pitch tasks, owner outreach, comp package review, OM/data-room refresh, tour/follow-up actions.
+
+Activity should not be a generic audit log only. It should show meaningful state changes across Vault/Spaces/Workflows: source connected, extraction completed, fact approved/rejected, Space created, workflow run started/failed, scraper repaired, output drafted/sent, and task assignment/status changes.
+
+Recommended Tasks + Activity UI:
+
+- Top-level app destination named `Tasks` or `Tasks + Activity` with compact filters/search.
+- Views: `My tasks`, `Team`, `Maintenance`, `Vault review`, `Activity`.
+- Filter by role/job type: Investor, Lender, Broker, Internal, All.
+- Each task row should show title, source/workflow, related Space/Vault context, owner, due/status, priority, and one primary action.
+- Selecting a task opens a detail drawer with evidence/context, next actions, related Vault rows/Space/workflow, and a short activity timeline.
+- Activity rows should be searchable and linked back to the underlying Space, Vault row, workflow run, or connector.

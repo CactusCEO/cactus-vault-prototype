@@ -206,7 +206,13 @@ For internal/product review, explain each primary page's job in chat or docs rat
 - Workflow search/filter changes must close or reconcile stale detail drawers when the selected workflow is no longer visible.
 - Workflow maintenance issues should be task chips/drawers with assign/retry/review affordances, not clipped status prose.
 
-**Global rules:**
+**Tasks + Activity:**
+- Add a first-class Tasks + Activity destination before backend integration so tasks are not hidden inside Workflows or Spaces only.
+- Tasks should roll up work from Vault review, workflow maintenance, Spaces collaboration, investor workflows, lender workflows, broker workflows, connectors, scrapers, and output approvals.
+- The page should support role/job filters (Investor, Lender, Broker, Internal), task views (My tasks, Team, Maintenance, Vault review, Activity), search, and a detail drawer with evidence/context, related Space/Vault/workflow, assignee, due state, and actions.
+- Activity should show meaningful product events — source connected, extraction completed, fact approved/rejected, workflow failed/retried, scraper repaired, Space created, output drafted/sent — not just technical logs.
+ 
+ **Global rules:**
 - Compact nav.
 - Clear active state.
 - Search / command-style interaction should be available later.

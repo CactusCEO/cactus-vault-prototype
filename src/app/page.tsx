@@ -173,6 +173,7 @@ const appNav = [
   ["Spaces", "□", 7],
   ["Vault", "▣", 6],
   ["Workflows", "▤", 8],
+  ["Tasks", "✓", 9],
 ] as const;
 
 
@@ -207,6 +208,27 @@ const workflowLibrary = [
   { name: "News & trigger monitor", group: "Market Intel", mode: "Ongoing", trigger: "News/events", output: "Tenant, zoning, employer alerts", context: "Markets + tenants" },
   { name: "Competitor watch", group: "Market Intel", mode: "Ongoing", trigger: "Transaction refresh", output: "Active buyer map", context: "Buyer activity + comps" },
   { name: "CRE macro snapshot", group: "Market Intel", mode: "Ongoing", trigger: "Daily schedule", output: "Treasury, SOFR, CMBS, cap trends", context: "Macro feeds" },
+];
+
+const taskRows = [
+  { title: "Approve Riverside IC memo sections", owner: "TS", role: "Investor", source: "IC memo workflow", space: "Riverside Flats Deal Review", status: "Review", priority: "High", due: "Today", action: "Review output", type: "My tasks", context: "Verified T12, rent comps, debt quote", evidence: "3 draft sections need approval before investor memo export." },
+  { title: "Resolve missing addresses in portfolio import", owner: "AK", role: "Investor", source: "Unmatched portfolio queue", space: "Portfolio cleanup", status: "Open", priority: "High", due: "Today", action: "Match rows", type: "Vault review", context: "12 rows · owner/entity hints", evidence: "Rows have property names, PM IDs, city/state, and bank/account references but no trusted address." },
+  { title: "Gmail re-auth for broker package watcher", owner: "TS", role: "Internal", source: "Inbox + drive connector", space: "Deal intake automation", status: "Blocked", priority: "High", due: "Now", action: "Reconnect", type: "Maintenance", context: "Broker senders + attachments", evidence: "OAuth token expired. No new broker emails have been checked since 9:14 AM." },
+  { title: "Retry Crexi scraper after selector change", owner: "MR", role: "Broker", source: "LoopNet / Crexi watcher", space: "Off-market deal sniffer", status: "Maintenance", priority: "Medium", due: "Today", action: "Retry scraper", type: "Maintenance", context: "Saved searches · Nashville 80+ units", evidence: "Listing card selector changed. Last run captured 0 results where 18 were expected." },
+  { title: "Draft lender follow-up from debt quote table", owner: "JL", role: "Lender", source: "Debt quote aggregator", space: "Riverside lender package", status: "Ready", priority: "Medium", due: "Tomorrow", action: "Draft reply", type: "Team", context: "DSCR/LTV checks + lender terms", evidence: "Two lenders need clarification on IO period, reserves, and rate-lock timing." },
+  { title: "Review BOV comp package before owner outreach", owner: "AK", role: "Broker", source: "BOV/proposal drafter", space: "Owner pitch: East Nashville", status: "Review", priority: "Medium", due: "Tomorrow", action: "Open comps", type: "Team", context: "Sales comps + owner profile", evidence: "Cactus drafted valuation range and three talking points; comps need broker approval." },
+  { title: "Approve Q3 investor update variance notes", owner: "TS", role: "Investor", source: "Quarterly investor letter drafter", space: "Portfolio reporting", status: "Review", priority: "Low", due: "Fri", action: "Approve notes", type: "My tasks", context: "Portfolio monitor + accounting export", evidence: "Insurance and payroll variances are cited; GP voice needs final approval." },
+  { title: "Check low-confidence owner phone extraction", owner: "MR", role: "Broker", source: "Email contact extraction", space: "Owner outreach list", status: "Review", priority: "Low", due: "Fri", action: "Verify contact", type: "Vault review", context: "Email thread + signature block", evidence: "Phone number confidence is 63%; source email signature has two possible numbers." },
+];
+
+const activityRows = [
+  ["10:42 AM", "Workflow", "Crexi scraper failed and created a maintenance task", "LoopNet / Crexi watcher"],
+  ["10:31 AM", "Vault", "12 imported portfolio rows moved to Unmatched portfolio queue", "Portfolio cleanup"],
+  ["10:18 AM", "Space", "@AK was assigned rent roll anomaly review", "Riverside Flats Deal Review"],
+  ["9:55 AM", "Output", "BOV/proposal draft created for owner outreach", "Owner pitch: East Nashville"],
+  ["9:41 AM", "Connector", "Gmail token expired; watcher paused safely", "Inbox + drive connector"],
+  ["9:16 AM", "Audit", "T12 NOI fact approved with citation", "Vault · Subject Property"],
+  ["Yesterday", "Lender", "Debt quote comparison generated follow-up task", "Riverside lender package"],
 ];
 
 function AvatarStack({ team, size = "sm" }: { team: readonly string[] | string[]; size?: "sm" | "md" }) {
@@ -964,6 +986,113 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
     </div>
   );
 }
+function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
+  const [view, setView] = useState<"My tasks" | "Team" | "Maintenance" | "Vault review" | "Activity">("My tasks");
+  const [role, setRole] = useState("All");
+  const [search, setSearch] = useState("");
+  const [selectedTask, setSelectedTask] = useState<(typeof taskRows)[number] | null>(taskRows[0]);
+  const [done, setDone] = useState<string[]>([]);
+  const filteredTasks = taskRows.filter((task) => {
+    const viewMatch = view === "Activity" ? false : view === "Team" ? true : task.type === view;
+    const roleMatch = role === "All" || task.role === role;
+    const searchMatch = !search || [task.title, task.source, task.space, task.context, task.role, task.status].join(" ").toLowerCase().includes(search.toLowerCase());
+    return viewMatch && roleMatch && searchMatch;
+  });
+  const visibleActivity = activityRows.filter((row) => !search || row.join(" ").toLowerCase().includes(search.toLowerCase()));
+  const statusClass = (status: string) => status === "Blocked" || status === "Maintenance" ? "bg-amber-50 text-amber-700" : status === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-600";
+  const roleCounts = ["Investor", "Lender", "Broker", "Internal"].map((item) => [item, taskRows.filter((task) => task.role === item).length]);
+
+  return (
+    <div className="relative flex h-screen flex-col bg-white text-neutral-950">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
+        <div>
+          <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Tasks + Activity</h1>
+          <p className="mt-1 text-xs text-neutral-500">One inbox for Vault review, workflow maintenance, Space assignments, investor, lender, and broker work.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-8 w-72 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search tasks, Spaces, contacts, workflows…" />
+          <button onClick={() => setSelectedTask(taskRows[1])} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Task</button>
+        </div>
+      </header>
+
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
+        <div className="flex items-center gap-5 text-sm">
+          {["My tasks", "Team", "Maintenance", "Vault review", "Activity"].map((item) => (
+            <button key={item} onClick={() => setView(item as typeof view)} className={`${view === item ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{item}</button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          {["All", "Investor", "Lender", "Broker", "Internal"].map((item) => <button key={item} onClick={() => setRole(item)} className={`rounded-md px-2 py-1 ${role === item ? "bg-neutral-950 text-white" : "text-neutral-500 hover:bg-neutral-100"}`}>{item}</button>)}
+        </div>
+      </div>
+
+      <main className="grid min-h-0 flex-1 grid-cols-[minmax(640px,1fr)_390px] overflow-hidden">
+        <section className="overflow-auto p-6">
+          <div className="mb-4 grid grid-cols-4 gap-3 text-xs">
+            {roleCounts.map(([label, count]) => <button key={label} onClick={() => setRole(label as string)} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-left hover:bg-white"><span className="block text-neutral-400">{label}</span><span className="mt-1 block text-lg font-semibold text-neutral-900">{count}</span></button>)}
+          </div>
+
+          {view !== "Activity" ? (
+            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-neutral-100 text-xs text-neutral-400"><tr>{["Task", "Role", "Context", "Owner", "Due", "Status", "Action"].map((head) => <th key={head} className="px-4 py-3 font-medium">{head}</th>)}</tr></thead>
+                <tbody>{filteredTasks.map((task) => {
+                  const taskStatus = done.includes(task.title) ? "Done" : task.status;
+                  return (
+                    <tr key={task.title} onClick={() => setSelectedTask(task)} className="cursor-pointer border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50">
+                      <td className="px-4 py-3"><span className="block font-medium text-neutral-950">{task.title}</span><span className="mt-1 block text-xs text-neutral-400">{task.source}</span></td>
+                      <td className="px-4 py-3 text-neutral-500">{task.role}</td>
+                      <td className="px-4 py-3 text-neutral-500">{task.space}</td>
+                      <td className="px-4 py-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{task.owner}</span></td>
+                      <td className="px-4 py-3 text-neutral-500">{task.due}</td>
+                      <td className="px-4 py-3"><span className={`rounded-md px-2 py-1 text-[11px] ${statusClass(taskStatus)}`}>{taskStatus}</span></td>
+                      <td className="px-4 py-3"><button onClick={(event) => { event.stopPropagation(); setSelectedTask(task); }} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600">{task.action}</button></td>
+                    </tr>
+                  );
+                })}</tbody>
+              </table>
+              {filteredTasks.length === 0 && <div className="p-8 text-center text-sm text-neutral-400">No tasks match this view. Try Team or All roles.</div>}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-neutral-200 bg-white p-2">
+              {visibleActivity.map(([time, type, event, context]) => <button key={`${time}-${event}`} onClick={() => setSearch(context)} className="flex w-full items-start gap-4 rounded-lg px-3 py-3 text-left hover:bg-neutral-50"><span className="w-20 text-xs text-neutral-400">{time}</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{type}</span><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{event}</span><span className="mt-1 block text-xs text-neutral-500">{context}</span></span></button>)}
+            </div>
+          )}
+        </section>
+
+        <aside className="overflow-auto border-l border-neutral-100 bg-neutral-50 p-5">
+          {selectedTask ? (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold">{selectedTask.title}</p><p className="mt-1 text-xs text-neutral-500">{selectedTask.source}</p></div><span className={`rounded-md px-2 py-1 text-[11px] ${statusClass(done.includes(selectedTask.title) ? "Done" : selectedTask.status)}`}>{done.includes(selectedTask.title) ? "Done" : selectedTask.status}</span></div>
+                <p className="mt-4 text-xs font-medium text-neutral-400">Why this exists</p>
+                <p className="mt-1 text-sm leading-6 text-neutral-600">{selectedTask.evidence}</p>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                  {[["Owner", selectedTask.owner], ["Role", selectedTask.role], ["Due", selectedTask.due], ["Priority", selectedTask.priority]].map(([label, value]) => <div key={label} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 font-medium text-neutral-800">{value}</p></div>)}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button onClick={() => setDone((current) => current.includes(selectedTask.title) ? current : [...current, selectedTask.title])} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Mark done</button>
+                  <button onClick={() => go(7)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button>
+                  <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Vault context</button>
+                  <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open workflow</button>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-medium text-neutral-500">Context</p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">{selectedTask.context.split(" + ").map((item) => <button key={item} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-neutral-700 hover:bg-[#fbf4ff]">{item}</button>)}</div>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-medium text-neutral-500">Activity trail</p>
+                <div className="mt-3 space-y-2 text-xs text-neutral-600">{["Task created by workflow run", "Evidence linked from Vault/source", `Assigned to ${selectedTask.owner}`, "Awaiting human approval before write/send"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div>
+              </div>
+            </div>
+          ) : <div className="text-sm text-neutral-400">Select a task to inspect context, owner, evidence, and actions.</div>}
+        </aside>
+      </main>
+    </div>
+  );
+}
+
 function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [activeTab, setActiveTab] = useState<"all" | "ongoing" | "template">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -1050,6 +1179,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       </div>
       <div className="flex items-center gap-2 border-t border-amber-100 bg-amber-50 px-8 py-2 text-xs text-amber-800">
         <span className="font-medium">Maintenance</span>
+        <button onClick={() => go(9)} className="rounded-full bg-amber-900 px-3 py-1 text-white">Open task inbox</button>
         {maintenanceTasks.map(([title, source, action]) => (
           <button key={title} onClick={() => setMaintenanceOpen(true)} className="rounded-full border border-amber-200 bg-white px-3 py-1 text-left text-amber-800 hover:bg-amber-100">
             {title} <span className="text-amber-500">· {source} · {action}</span>
@@ -1836,6 +1966,7 @@ export default function Home() {
     if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} />;
     if (active === 7) return <Spaces go={setActive} />;
     if (active === 8) return <Workflows go={setActive} />;
+    if (active === 9) return <TasksActivity go={setActive} />;
     return <Spaces go={setActive} />;
   };
 
