@@ -655,23 +655,31 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
   const selected = sourceCards[initialSource];
   const action = sourceActionCopy[initialSource];
   const [contextOpen, setContextOpen] = useState(false);
+  const [sourceOpen, setSourceOpen] = useState(false);
+  const [enhanced, setEnhanced] = useState(false);
+  const [asked, setAsked] = useState(false);
+  const [sourceStep, setSourceStep] = useState(0);
   const runFirstWin = () => {
+    setSourceStep(2);
     onSubmit(initialSource);
     go(6);
   };
   const contextChips = hasIntake
-    ? ["Subject Property", "City row", "MSA benchmark", "Green Street report"]
+    ? ["Subject Property", "City row", "MSA benchmark", "Green Street report", "HelloData rent set"]
     : ["Vault empty", "No rows selected"];
+  const promptText = enhanced
+    ? "Review the approved source, extract deal facts into Vault, add market benchmark rows, and create a Space for any item that needs underwriting review."
+    : "Ask Cactus to review a deal, create a Space, build a Vault data endpoint, or run a CRE workflow…";
 
   return (
-    <div className="flex h-screen flex-col bg-white text-neutral-950">
+    <div className="relative flex h-screen flex-col bg-white text-neutral-950">
       <header className="flex h-14 items-center justify-between border-b border-neutral-200 px-8">
         <div>
           <p className="text-sm font-medium">Assistant</p>
           <p className="text-xs text-neutral-500">Cactus Capital Partners · Multifamily Vault</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Add Vault context</button>
+          <button onClick={() => setContextOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Add Vault context</button>
           <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Create workflow</button>
           <button onClick={runFirstWin} className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">{hasIntake ? "Open extracting Vault" : action.action}</button>
         </div>
@@ -685,26 +693,39 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
           </div>
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-            <textarea className="h-28 w-full resize-none px-3 py-3 text-[15px] outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to review a deal, create a Space, build a Vault data endpoint, or run a CRE workflow…" />
+            <textarea className="h-28 w-full resize-none px-3 py-3 text-[15px] outline-none placeholder:text-neutral-400" placeholder={promptText} defaultValue={enhanced ? promptText : ""} />
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-2 pt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">+ Source</button>
+                <button onClick={() => setSourceOpen(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">+ Source</button>
                 <button onClick={() => setContextOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▣ Vault context</button>
                 <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▤ Workflow</button>
-                <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Enhance prompt</button>
+                <button onClick={() => setEnhanced(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Enhance prompt</button>
               </div>
-              <button className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Ask</button>
+              <button onClick={() => setAsked(true)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Ask</button>
             </div>
           </div>
+
+          {asked && (
+            <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-medium text-neutral-950">Cactus can start from the selected source, then use Vault context once rows exist.</p>
+                  <p className="mt-1 text-xs leading-5 text-neutral-500">Next best action: run the first source into Vault so the assistant has cited CRE context instead of guessing.</p>
+                </div>
+                <button onClick={runFirstWin} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Run source</button>
+              </div>
+            </div>
+          )}
 
           {contextOpen && (
             <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-medium text-neutral-700">Attach context from Vault</p>
+                <p className="text-xs font-medium text-neutral-700">Attach context from Vault + available datasets</p>
                 <button onClick={() => go(6)} className="text-xs text-[#2b0052]">Open Vault</button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {contextChips.map((chip) => <span key={chip} className="rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-xs text-neutral-600">{chip}</span>)}
+                {contextChips.map((chip) => <button key={chip} className="rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-xs text-neutral-600 hover:border-[#2b0052]">{chip}</button>)}
+                {["ATTOM ownership", "FEMA flood", "HelloData rents"].map((chip) => <button key={chip} className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-700">+ {chip}</button>)}
               </div>
             </div>
           )}
@@ -724,7 +745,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
                   <p className="text-sm font-medium text-neutral-900">{action.action}</p>
                   <p className="mt-1 text-xs leading-5 text-neutral-500">{action.detail}</p>
                   <div className="mt-4 flex items-center gap-2">
-                    <button className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-700">Choose files / scope</button>
+                    <button onClick={() => setSourceOpen(true)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-700">Choose source / scope</button>
                     <button onClick={runFirstWin} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Add to Vault</button>
                   </div>
                 </div>
@@ -749,6 +770,26 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
           </section>
         </div>
       </main>
+
+      {sourceOpen && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div><p className="text-sm font-medium text-neutral-950">Add source</p><p className="mt-1 text-xs text-neutral-500">Use the onboarding choice or pick another source later.</p></div>
+              <button onClick={() => setSourceOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+            </div>
+            <div className="mt-5 grid gap-2">
+              {["Choose source / scope", "Review approval", "Send to Vault extraction"].map((step, index) => (
+                <button key={step} onClick={() => setSourceStep(index)} className={`flex items-center justify-between rounded-xl border px-3 py-3 text-left text-sm ${sourceStep === index ? "border-[#2b0052] bg-[#fbf4ff]" : "border-neutral-200 hover:bg-neutral-50"}`}><span><span className="font-medium">0{index + 1}. {step}</span><span className="mt-1 block text-xs text-neutral-500">{index === 0 ? action.detail : index === 1 ? "Least-privilege scope, citations on, continuous flow off." : action.result}</span></span><span className="text-neutral-300">→</span></button>
+              ))}
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setSourceOpen(false)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Cancel</button>
+              <button onClick={runFirstWin} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Add to Vault</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -756,11 +797,16 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   const [view, setView] = useState<"grid" | "list" | "map">("grid");
   const [selectedWorkspace, setSelectedWorkspace] = useState<(typeof workspaceLibrary)[number] | null>(null);
   const [spaceTab, setSpaceTab] = useState<"work" | "playground" | "outputs">("work");
+  const [shareOpen, setShareOpen] = useState(false);
+  const [newOpen, setNewOpen] = useState(false);
+  const [taskDone, setTaskDone] = useState(false);
+  const [scenario, setScenario] = useState("Base case");
+  const [outputReady, setOutputReady] = useState(false);
   const viewButtons: Array<["grid" | "list" | "map", string]> = [["grid", "Grid"], ["list", "List"], ["map", "Map"]];
 
   if (selectedWorkspace) {
     return (
-      <div className="flex h-screen flex-col bg-white text-neutral-950">
+      <div className="relative flex h-screen flex-col bg-white text-neutral-950">
         <header className="flex h-14 items-center justify-between border-b border-neutral-200 px-8">
           <div className="flex items-center gap-3">
             <button onClick={() => setSelectedWorkspace(null)} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-500">← Spaces</button>
@@ -772,7 +818,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
           <div className="flex items-center gap-2">
             <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Open Vault context</button>
             <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Automate this</button>
-            <button className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">Share</button>
+            <button onClick={() => setShareOpen(true)} className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">Share</button>
           </div>
         </header>
         <main className="grid min-h-0 flex-1 grid-cols-[260px_1fr_360px] overflow-hidden">
@@ -782,8 +828,9 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
             </div>
             <div className="mt-5 rounded-xl border border-neutral-200 bg-white p-3">
               <p className="text-xs font-medium text-neutral-500">Scoped Vault context</p>
-              {['Subject Property', 'Nashville MSA', 'Green Street report'].map((row) => <div key={row} className="mt-2 rounded-md bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700">{row}</div>)}
+              {['Subject Property', 'Nashville MSA', 'Green Street report'].map((row) => <button key={row} onClick={() => go(6)} className="mt-2 block w-full rounded-md bg-neutral-50 px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-[#fbf4ff]">{row}</button>)}
             </div>
+            <button onClick={() => go(6)} className="mt-3 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600">+ Add Vault rows</button>
           </aside>
 
           <section className="overflow-auto p-8">
@@ -792,11 +839,11 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
                 <h2 className="text-3xl font-semibold tracking-[-0.05em]">Workspace brief</h2>
                 <p className="mt-2 text-sm leading-6 text-neutral-500">Cactus keeps the deal context, source trail, tasks, and analyst conversation together so this is more than a one-off chat.</p>
                 <div className="mt-6 grid grid-cols-3 gap-3">
-                  {[["Status", selectedWorkspace.status], ["Context", "3 Vault rows"], ["Next", "Review assumptions"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 bg-white p-4"><p className="text-xs text-neutral-400">{label}</p><p className="mt-2 text-sm font-medium">{value}</p></div>)}
+                  {[["Status", selectedWorkspace.status], ["Context", "3 Vault rows"], ["Next", taskDone ? "Draft output" : "Review assumptions"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 bg-white p-4"><p className="text-xs text-neutral-400">{label}</p><p className="mt-2 text-sm font-medium">{value}</p></div>)}
                 </div>
                 <div className="mt-5 rounded-2xl border border-neutral-200 bg-white p-5">
                   <p className="text-sm font-medium">Open work items</p>
-                  <div className="mt-3 space-y-2">{['Confirm T12 NOI variance', 'Refresh rent comps against market row', 'Draft recommendation section', 'Freeze source appendix before share'].map((item, i) => <button key={item} className="flex w-full items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-left text-sm"><span>{item}</span><span className="text-xs text-neutral-400">{i === 0 ? 'Review' : 'Open'}</span></button>)}</div>
+                  <div className="mt-3 space-y-2">{['Confirm T12 NOI variance', 'Refresh rent comps against market row', 'Draft recommendation section', 'Freeze source appendix before share'].map((item, i) => <button key={item} onClick={() => setTaskDone(true)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${taskDone && i === 0 ? "bg-emerald-50 text-emerald-700" : "bg-neutral-50"}`}><span>{item}</span><span className="text-xs text-neutral-400">{taskDone && i === 0 ? 'Done' : i === 0 ? 'Review' : 'Open'}</span></button>)}</div>
                 </div>
               </div>
             )}
@@ -804,8 +851,9 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
               <div className="max-w-4xl">
                 <h2 className="text-3xl font-semibold tracking-[-0.05em]">Playground</h2>
                 <p className="mt-2 text-sm leading-6 text-neutral-500">Run what-needs-to-change analysis against Vault facts and market benchmarks without leaving the Space.</p>
+                <div className="mt-5 flex gap-2">{["Base case", "Seller case", "Downside", "$1.3M price cut"].map((item) => <button key={item} onClick={() => setScenario(item)} className={`rounded-md border px-3 py-2 text-xs ${scenario === item ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{item}</button>)}</div>
                 <div className="mt-6 grid grid-cols-3 gap-3">
-                  {[["Seller case", "15.8% IRR"], ["Cactus base", "12.4% IRR"], ["Needed", "$1.3M price cut"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-4"><p className="text-xs text-neutral-400">{label}</p><p className="mt-2 text-lg font-medium">{value}</p></div>)}
+                  {[["Scenario", scenario], ["Cactus base", scenario === "$1.3M price cut" ? "16.1% IRR" : "12.4% IRR"], ["Needed", scenario === "$1.3M price cut" ? "Meets hurdle" : "$1.3M price cut"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-4"><p className="text-xs text-neutral-400">{label}</p><p className="mt-2 text-lg font-medium">{value}</p></div>)}
                 </div>
                 <textarea className="mt-5 h-28 w-full resize-none rounded-2xl border border-neutral-200 p-4 text-sm outline-none" placeholder="Ask: What needs to change for this to hit a 16% IRR?" />
               </div>
@@ -814,7 +862,9 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
               <div className="max-w-4xl">
                 <h2 className="text-3xl font-semibold tracking-[-0.05em]">Outputs</h2>
                 <p className="mt-2 text-sm leading-6 text-neutral-500">Outputs are the business endpoint: memos, BOVs, lender packages, investor updates, OMs, and diligence summaries.</p>
-                <div className="mt-6 grid grid-cols-2 gap-3">{outputArtifacts.map(([type, name, status, context]) => <button key={`${type}-${name}`} className="rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-50"><p className="text-sm font-medium">{type}</p><p className="mt-1 text-xs text-neutral-500">{name} · {context}</p><span className="mt-3 inline-flex rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{status}</span></button>)}</div>
+                <div className="mt-4 flex gap-2"><button onClick={() => setOutputReady(true)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Generate IC memo</button><button onClick={() => setShareOpen(true)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Share output</button></div>
+                {outputReady && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">IC memo draft created from this Space and saved to Vault snapshot.</div>}
+                <div className="mt-6 grid grid-cols-2 gap-3">{outputArtifacts.map(([type, name, status, context]) => <button key={`${type}-${name}`} className="rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-50"><p className="text-sm font-medium">{type}</p><p className="mt-1 text-xs text-neutral-500">{name} · {context}</p><span className="mt-3 inline-flex rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{outputReady && type === "IC memo" ? "Draft created" : status}</span></button>)}</div>
               </div>
             )}
           </section>
@@ -824,16 +874,17 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
             <p className="mt-2 text-xs leading-5 text-neutral-500">Uses only this Space, selected Vault rows, attached docs, and approved data sets.</p>
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3">
               <textarea className="h-28 w-full resize-none text-sm outline-none" placeholder="Ask the analyst to change assumptions, draft output sections, or explain source evidence…" />
-              <button className="mt-3 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Send</button>
+              <button onClick={() => setTaskDone(true)} className="mt-3 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Send</button>
             </div>
           </aside>
         </main>
+        {shareOpen && <div className="absolute right-6 top-20 z-40 w-80 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl"><div className="flex items-center justify-between"><p className="text-sm font-medium">Share Space</p><button onClick={() => setShareOpen(false)}>×</button></div><div className="mt-4 space-y-2 text-sm"><button className="flex w-full justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left">Tyler Sellars <span>Edit</span></button><button className="flex w-full justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left">Broker team <span>View</span></button><button className="flex w-full justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left">External lender <span>No access</span></button></div><button className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Copy share link</button></div>}
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen flex-col bg-white text-neutral-950">
+    <div className="relative flex h-screen flex-col bg-white text-neutral-950">
       <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.04em]">Spaces History</h2>
@@ -845,7 +896,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
               <button key={key} onClick={() => setView(key)} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${view === key ? "bg-white text-[#2b0052] shadow-sm" : "text-neutral-500"}`}>{label}</button>
             ))}
           </div>
-          <button onClick={() => setSelectedWorkspace(workspaceLibrary[0])} className="rounded-xl bg-[#2b0052] px-4 py-2.5 text-sm font-medium text-white">+ New Workspace</button>
+          <button onClick={() => setNewOpen(true)} className="rounded-xl bg-[#2b0052] px-4 py-2.5 text-sm font-medium text-white">+ New Workspace</button>
         </div>
       </div>
 
@@ -854,41 +905,30 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
           <div className="grid grid-cols-3 gap-5">
             {workspaceLibrary.map((workspace) => (
               <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="min-h-[166px] rounded-xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:border-[#2b0052] hover:shadow-md">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-semibold tracking-[-0.03em] text-neutral-950">{workspace.title}</p>
-                    <p className="mt-2 text-sm leading-5 text-neutral-700">{workspace.address}<br />{workspace.market}</p>
-                  </div>
-                  <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span>
-                </div>
-                <div className="mt-8 flex items-center justify-between">
-                  <div className="flex -space-x-2">{workspace.team.map((person, personIndex) => <span key={`${workspace.title}-${person}`} className={`grid h-8 w-8 place-items-center rounded-full border-2 border-white text-[10px] font-semibold text-white ${["bg-[#2b0052]", "bg-neutral-700", "bg-amber-700", "bg-emerald-700"][personIndex % 4]}`}>{person}</span>)}</div>
-                  <span className="text-xs text-neutral-400">{workspace.updated}</span>
-                </div>
+                <div className="flex items-start justify-between gap-4"><div><p className="text-lg font-semibold tracking-[-0.03em] text-neutral-950">{workspace.title}</p><p className="mt-2 text-sm leading-5 text-neutral-700">{workspace.address}<br />{workspace.market}</p></div><span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span></div>
+                <div className="mt-8 flex items-center justify-between"><div className="flex -space-x-2">{workspace.team.map((person, personIndex) => <span key={`${workspace.title}-${person}`} className={`grid h-8 w-8 place-items-center rounded-full border-2 border-white text-[10px] font-semibold text-white ${["bg-[#2b0052]", "bg-neutral-700", "bg-amber-700", "bg-emerald-700"][personIndex % 4]}`}>{person}</span>)}</div><span className="text-xs text-neutral-400">{workspace.updated}</span></div>
               </button>
             ))}
           </div>
         )}
         {view === "list" && (
-          <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-            <table className="w-full text-left text-sm"><thead className="border-b border-neutral-200 bg-neutral-50 text-xs text-neutral-500"><tr>{["Workspace", "Type", "Location", "Team", "Updated", "Status"].map((header) => <th key={header} className="px-4 py-3 font-medium">{header}</th>)}</tr></thead><tbody>{workspaceLibrary.map((workspace) => <tr key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="cursor-pointer border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-4 font-medium text-neutral-950">{workspace.title}</td><td className="px-4 py-4 text-neutral-500">{workspace.type}</td><td className="px-4 py-4 text-neutral-500">{workspace.address} · {workspace.market}</td><td className="px-4 py-4"><div className="flex -space-x-2">{workspace.team.slice(0, 3).map((person) => <span key={`${workspace.title}-list-${person}`} className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-[9px] font-semibold text-white">{person}</span>)}</div></td><td className="px-4 py-4 text-neutral-500">{workspace.updated}</td><td className="px-4 py-4"><span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-600">{workspace.status}</span></td></tr>)}</tbody></table>
-          </div>
+          <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"><table className="w-full text-left text-sm"><thead className="border-b border-neutral-200 bg-neutral-50 text-xs text-neutral-500"><tr>{["Workspace", "Type", "Location", "Team", "Updated", "Status"].map((header) => <th key={header} className="px-4 py-3 font-medium">{header}</th>)}</tr></thead><tbody>{workspaceLibrary.map((workspace) => <tr key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="cursor-pointer border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-4 font-medium text-neutral-950">{workspace.title}</td><td className="px-4 py-4 text-neutral-500">{workspace.type}</td><td className="px-4 py-4 text-neutral-500">{workspace.address} · {workspace.market}</td><td className="px-4 py-4"><div className="flex -space-x-2">{workspace.team.slice(0, 3).map((person) => <span key={`${workspace.title}-list-${person}`} className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-[9px] font-semibold text-white">{person}</span>)}</div></td><td className="px-4 py-4 text-neutral-500">{workspace.updated}</td><td className="px-4 py-4"><span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-600">{workspace.status}</span></td></tr>)}</tbody></table></div>
         )}
         {view === "map" && (
-          <div className="mt-5 grid min-h-[580px] grid-cols-[1fr_360px] gap-5">
-            <div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-[#eef0eb] shadow-sm"><div className="absolute inset-0 opacity-70 [background-image:linear-gradient(35deg,transparent_47%,rgba(82,82,82,.14)_48%,rgba(82,82,82,.14)_52%,transparent_53%),linear-gradient(120deg,transparent_47%,rgba(82,82,82,.10)_48%,rgba(82,82,82,.10)_52%,transparent_53%)] [background-size:160px_160px,220px_220px]" /><div className="absolute left-6 top-5 rounded-full border border-neutral-200 bg-white/90 px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm">Spaces map · same history</div>{workspaceLibrary.map((workspace, index) => <button key={`pin-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className={`absolute ${workspace.pin} group`}><span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-xs font-semibold text-white shadow-lg">{index + 1}</span><span className="absolute left-5 top-7 hidden w-52 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{workspace.title}</span><br /><span className="text-neutral-500">{workspace.type} · {workspace.status}</span></span></button>)}</div>
-            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"><div className="border-b border-neutral-200 px-4 py-3"><p className="text-sm font-semibold">Mapped work history</p><p className="mt-1 text-xs text-neutral-500">Pins are Spaces tied to properties, markets, or portfolio work.</p></div><div className="max-h-[510px] overflow-auto p-3">{workspaceLibrary.map((workspace, index) => <button key={`map-list-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className="flex w-full items-start gap-3 rounded-xl p-3 text-left hover:bg-neutral-50"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#2b0052] text-xs text-white">{index + 1}</span><span><span className="block text-sm font-medium text-neutral-950">{workspace.title}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{workspace.address}<br />{workspace.status} · {workspace.updated}</span></span></button>)}</div></div>
-          </div>
+          <div className="mt-5 grid min-h-[580px] grid-cols-[1fr_360px] gap-5"><div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-[#eef0eb] shadow-sm"><div className="absolute inset-0 opacity-70 [background-image:linear-gradient(35deg,transparent_47%,rgba(82,82,82,.14)_48%,rgba(82,82,82,.14)_52%,transparent_53%),linear-gradient(120deg,transparent_47%,rgba(82,82,82,.10)_48%,rgba(82,82,82,.10)_52%,transparent_53%)] [background-size:160px_160px,220px_220px]" /><div className="absolute left-6 top-5 rounded-full border border-neutral-200 bg-white/90 px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm">Spaces map · same history</div>{workspaceLibrary.map((workspace, index) => <button key={`pin-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className={`absolute ${workspace.pin} group`}><span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-xs font-semibold text-white shadow-lg">{index + 1}</span><span className="absolute left-5 top-7 hidden w-52 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{workspace.title}</span><br /><span className="text-neutral-500">{workspace.type} · {workspace.status}</span></span></button>)}</div><div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"><div className="border-b border-neutral-200 px-4 py-3"><p className="text-sm font-semibold">Mapped work history</p><p className="mt-1 text-xs text-neutral-500">Pins are Spaces tied to properties, markets, or portfolio work.</p></div><div className="max-h-[510px] overflow-auto p-3">{workspaceLibrary.map((workspace, index) => <button key={`map-list-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className="flex w-full items-start gap-3 rounded-xl p-3 text-left hover:bg-neutral-50"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#2b0052] text-xs text-white">{index + 1}</span><span><span className="block text-sm font-medium text-neutral-950">{workspace.title}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{workspace.address}<br />{workspace.status} · {workspace.updated}</span></span></button>)}</div></div></div>
         )}
       </main>
+      {newOpen && <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20"><div className="w-[520px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex justify-between"><p className="text-sm font-medium">New Space</p><button onClick={() => setNewOpen(false)}>×</button></div><input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Riverside Flats Deal Review" /><div className="mt-3 grid grid-cols-2 gap-2 text-xs">{["Selected Vault rows", "Blank Space", "Frozen snapshot", "Auto-updating"].map((item)=><button key={item} className="rounded-lg border border-neutral-200 px-3 py-3 text-left hover:bg-neutral-50">{item}</button>)}</div><button onClick={() => { setSelectedWorkspace(workspaceLibrary[0]); setNewOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space</button></div></div>}
     </div>
   );
 }
-
 function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [activeTab, setActiveTab] = useState<"all" | "built" | "custom">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
+  const [newOpen, setNewOpen] = useState(false);
+  const [runState, setRunState] = useState("Ready");
   const workflows = [
     { name: "Deal intake review", type: "Assistant", practice: "Acquisitions", source: "Cactus", status: "Built-in", context: "Upload/source → Vault → Space" },
     { name: "IC memo builder", type: "Assistant", practice: "Investment committee", source: "Cactus", status: "Built-in", context: "Space → output" },
@@ -902,14 +942,15 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
     .filter((workflow) => !search || workflow.name.toLowerCase().includes(search.toLowerCase()) || workflow.practice.toLowerCase().includes(search.toLowerCase()));
   const toggle = (name: string) => setSelectedIds((current) => current.includes(name) ? current.filter((id) => id !== name) : [...current, name]);
   const allSelected = filtered.length > 0 && filtered.every((workflow) => selectedIds.includes(workflow.name));
+  const detail = workflows.find((workflow) => workflow.name === selectedWorkflow);
 
   return (
-    <div className="flex h-screen flex-col bg-white text-neutral-950">
+    <div className="relative flex h-screen flex-col bg-white text-neutral-950">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
         <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Workflows</h1>
         <div className="flex items-center gap-2">
           <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-8 w-56 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search workflows…" />
-          <button className="grid h-8 w-8 place-items-center rounded-md text-lg text-neutral-500 hover:bg-neutral-100">+</button>
+          <button onClick={() => setNewOpen(true)} className="grid h-8 w-8 place-items-center rounded-md text-lg text-neutral-500 hover:bg-neutral-100">+</button>
         </div>
       </header>
 
@@ -920,9 +961,9 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
           ))}
         </div>
         <div className="flex items-center gap-4 text-xs text-neutral-400">
-          {selectedIds.length > 0 && <button className="text-neutral-700">Actions</button>}
-          <button>Filter by type</button>
-          <button>Filter by practice</button>
+          {selectedIds.length > 0 && <button onClick={() => setRunState(`${selectedIds.length} selected`)} className="text-neutral-700">Actions</button>}
+          <button onClick={() => setSearch("Vault")}>Filter by type</button>
+          <button onClick={() => setSearch("Acquisitions")}>Filter by practice</button>
         </div>
       </div>
 
@@ -940,25 +981,47 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
           {filtered.map((workflow) => (
             <div key={workflow.name} className="group flex h-11 items-center border-b border-neutral-50 pr-8 text-sm hover:bg-neutral-50">
               <div className="grid w-8 place-items-center"><input type="checkbox" checked={selectedIds.includes(workflow.name)} onChange={() => toggle(workflow.name)} className="h-2.5 w-2.5 accent-black" /></div>
-              <button className="w-[320px] truncate px-2 text-left text-neutral-800">{workflow.name}</button>
+              <button onClick={() => setSelectedWorkflow(workflow.name)} className="w-[320px] truncate px-2 text-left text-neutral-800">{workflow.name}</button>
               <div className="ml-auto w-28 text-xs font-medium text-neutral-600">{workflow.type}</div>
               <div className="w-44 text-xs text-neutral-600">{workflow.practice}</div>
               <div className="w-28 text-xs text-neutral-600">{workflow.source}</div>
               <div className="w-40 truncate text-xs text-neutral-400">{workflow.context}</div>
-              <div className="w-8 text-right text-neutral-300">⋯</div>
+              <button onClick={() => setSelectedWorkflow(workflow.name)} className="w-8 text-right text-neutral-300">⋯</button>
             </div>
           ))}
         </div>
       </main>
 
       <div className="border-t border-neutral-100 px-8 py-3 text-xs text-neutral-400">
-        Workflows are reusable instructions. They should stay quiet until the user opens or creates one.
+        {runState}. Workflows stay quiet until opened, created, or run.
         <button onClick={() => go(6)} className="ml-3 text-neutral-700">Choose Vault rows</button>
       </div>
+
+      {detail && (
+        <aside className="absolute right-0 top-0 z-40 h-full w-[420px] border-l border-neutral-200 bg-white p-5 shadow-2xl">
+          <div className="flex items-center justify-between"><p className="text-sm font-medium">{detail.name}</p><button onClick={() => setSelectedWorkflow(null)}>×</button></div>
+          <div className="mt-5 space-y-3 text-sm">
+            <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Trigger</p><p className="mt-1">When approved source rows enter Vault or a Space requests this output.</p></div>
+            <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Context</p><p className="mt-1">{detail.context}</p></div>
+            <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Steps</p><ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-neutral-600"><li>Collect selected Vault rows.</li><li>Check citations and confidence.</li><li>Create or update Space.</li><li>Draft output for approval.</li></ol></div>
+          </div>
+          <div className="mt-5 flex gap-2"><button onClick={() => setRunState(`${detail.name} run queued`)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Run</button><button onClick={() => go(7)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button></div>
+        </aside>
+      )}
+
+      {newOpen && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="w-[520px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
+            <div className="flex justify-between"><p className="text-sm font-medium">New workflow</p><button onClick={() => setNewOpen(false)}>×</button></div>
+            <input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Weekly multifamily deal intake" />
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">{["Start from Assistant", "Start from Vault rows", "Start from Space", "Start blank"].map((item)=><button key={item} className="rounded-lg border border-neutral-200 px-3 py-3 text-left hover:bg-neutral-50">{item}</button>)}</div>
+            <button onClick={() => { setNewOpen(false); setRunState("New workflow draft created"); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create workflow</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
 function Agents() {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_360px] gap-5 p-8">
@@ -993,6 +1056,10 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [folderName, setFolderName] = useState("none");
   const [columns, setColumns] = useState([
     { key: "location", label: "Location", prompt: "Identify the property or market geography.", format: "Text" },
     { key: "client", label: "Client Name", prompt: "Extract the client or source relationship if available.", format: "Text" },
@@ -1037,16 +1104,16 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
           <div className="flex items-center justify-between border-b border-neutral-300 bg-white px-3 py-3">
             <div className="flex items-center gap-2">
               <button onClick={() => go(5)} className="rounded-lg bg-[#2b0052] px-4 py-2 text-sm font-medium text-white">+ Add source</button>
-              <button className="rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-[#2b0052]">▣ Templates</button>
-              <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Filter</button>
-              <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Folder: none</button>
+              <button onClick={() => setTemplateOpen(true)} className="rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-[#2b0052]">▣ Templates</button>
+              <button onClick={() => setFilterOpen((open) => !open)} className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Filter</button>
+              <button onClick={() => setFolderName(folderName === "none" ? "Deal review folder" : "none")} className="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-500">Folder: {folderName}</button>
               <div className="ml-1 flex rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
                 <button onClick={() => setVaultView("table")} className={`rounded-md px-3 py-1.5 text-xs font-medium ${vaultView === "table" ? "bg-white text-[#2b0052] shadow-sm" : "text-neutral-500"}`}>Table</button>
                 <button onClick={() => setVaultView("map")} className={`rounded-md px-3 py-1.5 text-xs font-medium ${vaultView === "map" ? "bg-white text-[#2b0052] shadow-sm" : "text-neutral-500"}`}>Map</button>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="rounded-full bg-[#2b0052] px-4 py-2 text-xs font-medium text-white">Check extraction status + audit</button>
+              <button onClick={() => setAuditOpen(true)} className="rounded-full bg-[#2b0052] px-4 py-2 text-xs font-medium text-white">Check extraction status + audit</button>
               <button onClick={() => setShowColumnBuilder(true)} className="grid h-9 w-9 place-items-center rounded-full bg-pink-100 text-2xl leading-none text-[#2b0052]">+</button>
             </div>
           </div>
@@ -1054,6 +1121,14 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
           <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
             {sourceRun} · extraction filling this grid · rows may be properties, markets, or provider reports · columns are data endpoints you can create
           </div>
+
+          {filterOpen && (
+            <div className="border-b border-neutral-200 bg-white px-4 py-3 text-xs text-neutral-600">
+              <div className="flex items-center gap-2">
+                {["Property rows", "Market rows", "Needs review", "Provider reports", "Fresh < 30 days"].map((filter) => <button key={filter} className="rounded-md border border-neutral-200 px-2.5 py-1.5 hover:bg-neutral-50">{filter}</button>)}
+              </div>
+            </div>
+          )}
 
           {vaultView === "table" ? (
           <div className="relative overflow-auto">
@@ -1139,6 +1214,23 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
         </div>
       )}
 
+      {auditOpen && (
+        <aside className="absolute right-0 top-0 z-50 h-full w-[420px] border-l border-neutral-200 bg-white p-5 text-[#22003f] shadow-2xl">
+          <div className="flex items-center justify-between"><p className="text-sm font-semibold">Extraction audit</p><button onClick={() => setAuditOpen(false)}>×</button></div>
+          <div className="mt-5 space-y-3 text-sm">
+            {[["Sources", sourceRun], ["Rows created", "5 active + 5 pending"], ["Needs review", "T12 NOI variance, owner name confidence"], ["Citations", "OM p.3, T12 p.8, rent roll fields, provider cache"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">{label}</p><p className="mt-1 text-neutral-700">{value}</p></div>)}
+          </div>
+          <button onClick={() => setAuditOpen(false)} className="mt-5 w-full rounded-md bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">Approve reviewed facts</button>
+        </aside>
+      )}
+
+      {templateOpen && (
+        <div className="absolute left-5 top-20 z-40 w-[340px] rounded-2xl border border-neutral-200 bg-white p-4 text-[#22003f] shadow-2xl">
+          <div className="flex items-center justify-between"><p className="text-sm font-semibold">Vault templates</p><button onClick={() => setTemplateOpen(false)}>×</button></div>
+          <div className="mt-4 space-y-2 text-sm">{["Acquisition screen", "Market benchmark pack", "Owner/contact research", "Debt quote comparison"].map((template) => <button key={template} onClick={() => setTemplateOpen(false)} className="block w-full rounded-lg border border-neutral-200 px-3 py-2 text-left hover:bg-neutral-50">{template}</button>)}</div>
+        </div>
+      )}
+
       {selectedCount === 0 ? (
         <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm text-neutral-500 shadow-xl">
           Select at least one Vault row to chat or create a Space.
@@ -1151,7 +1243,7 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
               <span className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">▣ Vault</span>
               <span className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">⚡ Skills</span>
               <span className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">◎ Web</span>
-              <button className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">Create folder</button>
+              <button onClick={() => setFolderName("Selected rows folder")} className="rounded-full border border-neutral-200 px-3 py-2 text-[#2b0052]">Create folder</button>
             </div>
             <div className="flex items-center gap-2">
               <button className="grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500">⌕</button>

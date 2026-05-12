@@ -192,7 +192,7 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 
 For internal/product review, explain each primary page's job in chat or docs rather than adding visible “Page goal” explainer blocks to the app UI. The product itself should communicate through layout, labels, and next actions, not meta-commentary.
 
-The prototype should be clickable enough that users can move between these pages in the intended loop: add a source in Assistant → extract into Vault → select rows/chat → create/open Space → choose output/playground actions → turn repeated work into a Workflow.
+The prototype should be a full clickable Mike-derived Cactus app, not isolated page mockups. Use Mike as the primary source for shell/list/table/modal interaction patterns, then adapt every feature to Cactus's CRE operating model. Users should be able to click through the intended loop end-to-end: add a source in Assistant → extract into Vault → select rows/chat/open audit/add datapoints → create/open Space → switch Work/Playground/Outputs → generate/share output → turn repeated work into a Workflow. Every visible action should either open a concrete modal/drawer, change state, navigate, or produce an artifact-like result.
 
 **Global rules:**
 - Compact nav.

@@ -38,6 +38,12 @@ The persistent app menu should now mirror Mike's system model, translated into C
 
 The shell should feel like Mike: quiet sidebar, compact toolbars, dense tables, assistant-first interaction, and no extra dashboard chrome. Do not add visible “Page goal” explainer blocks to the app; page goals are for chat/docs review, while the product UI should communicate through names, hierarchy, and actions.
 
+Current build standard:
+- Build a finished clickable prototype across the primary Mike-derived surfaces, not static screenshots.
+- Use Mike interaction patterns to move faster: library tables, toolbar tabs, compact row actions, centered assistant prompt, modal creation flows, and right-side detail drawers where useful.
+- Adapt those patterns to Cactus: sources/data sets, Vault extraction/audit, selectable CRE rows, Spaces workrooms, Playground, outputs, and reusable workflows.
+- Any CTA in the prototype should navigate, open a modal/drawer, mutate state, or create an artifact-like visible result.
+
 Workflow page correction:
 - Mirror Mike's Workflows page more closely: a calm list/table with tabs, search/filter controls, small plus action, checkboxes, and compact rows.
 - Avoid a busy split-pane builder with side explanations, large prompt editors, data-set panels, or too many simultaneous controls.
