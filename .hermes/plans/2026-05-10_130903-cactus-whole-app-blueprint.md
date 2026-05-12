@@ -206,7 +206,7 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 - If the user connects ongoing sources, ask whether they want a continuous flow/subscription because it adds recurring monthly cost.
 - Vault should feel like a structured CRE data grid, not a generic records table. Users can add their own columns; each column is a data endpoint/prompt such as YR 1 NOI, YR 2 cap rate, owner name, demand growth, climate risk, or average 1BR rent.
 - Vault rows can be property-level or market-level. A row may represent a subject property, city, MSA, U.S. national benchmark, submarket, comp set, or provider/broker report geography that helps analyze a property.
-- Vault should include filtering, multi-select, folder creation, and a sticky hover chat for asking questions about selected Vault context.
+- Vault should include filtering, multi-select, folder creation, tabular and mapped views, and a sticky hover chat for asking questions about selected Vault context.
 - Chat with the Vault should be gated until the user selects at least one row; multi-select defines the context boundary for chat.
 - Chatting about selected Vault context should create a Space. Folders should also have their own hover chat and can become Spaces.
 - Spaces are where work gets done: shareable with edit/view access, able to accept additional documents, and similar to a Claude project with scoped context.
@@ -243,29 +243,31 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 - Multi-select rows to create folders or launch chat.
 - Vault chat is enabled only after at least one row is selected; selected rows define the context boundary.
 - Source/citation access and extraction/audit states remain visible.
+- Vault has both **tabular** and **mapped** modes. Tabular mode is the primary spreadsheet/data-endpoint grid; mapped mode shows the same property/market/report rows spatially with a paired list/grid, so users can move between data work and location context without leaving the Vault.
 
 **Primary CTA:** Check extraction status + audit, Add documents/source, or Chat with selected rows.
 
 ---
-### 9. Spaces
+### 9. Spaces / Workspace Library
 
-**Purpose:** Focused workrooms where Cactus uses scoped Vault context to do actual work with teammates and outside collaborators.
+**Purpose:** The Spaces rail item opens the Workspace Library: the dashboard/history of all past work and active workrooms. It should feel like Tyler's library sketch, not a single active-space detail page by default.
 
 **Core elements:**
-- Active Spaces list: deal review, site selection, lender package, broker BOV, IC memo, market watch.
-- Selected Vault context and excluded context shown clearly.
-- Documents/custom extraction into customer Excel/templates.
-- Market evidence and provider benchmarks.
-- Playground capability inside the Space: scenarios, sensitivities, “what needs to change?” analysis.
-- Analyst chat/voice that changes assumptions, creates scenarios, drafts output sections, and pushes data to templates.
-- Output draft and automation suggestion.
+- Header: **Workspace Library** with a clear **+ New Workspace** CTA.
+- View modes: **List**, **Grid**, and **Map**. Users should be able to switch between them from the library.
+- Grid view: compact workspace cards showing the work name, property/address/market, collaborator avatars, and status.
+- List view: dense rows for work history with type, address/market, last activity, owner/team, and status.
+- Map view: geographic workspace history with pins paired with a compact list so CRE work remains spatial.
+- Past work examples: rental/sales comps, BOV presentation, credit memo + underwriting build, buyer identification + OM, sponsor/borrower diligence, operational efficiency audit, portfolio analysis, IC memo.
+- Opening a workspace can reveal the detailed Space workroom: selected Vault context, documents/custom extraction, market evidence, Playground, chat/voice, outputs, and automation.
 
-**Primary CTA:** Generate output or Automate this workflow.
+**Primary CTA:** + New Workspace from the library; Generate output / Automate this workflow inside an individual workspace.
 
 **Rules:**
 - Spaces are shareable; Vault is private by default.
 - Spaces can be selected-context, folder-context, blank/no prior context, frozen point-in-time, or auto-updating.
 - Keep context boundaries visible so users know what Cactus is and is not using.
+- The library is the default Spaces dashboard/history, while detailed Space workrooms are opened from library items or Vault chat.
 
 ---
 

@@ -55,7 +55,7 @@ Vault interaction model:
 - Rows can represent properties, deals, sites, markets, submarkets, cities, MSAs, national benchmarks, provider reports, or broker-shared market reports. Market-level and national rows are valuable because they become context for property-level analysis.
 - Columns are user-created data endpoints/prompts. Examples: YR 1 NOI, YR 2 cap rate, owner name, NOI growth, demand growth, climate risk, average 1BR rent, sale comp range, supply pipeline, tax reassessment risk.
 - Each custom column should preserve label, format, prompt, source/provider scope, geography/asset-class filter, citations, confidence, and review state.
-- Vault rows can be filtered, searched, and multi-selected.
+- Vault rows can be filtered, searched, multi-selected, and viewed in tabular or mapped modes. Tabular mode is the primary data-endpoint grid; mapped mode shows the same property/market/report rows geographically with a paired list.
 - Multi-select can create folders/subfolders that preserve scoped context.
 - Vault chat is enabled only after at least one row is selected; the selected rows define what the chat can use.
 - Each folder can also have its own hover chat.
@@ -78,11 +78,20 @@ It contains:
 
 The Vault should get better as the customer uses Cactus.
 
-## Spaces
+## Spaces / Workspace Library
 
-Spaces are where work gets done.
+Spaces are where work gets done, and the Spaces rail item should open the **Workspace Library** by default: a dashboard/history of all past work and active workrooms.
 
-A Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs. Spaces should feel like a CRE-specific project workspace: users can add more documents directly to the Space, share with collaborators, and assign view/edit access independently.
+The Workspace Library should support three views:
+- **Grid** — compact workspace cards for quick scanning, with work title, property/address/market, collaborators, status, and last activity.
+- **List** — dense history rows for operators who want to sort by work type, client, property, status, or last updated.
+- **Map** — geographic workspace history with map pins and a paired list so property/market work stays spatial.
+
+A clear **+ New Workspace** CTA belongs in the library header. Past-work examples include finding rental/sales comps, building a BOV presentation, credit memo + underwriting builds, buyer identification + OM creation, sponsor/borrower diligence, operational efficiency audits, portfolio analysis, and IC memo creation.
+
+Opening a library item can reveal the detailed Space workroom.
+
+A detailed Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs. Spaces should feel like a CRE-specific project workspace: users can add more documents directly to the Space, share with collaborators, and assign view/edit access independently.
 
 Spaces can be created from:
 - a chat over selected Vault records,
