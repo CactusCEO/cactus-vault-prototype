@@ -1177,8 +1177,87 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
       <div className="p-8">
         <main className="mx-auto max-w-4xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
           <SectionHeader eyebrow="Empty Vault" title={`Set up ${sourceTitle} to fill the Vault`} subtitle="Your Vault is empty until the first source runs. Start from the source you chose in onboarding, then Cactus creates property/market rows and data endpoint columns." />
-          <button onClick={() => go(5)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Add first source</button>
+          <button onClick={() => setSourceCenterOpen(true)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Add first source</button>
         </main>
+
+        {sourceCenterOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25">
+            <div className="max-h-[88vh] w-[1120px] overflow-hidden rounded-2xl border border-neutral-200 bg-white text-[#22003f] shadow-2xl">
+              <div className="flex items-center justify-between border-b border-neutral-200 p-5">
+                <div>
+                  <p className="text-sm font-semibold">Vault creation setup</p>
+                  <p className="mt-1 text-xs text-neutral-500">Choose a source, scope it, map it into Vault rows/data endpoints, set refresh + cost rules, then review before activation.</p>
+                </div>
+                <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+              </div>
+              <div className="grid max-h-[calc(88vh-78px)] grid-cols-[360px_1fr_260px] overflow-hidden">
+                <div className="overflow-auto border-r border-neutral-200 p-4">
+                  <div className="space-y-4">
+                    {vaultSourceGroups.map((group) => (
+                      <section key={group.title}>
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">{group.title}</p>
+                          <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500">{group.kind}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {group.items.map((item) => {
+                            const active = selectedSourceName === item.name;
+                            return (
+                              <button key={item.name} onClick={() => { setSelectedSourceName(item.name); setSourceSetupStatus("Not started"); }} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-xs ${active ? "border-[#2b0052] bg-[#fbf4ff] text-[#22003f]" : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"}`}>
+                                <span className="font-medium">{item.name}</span>
+                                <span className="text-neutral-300">›</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                </div>
+
+                <main className="overflow-auto p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs text-neutral-400">{selectedSource.group}</p>
+                      <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-neutral-950">{selectedSource.name}</h3>
+                      <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-500">This is the first-source setup path. It creates or updates Vault rows, endpoint columns, citations, confidence, freshness, and review status.</p>
+                    </div>
+                    <span className={`rounded-md px-2 py-1 text-[11px] ${sourceSetupStatus.includes("Approved") || sourceSetupStatus.includes("created") ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{sourceSetupStatus}</span>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-4 gap-2">
+                    {setupSteps.map(([label, value], index) => (
+                      <div key={label} className="rounded-xl border border-neutral-200 bg-white p-3">
+                        <div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{index + 1}</span><p className="text-xs font-semibold text-neutral-950">{label}</p></div>
+                        <p className="mt-2 text-xs leading-5 text-neutral-500">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                    <p className="text-sm font-medium text-neutral-950">Setup preview</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                      <button onClick={() => setSourceSetupStatus("Scope selected")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">1. Select scope</span><span className="mt-1 block leading-5 text-neutral-500">Files, folders, senders, markets, provider endpoints, or saved search criteria.</span></button>
+                      <button onClick={() => setSourceSetupStatus("Vault mapping ready")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">2. Map to Vault</span><span className="mt-1 block leading-5 text-neutral-500">Choose row types, endpoint columns, dedupe, and source priority.</span></button>
+                      <button onClick={() => setSourceSetupStatus("Review queue created")} className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">3. Review + activate</span><span className="mt-1 block leading-5 text-neutral-500">Create audit queue before rows become trusted Vault facts.</span></button>
+                    </div>
+                  </div>
+                </main>
+
+                <aside className="overflow-auto border-l border-neutral-200 bg-neutral-50 p-5">
+                  <p className="text-sm font-semibold text-neutral-950">Approval checklist</p>
+                  <div className="mt-4 space-y-3 text-xs text-neutral-600">
+                    {[["Scope", "Least-privilege access only."], ["Cadence", "One-time, manual, daily, weekly, monthly, or on-demand."], ["Cost", "Free, cached, included, paid refresh, or premium call shown before spend."], ["Audit", "Facts remain needs-review until approved."], ["Automation", "Recurring sources can create review queues, Spaces, or workflow triggers."]].map(([title, note]) => (
+                      <div key={title} className="rounded-xl border border-neutral-200 bg-white p-3"><p className="font-medium text-neutral-950">{title}</p><p className="mt-1 leading-5">{note}</p></div>
+                    ))}
+                  </div>
+                  <button onClick={() => setSourceSetupStatus(`${selectedSource.name} setup created`)} className="mt-5 w-full rounded-md bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">{primarySetupAction}</button>
+                  <button onClick={() => { setSourceSetupStatus(`Approved ${selectedSource.name}`); setSourceCenterOpen(false); }} className="mt-2 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Approve + add to Vault</button>
+                </aside>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
