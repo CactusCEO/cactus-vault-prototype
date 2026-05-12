@@ -187,3 +187,9 @@ Cactus should show users not just conclusions, but the evidence behind conclusio
 3. Launch/near-launch risk layer: CrimeOMeter and FBI supplement.
 4. Quick free enrichment: Google Places, BLS, FEMA NRI/USGS, ACS expansion.
 5. Post-launch/Phase 2: GreatSchools after ATTOM overlap test; Shovels for permit/capex and supply pipeline depth.
+
+## Portfolio and inbox/drive ingestion edge cases
+
+- Portfolio uploads often lack clean addresses. The ingestion flow should create provisional property rows from file/folder names, owner/entity names, PM/accounting IDs, bank references, parcel/city hints, and time periods, then route unresolved matches to a review queue before trusted Vault write.
+- Email and drive connectors must start with scoped filters: approved folders/labels, senders/domains, date ranges, file types, thread types, and deal-room paths. Extraction should capture attachments plus email-body metadata: broker/contact names, phone numbers, addresses, owner/entity names, deadlines, asking price, and related documents.
+- Recurring connectors and scrapers require maintenance tasks when auth expires, source formats change, selectors fail, confidence drops, or refreshes become stale/costly.

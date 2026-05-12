@@ -395,3 +395,14 @@ The next connected prototype pass should show a Space as the center of real work
 8. Generate an IC memo/debt memo/OM/BOV.
 9. Save the scenario/output/learning back to the Vault.
 10. Offer to automate future similar workflows.
+
+## Latest UX corrections: onboarding, Vault, workflows, tasks, and Spaces
+
+- Step 3 onboarding should behave like two small steps inside the same screen: **1. Choose first source** and **2. Choose first job**. Make clear this is part of the trial setup, not a permanent limitation: the user chooses one focused first path now and can add more sources, jobs, workflows, and teammates later.
+- Portfolio upload must expect missing addresses. Cactus should ingest schedules, historical T-12s, PM/accounting exports, bank files, and loose documents, then create an **unmatched property review queue** where the user resolves addresses via owner/entity name, property name, city/state, parcel hints, file folders, banking/account numbers, and source-system IDs before facts become trusted Vault rows.
+- Email/drive connectors should be filtered before activation: folders/labels, approved senders/domains, date ranges, file types, deal-room folders, and read-only scopes. Cactus extracts attachments, email body facts, sender/contact records, phone numbers, addresses, broker names, deadlines, and source threads into review queues before writing to Vault.
+- Workflows need a real multi-step builder model, not a vague `Starts from` grid. A workflow consists of trigger/source, ordered steps, review gates, output/action, owner, schedule, and maintenance/error tasks. Examples: watch broker emails → extract contacts/docs → prompt/analyze → draft reply → create task for review → send only after approval.
+- Ongoing workflows/scrapers need maintenance states and a task page: running, needs credentials, selector/source changed, low confidence, retrying, overdue review, and assigned owner.
+- Spaces are where multi-step CRE work happens. Space detail should be split screen: left chat/work/task stream with @person and /action shortcuts; right artifact canvas for documents, maps, tables, outputs, and results. Workflows can run inside Spaces and repeated work can be saved as a template.
+- Vault should support AI search, searchable micro-vault/folder dropdowns with a back path to main Vault, column resizing, cleaner top toolbar, and map-driven micro-vault creation from selected properties or dropped pins with radius/drive-time filters.
+- Account menu from the bottom-left profile should open org/settings surfaces: Account, Organization, Members, Billing/plan/trial, Integrations, Security/audit, Notifications, and Logout.

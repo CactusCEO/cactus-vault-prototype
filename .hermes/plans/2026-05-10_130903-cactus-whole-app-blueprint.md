@@ -552,3 +552,12 @@ Before showing Tyler the next full prototype:
 - Pages feel compact, simple, and aligned with mike-style whitespace.
 - Opportunity finding and site selection are first-class, not hidden under deal intake.
 - Always-on learning/improvement is visible.
+
+## 2026-05 correction: make the operating surfaces action-clear
+
+- Onboarding Step 3 uses inner labels `1. First source` and `2. First job`; copy says trial access starts with one focused setup and more sources/jobs can be added later.
+- Vault top chrome should stay sparse: source/add, templates, AI search, micro-vault dropdown, Table/Map, audit. Avoid stacked filter-chip bars unless actively opened.
+- Vault map supports selecting properties and drawing a radius or drive-time area from a dropped pin; that selection creates a micro-vault whose rows/data endpoints can be searched, chatted with, and turned into a Space.
+- Workflows page should make multi-step workflow construction obvious: step blocks with source/extract/prompt/review/draft/action/tasks; `Share` language should become `Save template` for workflow artifacts.
+- Add a Tasks surface or task drawer for workflow maintenance, scraper failures, review gates, and Space assignments.
+- Spaces detail should prioritize a left-side chat/work stream and a right-side output/artifact canvas for docs/maps/results, with assignable tasks and @person or /action command shortcuts.
