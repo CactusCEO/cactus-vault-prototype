@@ -155,16 +155,15 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 
 ### 5. Plan review / activation
 
-**Purpose:** Bridge setup into a MikeOSS-like empty product shell without pretending Cactus already has data. The user should understand that Step 2 created the workspace/Vault boundary and Step 3 created the first brief; the next required step is connecting or uploading real data.
+**Purpose:** Removed from the primary onboarding flow. Step 3 already asks the user to choose the first source/path, so adding a confirmation screen creates friction and confusion. Route directly from Step 3 into the app Assistant with the chosen first-source action visible.
 
-**Primary CTA:** Connect first source.
+**Primary CTA:** None in the normal flow; Step 3 CTA should enter the app intake surface directly.
 
 **UX pattern:**
-- Treat this as a data-connection handoff, not an activation/results dashboard.
-- Explicitly say Step 3 only created a brief; it did not connect data.
-- Show a compact “From your setup” sequence: workspace from Step 2 → brief from Step 3 → next action is data.
-- Show the first source action: upload docs, connect email/drive, import lists/comps, or use demo data.
-- Make the CTA explicitly hand off into the app's data intake screen, e.g. **Continue to data intake**, so users understand Step 4 is not the destination.
+- Do not show this as a separate confirmation screen in the main flow.
+- The Step 3 choice itself is the plan: selected source/path plus selected first job.
+- After Step 3, open Assistant directly with the selected source action already visible.
+- Avoid forcing the user to re-confirm the same source/job or re-choose among all sources.
 - Make the post-onboarding app start as an empty assistant/workspace with documents/projects/workflows concepts, adapted from MikeOSS for CRE.
 - The first app screen must include an obvious upload/connect function plus a visible explanation of how source data becomes Cactus value: extract facts → create Vault records → surface review lists/Spaces/outputs.
 - Only show generated opportunities, rows, maps, or memos after real source data or demo data has been explicitly chosen.
@@ -198,7 +197,7 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 - Do not wrap onboarding in this shell.
 - Assistant is the home page. It should let users add documents, add context from the Vault, create workflows like Mike, and improve their request through an **Enhance prompt** action.
 - Pre-data app landing must contain a real-looking data-intake module: upload/drop zone or connector scope controls, plus a compact value path showing `Extract facts → Vault records → Review/Spaces/Outputs`.
-- The onboarding source choice must carry into the app. If the user chose Upload documents, Connect email/drive, Import lists/comps, or Use demo Vault, the Assistant and empty Vault should open on that exact first-source setup instead of asking them to choose again from scratch.
+- The onboarding source choice must carry into the app. If the user chose Upload documents, Connect email/drive, Import lists/comps, or Use demo Vault, the Assistant and empty Vault should open on that exact first-source setup instead of asking them to choose again from scratch. Do not show all four source options again after onboarding.
 - Build all four first-source paths as simple, actionable setup flows: upload/submit files, choose a connector scope, import a list/CSV, or load clearly labeled demo data. Each path should have one obvious first-win CTA.
 - Do not make users infer that a generic `Connect data` button will handle ingestion; the selected upload/connect/import/demo surface must be visible in the app.
 - After the user completes the selected first-source action, open the Vault while extraction is happening. The Vault should show source records/facts being added in real time, not magically appear fully populated.
@@ -248,26 +247,26 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 **Primary CTA:** Check extraction status + audit, Add documents/source, or Chat with selected rows.
 
 ---
-### 9. Spaces / Workspace Library
+### 9. Spaces / Spaces History
 
-**Purpose:** The Spaces rail item opens the Workspace Library: the dashboard/history of all past work and active workrooms. It should feel like Tyler's library sketch, not a single active-space detail page by default.
+**Purpose:** The Spaces rail item opens **Spaces History**: the dashboard/history of all past work and active workrooms. It should feel like Tyler's library sketch, not a single active-space detail page by default.
 
 **Core elements:**
-- Header: **Workspace Library** with a clear **+ New Workspace** CTA.
-- View modes: **List**, **Grid**, and **Map**. Users should be able to switch between them from the library.
+- Header: **Spaces History** with a clear **+ New Workspace** CTA.
+- View modes: **List**, **Grid**, and **Map**. Users should be able to switch between them from Spaces History.
 - Grid view: compact workspace cards showing the work name, property/address/market, collaborator avatars, and status.
 - List view: dense rows for work history with type, address/market, last activity, owner/team, and status.
 - Map view: geographic workspace history with pins paired with a compact list so CRE work remains spatial.
 - Past work examples: rental/sales comps, BOV presentation, credit memo + underwriting build, buyer identification + OM, sponsor/borrower diligence, operational efficiency audit, portfolio analysis, IC memo.
 - Opening a workspace can reveal the detailed Space workroom: selected Vault context, documents/custom extraction, market evidence, Playground, chat/voice, outputs, and automation.
 
-**Primary CTA:** + New Workspace from the library; Generate output / Automate this workflow inside an individual workspace.
+**Primary CTA:** + New Workspace from Spaces History; Generate output / Automate this workflow inside an individual workspace.
 
 **Rules:**
 - Spaces are shareable; Vault is private by default.
 - Spaces can be selected-context, folder-context, blank/no prior context, frozen point-in-time, or auto-updating.
 - Keep context boundaries visible so users know what Cactus is and is not using.
-- The library is the default Spaces dashboard/history, while detailed Space workrooms are opened from library items or Vault chat.
+- Spaces History is the default Spaces dashboard/history, while detailed Space workrooms are opened from history items or Vault chat.
 
 ---
 

@@ -195,17 +195,8 @@ const appNav = [
   ["Spaces", "▦", 7],
 ] as const;
 
-function AppWorkHeader({ isDark, hasIntake }: { isDark: boolean; hasIntake: boolean }) {
-  return (
-    <div className={`sticky top-0 z-30 border-b px-6 py-3 backdrop-blur-xl ${isDark ? "border-white/10 bg-neutral-950/88" : "border-neutral-200 bg-neutral-100/88"}`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm font-medium">Cactus Capital Partners</p>
-          <p className={`mt-0.5 truncate text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Multifamily Vault · {hasIntake ? "1 source extracting" : "no sources connected"}</p>
-        </div>
-      </div>
-    </div>
-  );
+function AppWorkHeader() {
+  return null;
 }
 
 function Homepage({ go }: { go: (screenIndex: number) => void }) {
@@ -533,7 +524,7 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
       <div className="w-full max-w-4xl">
         <div className="mb-5 flex items-baseline gap-3">
           <h2 className="text-2xl font-semibold tracking-[-0.03em]">Brief your Cactus analyst</h2>
-          <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3</span>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
@@ -546,7 +537,7 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
                 <button className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>🎙</button>
               </div>
             </div>
-            <p className={`mt-3 text-sm ${muted}`}>Choose one source and one first job. Cactus will show the plan before anything runs.</p>
+            <p className={`mt-3 text-sm ${muted}`}>Choose one source and one first job. Then continue straight to the matching first setup action.</p>
           </section>
 
           <div className="mt-5 grid grid-cols-2 gap-5">
@@ -588,13 +579,13 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
           </div>
 
           <div className={`mt-5 flex items-center justify-between rounded-2xl border px-4 py-3 ${soft}`}>
-            <p className="text-sm"><span className={muted}>Plan:</span> <strong>{source.title}</strong> → <strong>{system.title}</strong> → approve scope</p>
-            <span className={`hidden text-xs md:block ${muted}`}>Nothing runs until you approve it.</span>
+            <p className="text-sm"><span className={muted}>Path:</span> <strong>{source.title}</strong> → <strong>{system.title}</strong></p>
+            <span className={`hidden text-xs md:block ${muted}`}>Next: one simple setup action.</span>
           </div>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(2)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
-            <button onClick={() => { onChooseSource(selectedSource); go(4); }} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Review plan</button>
+            <button onClick={() => { onChooseSource(selectedSource); go(5); }} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue</button>
           </div>
         </div>
       </div>
@@ -659,111 +650,73 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
   );
 }
 
-function Opportunities({ go, onSubmit, hasIntake, initialSource, onSourceSelect }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void }) {
-  const [selectedSource, setSelectedSource] = useState(initialSource);
-  const selected = sourceCards[selectedSource];
-  const action = sourceActionCopy[selectedSource];
-  const valuePath = [
-    ["Choose source", selected.title],
-    ["Run first extraction", action.result],
-    ["Create endpoints", "Add columns like Owner Name, YR 1 NOI, Cap Rate, or Avg 1BR Rent."],
-  ];
-  const selectSource = (index: number) => {
-    setSelectedSource(index);
-    onSourceSelect(index);
-  };
+function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void }) {
+  const selected = sourceCards[initialSource];
+  const action = sourceActionCopy[initialSource];
   const runFirstWin = () => {
-    onSubmit(selectedSource);
+    onSubmit(initialSource);
     go(6);
   };
 
   return (
     <div className="p-6">
-      <main className="mx-auto min-h-[640px] max-w-5xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <main className="mx-auto min-h-[560px] max-w-3xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-6">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Assistant home</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">Set up your first win.</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">You chose <span className="font-medium text-neutral-900">{selected.title}</span> in onboarding. Complete that one source, then Cactus opens the Vault and creates rows plus data endpoint columns you can edit.</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">{selected.title}</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">You already chose this path in onboarding. Complete this one action and Cactus will start filling the Vault.</p>
           </div>
-          <div className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-500">{hasIntake ? sourceRunLabels[selectedSource] : "Empty Vault"}</div>
+          <button onClick={() => go(6)} className="shrink-0 rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-500">{hasIntake ? sourceRunLabels[initialSource] : "Empty Vault"}</button>
         </div>
 
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 text-left shadow-inner">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-xs font-semibold text-neutral-700">AI</span>
-          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to make this first setup easier…" />
+          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to help with this setup…" />
           <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Enhance prompt</button>
           <button className="rounded-lg bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Ask</button>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {sourceCards.map((source, index) => {
-            const active = selectedSource === index;
-            return (
-              <button key={source.title} onClick={() => selectSource(index)} className={`rounded-2xl border p-4 text-left transition ${active ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-950 hover:border-neutral-400 hover:shadow-sm"}`}>
-                <p className="text-sm font-semibold">{source.title}</p>
-                <p className={`mt-2 text-xs leading-5 ${active ? "text-neutral-300" : "text-neutral-500"}`}>{source.note}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-neutral-950">{selected.title}</p>
-                <p className="mt-1 text-xs leading-5 text-neutral-500">{selected.next}</p>
-              </div>
-              <span className="rounded-full bg-white px-2.5 py-1 text-xs text-neutral-500">From onboarding</span>
+        <section className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-neutral-950">{selected.title}</p>
+              <p className="mt-1 text-xs leading-5 text-neutral-500">{selected.next}</p>
             </div>
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs text-neutral-500">From onboarding</span>
+          </div>
 
-            {selected.title === "Upload documents" ? (
-              <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5 text-center">
-                <p className="text-sm font-medium text-neutral-950">Drop the first deal package</p>
-                <p className="mt-1 text-xs text-neutral-500">{action.detail}</p>
-                <input id="cactus-upload" type="file" multiple className="sr-only" />
-                <label htmlFor="cactus-upload" className="mt-4 inline-flex cursor-pointer rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700">Choose files</label>
-                <button onClick={runFirstWin} className="ml-2 mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
-              </div>
-            ) : selected.title === "Connect email or drive" ? (
-              <div className="mt-4 space-y-3">
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-800">Continuous watching adds monthly cost. Start with one approved folder; Cactus asks before turning on ongoing sync.</div>
-                {["Google Drive · Riverside Flats diligence", "Gmail/Outlook · approved broker sender", "Deal room folder · read-only scope"].map((item, index) => <button key={item} className={`flex w-full items-center justify-between rounded-xl border bg-white px-3 py-3 text-left text-sm ${index === 0 ? "border-neutral-950" : "border-neutral-200"}`}><span>{item}</span><span className="rounded-full border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-700">Scope</span></button>)}
-                <button onClick={runFirstWin} className="w-full rounded-full bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white">{action.action}</button>
-              </div>
-            ) : selected.title === "Import lists or comps" ? (
-              <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5">
-                <p className="text-sm font-medium text-neutral-950">Import a spreadsheet</p>
-                <p className="mt-1 text-xs text-neutral-500">{action.detail}</p>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-neutral-500"><span className="rounded-lg bg-neutral-100 px-3 py-2">Property</span><span className="rounded-lg bg-neutral-100 px-3 py-2">Owner</span><span className="rounded-lg bg-neutral-100 px-3 py-2">NOI</span></div>
-                <button onClick={runFirstWin} className="mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
-              </div>
-            ) : (
-              <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5">
-                <p className="text-sm font-medium text-neutral-950">Explore with sample data only</p>
-                <p className="mt-1 text-xs leading-5 text-neutral-500">{action.detail}</p>
-                <button onClick={runFirstWin} className="mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
-              </div>
-            )}
-          </section>
-
-          <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-sm font-semibold text-neutral-950">First win after setup</p>
+          {selected.title === "Upload documents" ? (
+            <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5 text-center">
+              <p className="text-sm font-medium text-neutral-950">Drop the first deal package</p>
+              <p className="mt-1 text-xs text-neutral-500">{action.detail}</p>
+              <input id="cactus-upload" type="file" multiple className="sr-only" />
+              <label htmlFor="cactus-upload" className="mt-4 inline-flex cursor-pointer rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700">Choose files</label>
+              <button onClick={runFirstWin} className="ml-2 mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
+            </div>
+          ) : selected.title === "Connect email or drive" ? (
             <div className="mt-4 space-y-3">
-              {valuePath.map(([label, note], index) => (
-                <div key={label} className="flex gap-3">
-                  <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-neutral-950 text-[11px] font-medium text-white">{index + 1}</div>
-                  <div>
-                    <p className="text-sm font-medium text-neutral-950">{label}</p>
-                    <p className="mt-1 text-xs leading-5 text-neutral-500">{note}</p>
-                  </div>
-                </div>
-              ))}
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-800">Start with one approved folder or sender. Cactus asks before turning on continuous watching or recurring cost.</div>
+              {["Google Drive folder", "Gmail/Outlook sender", "Deal room folder"].map((item, index) => <button key={item} className={`flex w-full items-center justify-between rounded-xl border bg-white px-3 py-3 text-left text-sm ${index === 0 ? "border-neutral-950" : "border-neutral-200"}`}><span>{item}</span><span className="rounded-full border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-700">Approve scope</span></button>)}
+              <button onClick={runFirstWin} className="w-full rounded-full bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white">{action.action}</button>
             </div>
-            <div className="mt-5 rounded-2xl bg-neutral-50 p-4 text-xs leading-5 text-neutral-500">Result: an empty Vault becomes a working grid with property/market rows, editable data endpoint columns, citations, and row-gated chat.</div>
-          </section>
-        </div>
+          ) : selected.title === "Import lists or comps" ? (
+            <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5">
+              <p className="text-sm font-medium text-neutral-950">Import a spreadsheet</p>
+              <p className="mt-1 text-xs text-neutral-500">{action.detail}</p>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-neutral-500"><span className="rounded-lg bg-neutral-100 px-3 py-2">Property</span><span className="rounded-lg bg-neutral-100 px-3 py-2">Owner</span><span className="rounded-lg bg-neutral-100 px-3 py-2">NOI</span></div>
+              <button onClick={runFirstWin} className="mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5">
+              <p className="text-sm font-medium text-neutral-950">Explore with sample data only</p>
+              <p className="mt-1 text-xs leading-5 text-neutral-500">{action.detail}</p>
+              <button onClick={runFirstWin} className="mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
+            </div>
+          )}
+        </section>
+
+        <p className="mt-4 text-xs leading-5 text-neutral-500">First win: Cactus reads this source, creates Vault rows, and lets you add data endpoint columns like Owner Name, YR 1 NOI, or Cap Rate.</p>
       </main>
     </div>
   );
@@ -776,8 +729,8 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
     <div className="min-h-[720px] bg-white text-neutral-950">
       <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Workspace Library</h2>
-          <p className="mt-1 text-xs text-neutral-500">History of Spaces, workrooms, outputs, and open CRE workflows.</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Spaces History</h2>
+          <p className="mt-1 text-xs text-neutral-500"></p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
@@ -1335,7 +1288,7 @@ export default function Home() {
           <button onClick={() => setActive(0)} title="Cactus account" aria-label="Cactus account" className="mt-auto grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-sm font-semibold text-white">T</button>
         </aside>
         <section className="min-w-0 flex-1">
-          <AppWorkHeader isDark={isDark} hasIntake={hasIntake} />
+          <AppWorkHeader />
           {renderAppScreen()}
         </section>
       </div>

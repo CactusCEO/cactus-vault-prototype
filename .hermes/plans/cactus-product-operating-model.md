@@ -78,18 +78,18 @@ It contains:
 
 The Vault should get better as the customer uses Cactus.
 
-## Spaces / Workspace Library
+## Spaces / Spaces History
 
-Spaces are where work gets done, and the Spaces rail item should open the **Workspace Library** by default: a dashboard/history of all past work and active workrooms.
+Spaces are where work gets done, and the Spaces rail item should open the **Spaces History** by default: a dashboard/history of all past work and active workrooms.
 
-The Workspace Library should support three views:
+The Spaces History should support three views:
 - **Grid** — compact workspace cards for quick scanning, with work title, property/address/market, collaborators, status, and last activity.
 - **List** — dense history rows for operators who want to sort by work type, client, property, status, or last updated.
 - **Map** — geographic workspace history with map pins and a paired list so property/market work stays spatial.
 
-A clear **+ New Workspace** CTA belongs in the library header. Past-work examples include finding rental/sales comps, building a BOV presentation, credit memo + underwriting builds, buyer identification + OM creation, sponsor/borrower diligence, operational efficiency audits, portfolio analysis, and IC memo creation.
+A clear **+ New Workspace** CTA belongs in Spaces History header. Past-work examples include finding rental/sales comps, building a BOV presentation, credit memo + underwriting builds, buyer identification + OM creation, sponsor/borrower diligence, operational efficiency audits, portfolio analysis, and IC memo creation.
 
-Opening a library item can reveal the detailed Space workroom.
+Opening a history item can reveal the detailed Space workroom.
 
 A detailed Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs. Spaces should feel like a CRE-specific project workspace: users can add more documents directly to the Space, share with collaborators, and assign view/edit access independently.
 
