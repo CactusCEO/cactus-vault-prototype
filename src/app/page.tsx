@@ -211,6 +211,14 @@ const workflowLibrary = [
   { name: "CRE macro snapshot", group: "Market Intel", mode: "Ongoing", trigger: "Daily schedule", output: "Treasury, SOFR, CMBS, cap trends", context: "Macro feeds" },
 ];
 
+const workflowExamples = [
+  { title: "Investor acquisition screen", role: "Investor", trigger: "New deal row added to Vault", cadence: "On new row", source: "Vault · new sourced deals", fields: ["Asking price", "Units", "T12 NOI", "Rent growth", "Debt terms", "Market score"], output: "Score + IC memo starter", skill: "Financial analysis skill", result: "Creates Space, assigns review tasks, drafts why-this-deal / risks / what-must-change." },
+  { title: "Lender package / credit screen", role: "Lender", trigger: "Borrower package or selected deal rows", cadence: "On demand", source: "Vault · borrower + deal package", fields: ["DSCR", "LTV", "Debt yield", "Sponsor", "Missing diligence", "Rent roll exceptions"], output: "Credit checklist + borrower follow-up", skill: "Lender screen skill", result: "Creates diligence tasks, drafts lender memo section, highlights missing items." },
+  { title: "Broker BOV / listing pitch", role: "Broker", trigger: "Property + approved comp rows", cadence: "On demand", source: "Vault · owner + comps + market rows", fields: ["Owner", "Sales comps", "Rent comps", "Demand growth", "Active buyers", "Pitch angle"], output: "BOV range + owner outreach", skill: "Broker BOV/listing skill", result: "Creates proposal Space, comp-review task, and tailored talking points." },
+  { title: "Portfolio variance monitor", role: "Investor", trigger: "Monthly accounting / PM report", cadence: "Monthly", source: "Drive or accounting export", fields: ["NOI variance", "Occupancy", "Delinquency", "Payroll", "Insurance", "Budget notes"], output: "Variance tasks + investor update notes", skill: "Financial analysis skill", result: "Flags assets needing attention and drafts monthly/quarterly update bullets." },
+  { title: "Market pulse / trigger monitor", role: "Market", trigger: "Market/provider/news refresh", cadence: "Weekly", source: "Market feeds + news + permits", fields: ["Permits", "Deliveries", "Absorption", "Transactions", "SOFR", "Employer news"], output: "Market rows + opportunity flags", skill: "Market analysis skill", result: "Adds market context to Vault and opens Spaces for notable changes." },
+] as const;
+
 const taskRows = [
   { title: "Approve Riverside IC memo sections", owner: "TS", role: "Investor", source: "IC memo workflow", space: "Riverside Flats Deal Review", status: "Review", priority: "High", due: "Today", action: "Review output", type: "My tasks", context: "Verified T12, rent comps, debt quote", evidence: "3 draft sections need approval before investor memo export." },
   { title: "Resolve missing addresses in portfolio import", owner: "AK", role: "Investor", source: "Unmatched portfolio queue", space: "Portfolio cleanup", status: "Open", priority: "High", due: "Today", action: "Match rows", type: "Vault review", context: "12 rows · owner/entity hints", evidence: "Rows have property names, PM IDs, city/state, and bank/account references but no trusted address." },
@@ -1173,6 +1181,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [newOpen, setNewOpen] = useState(false);
   const [runState, setRunState] = useState("Ready");
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
+  const [workflowName, setWorkflowName] = useState("Weekly Crexi multifamily deal scraper");
   const [workflowType, setWorkflowType] = useState("Scraper / source watcher");
   const [sourceUrl, setSourceUrl] = useState("https://www.crexi.com/properties?place=Nashville&types=multifamily");
   const [cadence, setCadence] = useState("Weekly");
@@ -1181,7 +1190,21 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [outputTarget, setOutputTarget] = useState("Add/update Vault rows");
   const [analysisSkill, setAnalysisSkill] = useState("Financial analysis skill");
   const [approvalState, setApprovalState] = useState("Draft — not scheduled");
+  const [selectedExample, setSelectedExample] = useState<(typeof workflowExamples)[number] | null>(null);
   const togglePullField = (field: string) => setPullFields((current) => current.includes(field) ? current.filter((item) => item !== field) : [...current, field]);
+  const loadWorkflowExample = (example: (typeof workflowExamples)[number]) => {
+    setSelectedExample(example);
+    setWorkflowName(example.title);
+    setWorkflowType(example.title.includes("scraper") ? "Scraper / source watcher" : "AI analysis");
+    setSourceUrl(example.source);
+    setCadence(example.cadence);
+    setPullFields([...example.fields]);
+    setOutputFormat("Vault columns");
+    setOutputTarget(example.output);
+    setAnalysisSkill(example.skill);
+    setApprovalState(`${example.title} loaded · edit fields, then approve`);
+    setNewOpen(true);
+  };
   const filtered = workflowLibrary
     .filter((workflow) => activeTab === "all" || (activeTab === "ongoing" ? workflow.mode === "Ongoing" : workflow.mode === "Template"))
     .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output].join(" ").toLowerCase().includes(search.toLowerCase()));
@@ -1223,6 +1246,19 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
           <button onClick={() => updateSearch("Sourcing")}>Sourcing</button>
           <button onClick={() => updateSearch("Underwriting")}>Underwriting</button>
           <button onClick={() => updateSearch("Market Intel")}>Market intel</button>
+        </div>
+      </div>
+
+      <div className="border-b border-neutral-100 px-8 py-3">
+        <div className="mb-2 flex items-center justify-between text-xs"><span className="font-medium text-neutral-500">Workflow examples to build next</span><span className="text-neutral-400">Pick one → builder loads fields, trigger, output, and follow-on skill.</span></div>
+        <div className="grid grid-cols-5 gap-2">
+          {workflowExamples.map((example) => (
+            <button key={example.title} onClick={() => loadWorkflowExample(example)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left hover:border-neutral-300 hover:bg-neutral-50">
+              <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-400">{example.role}</span>
+              <span className="mt-1 block text-xs font-medium text-neutral-900">{example.title}</span>
+              <span className="mt-2 block truncate text-[11px] text-neutral-500">{example.output}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -1297,19 +1333,19 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6">
           <div className="flex max-h-[92vh] w-[980px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
             <section className="w-[620px] overflow-auto p-5">
-              <div className="flex justify-between"><div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">Build a scraper that writes to Vault, then optionally runs analysis on every new deal row.</p></div><button onClick={() => setNewOpen(false)}>×</button></div>
-              <input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Weekly Crexi multifamily deal scraper" />
+              <div className="flex justify-between"><div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">{selectedExample ? `${selectedExample.title} · ${selectedExample.role}` : "Build a scraper that writes to Vault, then optionally runs analysis on every new deal row."}</p></div><button onClick={() => setNewOpen(false)}>×</button></div>
+              <input value={workflowName} onChange={(event) => setWorkflowName(event.target.value)} className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" />
 
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
                 <div><p className="font-medium text-neutral-500">Type of workflow</p><div className="mt-2 grid grid-cols-2 gap-2">{["Scraper / source watcher", "AI analysis", "Output drafter", "Review / approval"].map((type)=><button key={type} onClick={() => setWorkflowType(type)} className={`rounded-lg border px-3 py-2 text-left ${workflowType===type ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{type}</button>)}</div></div>
-                <div><p className="font-medium text-neutral-500">Cadence</p><div className="mt-2 grid grid-cols-2 gap-2">{["Daily", "Weekly", "Monthly", "Quarterly"].map((item)=><button key={item} onClick={() => setCadence(item)} className={`rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div></div>
+                <div><p className="font-medium text-neutral-500">Cadence / trigger timing</p><div className="mt-2 grid grid-cols-2 gap-2">{["On new row", "On demand", "Daily", "Weekly", "Monthly", "Quarterly"].map((item)=><button key={item} onClick={() => setCadence(item)} className={`rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div></div>
               </div>
 
-              <p className="mt-4 text-xs font-medium text-neutral-500">Source URL</p>
-              <input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" placeholder="Paste listing search, broker page, county record, provider page…" />
+              <p className="mt-4 text-xs font-medium text-neutral-500">Source / trigger context</p>
+              <input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" placeholder="Paste URL or choose Vault rows, package, accounting export, market feed…" />
 
               <p className="mt-4 text-xs font-medium text-neutral-500">What should Cactus pull?</p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">{["Property name", "Address", "Units", "Asking price", "Broker", "Owner", "Cap rate", "NOI", "Rents", "Occupancy", "Listing URL", "Source date"].map((field)=><button key={field} onClick={() => togglePullField(field)} className={`rounded-full border px-3 py-1.5 ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{field}</button>)}</div>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">{["Property name", "Address", "Units", "Asking price", "Broker", "Owner", "Cap rate", "NOI", "T12 NOI", "DSCR", "LTV", "Debt yield", "Sales comps", "Rent comps", "Demand growth", "Occupancy", "NOI variance", "Permits", "Deliveries", "SOFR", "Listing URL", "Source date"].map((field)=><button key={field} onClick={() => togglePullField(field)} className={`rounded-full border px-3 py-1.5 ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{field}</button>)}</div>
 
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
                 <div><p className="font-medium text-neutral-500">Format / schema</p><div className="mt-2 space-y-2">{["Vault columns", "CSV export", "JSON schema", "Micro-vault"].map((format)=><button key={format} onClick={() => setOutputFormat(format)} className={`block w-full rounded-lg border px-3 py-2 text-left ${outputFormat===format ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{format}</button>)}</div></div>
@@ -1319,7 +1355,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
               <p className="mt-4 text-xs font-medium text-neutral-500">Then analyze each new Vault deal with</p>
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Financial analysis skill", "Market analysis skill", "Lender screen skill", "Broker BOV/listing skill", "No analysis — review only"].map((skill)=><button key={skill} onClick={() => setAnalysisSkill(skill)} className={`rounded-lg border px-3 py-2 text-left ${analysisSkill===skill ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{skill}</button>)}</div>
 
-              <button onClick={() => { setApprovalState(`${workflowType} ready for approval · ${cadence} · ${pullFields.length} fields · ${analysisSkill}`); setRunState(`Scraper workflow draft: ${sourceUrl} → ${outputTarget} → ${analysisSkill}`); }} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create workflow draft for approval</button>
+              <button onClick={() => { setApprovalState(`${workflowName} ready for approval · ${cadence} · ${pullFields.length} fields · ${analysisSkill}`); setRunState(`${workflowName} draft: ${sourceUrl} → ${outputTarget} → ${analysisSkill}`); }} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create workflow draft for approval</button>
             </section>
             <aside className="w-[360px] border-l border-neutral-100 bg-neutral-50 p-5">
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workflow preview</p>
@@ -1332,6 +1368,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
                   ["5", "Create tasks / Spaces / outputs", "Human review before side effects"]
                 ].map(([num, title, note]) => <div key={num} className="rounded-xl border border-neutral-200 bg-white p-3"><div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{num}</span><span className="font-medium">{title}</span></div><p className="mt-2 text-xs leading-5 text-neutral-500">{note}</p></div>)}
               </div>
+              {selectedExample && <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600"><p className="font-medium text-neutral-900">Expected result</p><p className="mt-1 leading-5">{selectedExample.result}</p></div>}
               <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><p className="font-medium">Approval gate</p><p className="mt-1 leading-5">{approvalState}. Cactus will not run scheduled scrapers, spend money, send emails, or update trusted Vault facts until approved.</p></div>
             </aside>
           </div>

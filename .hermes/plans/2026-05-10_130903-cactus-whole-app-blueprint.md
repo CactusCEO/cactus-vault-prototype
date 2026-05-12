@@ -221,6 +221,14 @@ For internal/product review, explain each primary page's job in chat or docs rat
 - Follow-on workflows should let each new Vault row/deal run through financial analysis, market analysis, lender analysis, broker BOV/listing analysis, or review-only task creation.
 - UI should preview the chain: `Scrape source → normalize fields → add to Vault → analyze new rows → create Space/task/output`, with approval before scheduled/background runs.
 
+**Workflow examples / next templates:**
+- Workflows should include a compact example gallery for high-value next automations rather than forcing a blank builder.
+- Investor examples: acquisition screen, underwriting review, IC memo starter, portfolio variance monitor, investor update drafter.
+- Lender examples: debt quote comparison, lender package completeness, DSCR/LTV/debt-yield credit screen, borrower follow-up draft.
+- Broker examples: BOV/listing pitch, owner outreach, comp package review, buyer-list personalization, OM/data-room refresh.
+- Market/internal examples: market pulse, trigger monitor, scraper/watch maintenance, unmatched Vault review queue.
+- Selecting an example should prefill the builder with trigger/source, cadence, fields/data endpoints, output target, follow-on skill, review gates, and likely task/Space outputs.
+
 **Global rules:**
 - Compact nav.
 - Clear active state.

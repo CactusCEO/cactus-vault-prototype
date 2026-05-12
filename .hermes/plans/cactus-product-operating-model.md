@@ -465,3 +465,15 @@ Scraper workflows should be created through a specific, non-technical workflow U
 7. **Next workflow** — optionally run a financial analysis skill or market analysis skill on each new deal/row entering the Vault; outputs should be a Space, task, score, memo section, or review queue item.
 
 The builder should preview the chain as `Scrape source → normalize fields → write to Vault → analyze new rows → create tasks/Spaces/outputs`, with human approval before continuous scraping or side effects.
+
+## Workflow example gallery
+
+After the scraper builder, the next workflow UX should expose example templates for each core customer job so investors, lenders, and brokers can understand what to automate next without starting from a blank canvas:
+
+- **Investor acquisition screen**: trigger from new Vault deal row; run financial analysis and market analysis; output score, assumptions, IC memo starter, and review tasks.
+- **Lender package / credit screen**: trigger from selected deal/borrower package; pull DSCR/LTV/debt yield, missing diligence, sponsor/entity facts; output credit checklist, borrower follow-up, and lender memo section.
+- **Broker BOV / listing pitch**: trigger from property + comp rows; pull owner, comps, rent growth, demand, active buyer themes; output BOV range, pitch points, outreach tasks, and listing proposal draft.
+- **Portfolio monitoring**: trigger from monthly/quarterly accounting or PM reports; pull NOI/occupancy/delinquency/budget variance; output variance tasks, investor update notes, and asset-management alerts.
+- **Market pulse / trigger monitor**: trigger from scheduled market/provider/news refresh; pull permits, deliveries, transactions, employer news, treasury/SOFR; output market rows, opportunity flags, and Space/task creation.
+
+Templates should load the builder with prefilled trigger/source, cadence, pull fields, output, and follow-on skill. The UI should keep the flow compact: pick example → inspect chain → edit fields → create draft for approval.
