@@ -1256,7 +1256,6 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setAuditOpen(true)} className="rounded-full bg-[#2b0052] px-4 py-2 text-xs font-medium text-white">Check extraction status + audit</button>
-              <button onClick={() => setShowColumnBuilder(true)} className="grid h-9 w-9 place-items-center rounded-full bg-pink-100 text-2xl leading-none text-[#2b0052]">+</button>
             </div>
           </div>
 
@@ -1278,13 +1277,20 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               <thead>
                 <tr className="border-b border-neutral-200 bg-white">
                   {columns.map((column, index) => (
-                    <th key={column.key} className={`relative h-[50px] border-r border-neutral-200 px-3 text-sm font-semibold leading-tight text-[#22003f] ${index === 0 ? "sticky left-0 z-20 w-[210px] bg-white" : "min-w-[165px]"}`}>
+                    <th key={column.key} className={`group relative h-[50px] border-r border-neutral-200 px-3 text-sm font-semibold leading-tight text-[#22003f] ${index === 0 ? "sticky left-0 z-20 w-[210px] bg-white" : "min-w-[165px]"}`}>
                       <div className="flex items-start gap-2">
                         <input type="checkbox" className="mt-1 h-3 w-3 accent-[#2b0052]" aria-label={`select ${column.label}`} />
                         <span className="whitespace-pre-line">{column.label}</span>
                       </div>
+                      <button onClick={() => setShowColumnBuilder(true)} className="absolute -right-3 top-1/2 z-30 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-neutral-200 bg-white text-sm font-medium text-[#2b0052] opacity-0 shadow-sm transition group-hover:opacity-100" aria-label={`Add data point after ${column.label}`}>+</button>
                     </th>
                   ))}
+                  <th className="h-[50px] min-w-[210px] border-r border-neutral-200 bg-neutral-50 px-3 text-left text-xs font-medium text-neutral-500">
+                    <button onClick={() => setShowColumnBuilder(true)} className="flex w-full items-center justify-between rounded-md border border-dashed border-neutral-300 bg-white px-3 py-2 text-left hover:border-[#2b0052] hover:text-[#2b0052]">
+                      <span>Search property/market first</span>
+                      <span className="text-base leading-none">+</span>
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1304,12 +1310,14 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                           </td>
                         );
                       })}
+                      <td className="h-[64px] border-b border-r border-neutral-200 bg-neutral-50 px-3 align-middle text-xs text-neutral-400" />
                     </tr>
                   );
                 })}
                 {Array.from({ length: 5 }).map((_, rowIndex) => (
                   <tr key={`blank-${rowIndex}`}>
                     {columns.map((column, index) => <td key={`blank-${rowIndex}-${column.key}`} className={`h-[52px] border-b border-r border-neutral-200 px-3 ${index === 0 ? "sticky left-0 bg-white" : ""}`}><span className="block h-6 rounded bg-neutral-100" /></td>)}
+                    <td className="h-[52px] border-b border-r border-neutral-200 bg-neutral-50 px-3" />
                   </tr>
                 ))}
               </tbody>
@@ -1344,14 +1352,22 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       </div>
 
       {showColumnBuilder && (
-        <div className="absolute right-14 top-28 z-40 w-[360px] rounded-2xl border border-neutral-200 bg-white p-5 text-[#22003f] shadow-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2b0052]">New data endpoint</p>
+        <div className="absolute right-14 top-28 z-40 w-[390px] rounded-2xl border border-neutral-200 bg-white p-5 text-[#22003f] shadow-2xl">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2b0052]">Add data point column</p>
+              <p className="mt-1 text-xs leading-5 text-neutral-500">Search the property, market, geography, or report first. Then define what Cactus should extract or calculate.</p>
+            </div>
+            <button onClick={() => setShowColumnBuilder(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+          </div>
+          <label className="mt-4 block text-xs font-semibold">Property / market context</label>
+          <input className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#2b0052]" defaultValue="Subject Property + MSA" placeholder="Search property, MSA, market, report…" />
           <label className="mt-4 block text-xs font-semibold">Label</label>
           <input className="mt-1 w-full rounded-lg border border-pink-300 px-3 py-2 text-sm outline-none" defaultValue="Avg 1BR Rent" />
           <label className="mt-4 block text-xs font-semibold">Format</label>
           <button className="mt-1 flex w-40 items-center justify-between rounded-lg bg-neutral-100 px-3 py-2 text-sm text-neutral-600">Number <span>↓</span></button>
           <label className="mt-4 block text-xs font-semibold">Prompt</label>
-          <textarea className="mt-1 h-36 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm leading-5 outline-none" defaultValue={"Extract the average monthly 1BR rent for Class A multifamily properties in the subject ZIP code.\n\nReturn the value in this format:\n$X,XXX (±Y% · n=Z)\n\nWhere ±Y% is the variance or range if available, and n is the number of data points used."} />
+          <textarea className="mt-1 h-32 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm leading-5 outline-none" defaultValue={"For the searched property/market context, extract the average monthly 1BR rent for Class A multifamily properties.\n\nReturn: $X,XXX (±Y% · n=Z)\n\nCite the file, page, cell, email, or provider row used."} />
           <div className="mt-4 flex items-center justify-between text-xs text-neutral-400"><span>Use @ to mention columns</span><button onClick={addColumn} className="rounded-full bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">AI generate</button></div>
         </div>
       )}

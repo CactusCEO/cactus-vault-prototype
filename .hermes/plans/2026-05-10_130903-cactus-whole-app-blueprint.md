@@ -249,6 +249,7 @@ For internal/product review, explain each primary page's job in chat or docs rat
 - Spreadsheet-like grid, not a generic dashboard table.
 - Rows represent properties, deals, sites, markets, submarkets, cities, MSAs, national benchmarks, provider reports, or broker-shared market reports.
 - Users can create custom columns. Each column is a data endpoint/prompt Cactus fills and cites, such as YR 1 NOI, YR 2 cap rate, owner name, NOI growth, demand growth, climate risk, or average 1BR rent.
+- Custom data endpoints should be added from the column-header/navigation area, not as a global top-right Vault action. The flow should first search/select the relevant property, market, geography, or report context, then define label, format, and prompt.
 - Columns can have label, format, extraction prompt, source scope, confidence/review state, and citations.
 - Location/geography rows can be used as context for property-level analysis; e.g. Subject Property, City, MSA, and U.S. National rows can all support one deal review.
 - Filters and templates for common CRE grids.

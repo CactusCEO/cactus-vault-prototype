@@ -73,6 +73,7 @@ Vault interaction model:
 - Rows can represent properties, deals, sites, markets, submarkets, cities, MSAs, national benchmarks, provider reports, or broker-shared market reports. Market-level and national rows are valuable because they become context for property-level analysis.
 - Columns are user-created data endpoints/prompts. Examples: YR 1 NOI, YR 2 cap rate, owner name, NOI growth, demand growth, climate risk, average 1BR rent, sale comp range, supply pipeline, tax reassessment risk.
 - Each custom column should preserve label, format, prompt, source/provider scope, geography/asset-class filter, citations, confidence, and review state.
+- Custom data endpoint creation belongs inside the grid header/column navigation, not as a top-right global `+` on the Vault page. The user should first search/select the property, market, geography, or report the endpoint applies to, then define the endpoint label, format, and prompt.
 - Vault rows can be filtered, searched, multi-selected, and viewed in tabular or mapped modes. Tabular mode is the primary data-endpoint grid; mapped mode shows the same property/market/report rows geographically with a paired list.
 - Multi-select can create folders/subfolders that preserve scoped context.
 - Vault chat is enabled only after at least one row is selected; the selected rows define what the chat can use.
