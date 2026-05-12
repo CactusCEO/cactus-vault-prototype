@@ -43,6 +43,7 @@ Current build standard:
 - Use Mike interaction patterns to move faster: library tables, toolbar tabs, compact row actions, centered assistant prompt, modal creation flows, and right-side detail drawers where useful.
 - Adapt those patterns to Cactus: sources/data sets, Vault extraction/audit, selectable CRE rows, Spaces workrooms, Playground, outputs, and reusable workflows.
 - Any CTA in the prototype should navigate, open a modal/drawer, mutate state, or create an artifact-like visible result.
+- Assistant intake should be direct: users drag/drop or choose documents in Assistant, optionally check “add extracted facts to Vault,” and keep writing. Do not show a separate upload-documents-to-Vault card or a pseudo-step confirmation modal. The Assistant add control should read `Add +`; live/ongoing sources should route to Vault where scope, sync, and cost approval can be reviewed.
 
 Workflow page correction:
 - Mirror Mike's Workflows page more closely: a calm list/table with tabs, search/filter controls, small plus action, checkboxes, and compact rows.
@@ -59,6 +60,7 @@ First-use flow:
 - Each source path should be action-complete in the prototype: submit files, approve connector scope, import list/comps, or load demo data. The user should see exactly what to click next.
 - After the user completes that first-source action, Cactus opens the empty/extracting Vault and shows extraction creating records/facts in real time.
 - The primary Vault CTA during this state is singular: **Check extraction status + audit**. This opens one review surface for extraction progress, source citations, confidence, and issues needing human confirmation.
+- The audit surface should become a defensible fact-verification workspace: original documents stay visually intact on the left (PDF pages, Excel-like sheets, or source previews) and extracted facts sit beside them with confidence, page/cell/line citations, approve/edit/reject actions, and click-to-highlight source locations. This verification experience is a major trust differentiator versus generic AI summaries.
 - A secondary CTA lets users **Add more sources**.
 - If a source is continuous (email, drive folder, deal room, scraper, provider refresh), Cactus should ask whether the user wants a continuous flow/subscription and disclose recurring monthly cost/approval scope.
 
@@ -104,6 +106,8 @@ A clear **+ New Workspace** CTA belongs in Spaces History header. Past-work exam
 Opening a history item can reveal the detailed Space workroom.
 
 A detailed Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs. Spaces should feel like a CRE-specific project workspace: users can add more documents directly to the Space, share with collaborators, and assign view/edit access independently.
+
+Space design should stay Mike-like: quiet library first, compact rows/tabs after opening, simple work/chat stream, and a restrained context drawer. Avoid turning Space detail into a busy dashboard with multiple competing panels.
 
 Spaces can be created from:
 - a chat over selected Vault records,

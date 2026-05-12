@@ -192,7 +192,10 @@ Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity a
 
 For internal/product review, explain each primary page's job in chat or docs rather than adding visible “Page goal” explainer blocks to the app UI. The product itself should communicate through layout, labels, and next actions, not meta-commentary.
 
-The prototype should be a full clickable Mike-derived Cactus app, not isolated page mockups. Use Mike as the primary source for shell/list/table/modal interaction patterns, then adapt every feature to Cactus's CRE operating model. Users should be able to click through the intended loop end-to-end: add a source in Assistant → extract into Vault → select rows/chat/open audit/add datapoints → create/open Space → switch Work/Playground/Outputs → generate/share output → turn repeated work into a Workflow. Every visible action should either open a concrete modal/drawer, change state, navigate, or produce an artifact-like result.
+- The prototype should be a full clickable Mike-derived Cactus app, not isolated page mockups. Use Mike as the primary source for shell/list/table/modal interaction patterns, then adapt every feature to Cactus's CRE operating model. Users should be able to click through the intended loop end-to-end: add a source in Assistant → extract into Vault → select rows/chat/open audit/add datapoints → create/open Space → switch Work/Playground/Outputs → generate/share output → turn repeated work into a Workflow. Every visible action should either open a concrete modal/drawer, change state, navigate, or produce an artifact-like visible result.
+- Assistant source intake should not show a separate “upload documents into Vault” confirmation card after onboarding. Users add files directly in the Assistant composer/drop zone; a small checkbox can opt those facts into the Vault automatically. The Assistant `Add +` affordance should offer local documents and Vault context. Live/ongoing sources such as Drive/email/provider feeds should route users into the Vault source center because approval scope, recurring sync, and cost controls belong there.
+- Source popups must be practical action surfaces, not three-step confirmation pages. Prefer drag/drop, selected files, Vault-import controls, and clear “live sources are managed in Vault” routing over selectable pseudo-steps.
+- Extraction audit is a core competitive surface. Users need a visual document/fact verification view: the original PDF/Excel/design stays visually intact on one side, while extracted facts, confidence, source location, and approve/edit/reject controls sit beside it. Clicking a fact should reveal the exact page/cell/line highlight without redesigning the source document.
 
 **Global rules:**
 - Compact nav.
@@ -213,6 +216,7 @@ The prototype should be a full clickable Mike-derived Cactus app, not isolated p
 - Chat with the Vault should be gated until the user selects at least one row; multi-select defines the context boundary for chat.
 - Chatting about selected Vault context should create a Space. Folders should also have their own hover chat and can become Spaces.
 - Spaces are where work gets done: shareable with edit/view access, able to accept additional documents, and similar to a Claude project with scoped context.
+- Spaces should stay close to Mike Projects: a quiet library/list first, then a clean workroom after opening. Avoid dashboard-like Space details. The workroom should have compact tabs, a simple work/chat stream, a visible context drawer, and restrained task/output rows rather than a busy three-column command center.
 
 ---
 
