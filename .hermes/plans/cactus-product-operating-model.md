@@ -65,6 +65,7 @@ First-use flow:
 - The audit surface should become a defensible fact-verification workspace: original documents stay visually intact on the left (PDF pages, Excel-like sheets, or source previews) and extracted facts sit beside them with confidence, page/cell/line citations, approve/edit/reject actions, and click-to-highlight source locations. This verification experience is a major trust differentiator versus generic AI summaries.
 - A secondary CTA lets users **Add more sources**.
 - If a source is continuous (email, drive folder, deal room, scraper, provider refresh), Cactus should ask whether the user wants a continuous flow/subscription and disclose recurring monthly cost/approval scope.
+- Vault creation should be action-complete for every source type. The source center should not stop at a list of logos. For each one-off, import, live connector, watcher, or provider feed it should show the setup steps: choose the source, define scope, map into Vault objects/endpoint columns, set cadence/cost/freshness policy, and review facts before activation. One-off files focus on upload/template/extraction audit; imports focus on column mapping/dedupe; inbox/folder connectors focus on read-only scopes/labels/folders/senders; watchers focus on market/buy-box/search criteria and dedupe; provider/public APIs focus on endpoint bundles, geography/property scope, cache policy, premium-call approval, and snapshot/history behavior.
 
 Vault interaction model:
 - Vault should feel like a configurable CRE data grid, not just a fixed list of extracted records.

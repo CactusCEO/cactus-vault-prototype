@@ -129,6 +129,28 @@ Recommended structure:
 | Risk | FEMA, FEMA NRI, USGS, CrimeOMeter, FBI, ATTOM disaster/crime | Flood, natural hazard, crime, climate, insurance/diligence |
 | Economic / demographic | Census ACS, ATTOM neighborhood, BLS, FRED | Demand, employment concentration, income, rent burden, macro context |
 
+## Vault creation setup model
+
+The Vault source center should give every source type a clear creation path, not just a list of possible integrations. Each source setup should answer five questions in a compact flow:
+
+1. **Choose source type** — one-off file, imported list/comps, live inbox/folder, listing/record watcher, or provider/public data API.
+2. **Scope** — exact files, folders, senders, markets, saved searches, providers, endpoints, asset classes, and geography levels Cactus may use.
+3. **Map into the Vault** — which Vault rows and endpoint columns will be created or updated; e.g. properties, owners, comps, markets, risks, debt quotes, rent roll lines, T-12 line items, provider benchmarks.
+4. **Set refresh/cost rules** — one-time extraction, manual refresh, daily watcher, weekly pulse, monthly provider refresh, premium call approval, cache/freshness labels.
+5. **Review before activation** — facts enter the Vault with source link, citation/cell/page/URL, confidence, freshness, cost state, and approve/edit/reject review state.
+
+Source-specific setup examples:
+
+- **OM PDFs / T12s / rent rolls / Excel models / debt quotes / broker emails / notes:** upload or attach files, choose extraction template, map fields/endpoints, then verify extracted facts against original source preview.
+- **Property lists / sales comps / lease comps / CRM exports / watchlists / portfolio schedules:** import CSV/XLS/CRM table, map columns to Vault objects, dedupe properties/owners/comps, choose whether rows are frozen import or watchlist.
+- **Gmail / Outlook / approved broker senders:** choose mailbox/label/senders/date range, approve read-only scope, decide whether future matching emails create review queue items or auto-update existing Vault rows.
+- **Google Drive / OneDrive / deal rooms:** choose folder/subfolder, file types, sync cadence, and whether new files create Spaces, add to existing folders, or only enter review.
+- **CoStar / Crexi / LoopNet:** define saved-search geography, asset class, size, price/cap-rate/buy-box filters, dedupe rules, and alert/Space creation behavior.
+- **County records / foreclosure filings / CMBS watchlists:** choose jurisdictions/assets, signal types, cadence, and which events create ownership/distress/debt rows.
+- **Provider/public APIs:** choose provider bundle, endpoint/fact categories, geography/property scope, refresh cadence, cache policy, and premium-call approval threshold.
+
+The setup UI should keep the left side as a compact source library and the right side as the selected source's creation steps. Avoid a heavy multi-page wizard; make each source feel actionable and reviewable in one surface.
+
 ## Product/UI implications
 
 Cactus should show users not just conclusions, but the evidence behind conclusions:
