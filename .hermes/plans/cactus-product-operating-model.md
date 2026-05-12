@@ -44,11 +44,13 @@ Current build standard:
 - Adapt those patterns to Cactus: sources/data sets, Vault extraction/audit, selectable CRE rows, Spaces workrooms, Playground, outputs, and reusable workflows.
 - Any CTA in the prototype should navigate, open a modal/drawer, mutate state, or create an artifact-like visible result.
 - Assistant intake should be direct: users drag/drop or choose documents in Assistant, optionally check “add extracted facts to Vault,” and keep writing. Do not show a separate upload-documents-to-Vault card or a pseudo-step confirmation modal. The Assistant add control should read `Add +`; live/ongoing sources should route to Vault where scope, sync, and cost approval can be reviewed.
+- Assistant should now be treated as pure chat/command. Remove separate page sections below the composer unless they are transient results; users add files/context/workflows through compact controls attached to the composer.
 
 Workflow page correction:
 - Mirror Mike's Workflows page more closely: a calm list/table with tabs, search/filter controls, small plus action, checkboxes, and compact rows.
 - Avoid a busy split-pane builder with side explanations, large prompt editors, data-set panels, or too many simultaneous controls.
 - Opening/creating a workflow can reveal details later, but the default page should be a quiet workflow library.
+- Workflows must cover two modes: (1) one-off saved/templated work that can be called from Assistant or a Space, and (2) ongoing automations that watch sources/markets/portfolios and update the Vault or create Spaces. Use the 30-workflow taxonomy Tyler provided as product coverage: sourcing/screening, underwriting/analysis, broker/GTM, portfolio/asset management, investor reporting, and market intelligence.
 
 ## Vault
 
@@ -103,9 +105,13 @@ The Spaces History should support three views:
 
 A clear **+ New Workspace** CTA belongs in Spaces History header. Past-work examples include finding rental/sales comps, building a BOV presentation, credit memo + underwriting builds, buyer identification + OM creation, sponsor/borrower diligence, operational efficiency audits, portfolio analysis, and IC memo creation.
 
+Show collaborator/profile avatars directly in Spaces History and Space detail headers so users can see who shared or worked on each Space. New Space creation should be intentionally simple: choose a starting context, name it, pick frozen/latest/auto-updating context, and add collaborators/access. Do not turn this into a complex workflow builder.
+
 Opening a history item can reveal the detailed Space workroom.
 
 A detailed Space is a focused work area with selected Vault context, selected people, tasks, analysis, chat/voice, files, assumptions, and outputs. Spaces should feel like a CRE-specific project workspace: users can add more documents directly to the Space, share with collaborators, and assign view/edit access independently.
+
+Spaces are also where larger agentic work happens: Cactus can run multi-step tasks like OM parsing, comp finding, debt quote comparison, BOV drafting, investor letter generation, zoning/flood diligence, market pulse research, and portfolio surveillance inside one workroom. The interface should feel closer to Manus/Claude/Hermes/OpenClaw: a work stream of steps/artifacts, scoped context, collaborator review, and a path to save the repeatable work as a workflow.
 
 Space design should stay Mike-like: quiet library first, compact rows/tabs after opening, simple work/chat stream, and a restrained context drawer. Avoid turning Space detail into a busy dashboard with multiple competing panels.
 
