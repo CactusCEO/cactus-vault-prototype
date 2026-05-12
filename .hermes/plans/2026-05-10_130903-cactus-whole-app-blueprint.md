@@ -182,13 +182,13 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 **Purpose:** Provide the persistent workspace after onboarding.
 
 **Recommended primary nav:**
-- Use a narrow icon rail as the app menu.
-- Top icon: **Assistant** — the home page for adding documents, adding Vault context, creating workflows, and chatting.
-- Second icon: **Vault** — the structured CRE data grid/source of truth.
-- Third/last icon: **Spaces** — the Spaces dashboard/history of all past work.
-- Remove the extra cube/third icon from the rail; it is not a primary app area.
+- Rebuild the post-onboarding shell as a Cactus-context version of Mike's system UI: restrained sidebar, Assistant-first home, dense list/table surfaces, compact toolbar actions, and minimal chrome.
+- **Assistant** — same core Mike assistant pattern: centered chat, prompt enhancement, add documents, add Vault context, and create workflows.
+- **Spaces** — Mike Projects renamed for Cactus. Spaces are project/workroom containers for scoped CRE work, documents, chats, outputs, sharing, and history.
+- **Vault** — Mike Tabular Review renamed and expanded for Cactus. Vault is the configurable CRE data grid where added documents/data sources auto-create extracting rows, citations, confidence states, and user-defined data endpoint columns.
+- **Workflows** — same Mike concept, adapted to CRE repeatable work: intake packages, owner-signal scans, comp pulls, IC memo drafting, BOV packages, and portfolio monitoring.
 
-Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity available later through Assistant/Spaces workflows, but do not show them as primary left-rail items in the sparse app shell.
+Keep secondary product areas like Agents, Outputs, Map, Analysis, and Activity available through Assistant/Spaces/Workflows rather than cluttering the main app shell.
 
 **Global rules:**
 - Compact nav.

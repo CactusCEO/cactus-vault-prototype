@@ -191,8 +191,9 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
 
 const appNav = [
   ["Assistant", "✦", 5],
+  ["Spaces", "□", 7],
   ["Vault", "▣", 6],
-  ["Spaces", "▦", 7],
+  ["Workflows", "▤", 8],
 ] as const;
 
 function AppWorkHeader() {
@@ -653,75 +654,99 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
 function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void }) {
   const selected = sourceCards[initialSource];
   const action = sourceActionCopy[initialSource];
+  const [contextOpen, setContextOpen] = useState(false);
   const runFirstWin = () => {
     onSubmit(initialSource);
     go(6);
   };
+  const contextChips = hasIntake
+    ? ["Subject Property", "City row", "MSA benchmark", "Green Street report"]
+    : ["Vault empty", "No rows selected"];
 
   return (
-    <div className="p-6">
-      <main className="mx-auto min-h-[560px] max-w-3xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-6">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Assistant home</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-neutral-950">{selected.title}</h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">You already chose this path in onboarding. Complete this one action and Cactus will start filling the Vault.</p>
-          </div>
-          <button onClick={() => go(6)} className="shrink-0 rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-500">{hasIntake ? sourceRunLabels[initialSource] : "Empty Vault"}</button>
+    <div className="flex h-screen flex-col bg-white text-neutral-950">
+      <header className="flex h-14 items-center justify-between border-b border-neutral-200 px-8">
+        <div>
+          <p className="text-sm font-medium">Assistant</p>
+          <p className="text-xs text-neutral-500">Cactus Capital Partners · Multifamily Vault</p>
         </div>
-
-        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 text-left shadow-inner">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-xs font-semibold text-neutral-700">AI</span>
-          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to help with this setup…" />
-          <button className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Enhance prompt</button>
-          <button className="rounded-lg bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Ask</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Add Vault context</button>
+          <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Create workflow</button>
+          <button onClick={runFirstWin} className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">{hasIntake ? "Open extracting Vault" : action.action}</button>
         </div>
+      </header>
 
-        <section className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-neutral-950">{selected.title}</p>
-              <p className="mt-1 text-xs leading-5 text-neutral-500">{selected.next}</p>
-            </div>
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs text-neutral-500">From onboarding</span>
+      <main className="flex flex-1 flex-col items-center justify-center px-8 pb-10">
+        <div className="w-full max-w-4xl">
+          <div className="mb-8 flex items-center justify-center gap-4">
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-sm font-semibold text-white">C</div>
+            <h1 className="font-serif text-4xl font-light tracking-[-0.03em] text-neutral-900">Hi, Tyler</h1>
           </div>
 
-          {selected.title === "Upload documents" ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5 text-center">
-              <p className="text-sm font-medium text-neutral-950">Drop the first deal package</p>
-              <p className="mt-1 text-xs text-neutral-500">{action.detail}</p>
-              <input id="cactus-upload" type="file" multiple className="sr-only" />
-              <label htmlFor="cactus-upload" className="mt-4 inline-flex cursor-pointer rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700">Choose files</label>
-              <button onClick={runFirstWin} className="ml-2 mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
+          <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+            <textarea className="h-28 w-full resize-none px-3 py-3 text-[15px] outline-none placeholder:text-neutral-400" placeholder="Ask Cactus to review a deal, create a Space, build a Vault data endpoint, or run a CRE workflow…" />
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-2 pt-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">+ Documents</button>
+                <button onClick={() => setContextOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▣ Vault context</button>
+                <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▤ Workflow</button>
+                <button className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Enhance prompt</button>
+              </div>
+              <button className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Ask</button>
             </div>
-          ) : selected.title === "Connect email or drive" ? (
-            <div className="mt-4 space-y-3">
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-800">Start with one approved folder or sender. Cactus asks before turning on continuous watching or recurring cost.</div>
-              {["Google Drive folder", "Gmail/Outlook sender", "Deal room folder"].map((item, index) => <button key={item} className={`flex w-full items-center justify-between rounded-xl border bg-white px-3 py-3 text-left text-sm ${index === 0 ? "border-neutral-950" : "border-neutral-200"}`}><span>{item}</span><span className="rounded-full border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-700">Approve scope</span></button>)}
-              <button onClick={runFirstWin} className="w-full rounded-full bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white">{action.action}</button>
-            </div>
-          ) : selected.title === "Import lists or comps" ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-5">
-              <p className="text-sm font-medium text-neutral-950">Import a spreadsheet</p>
-              <p className="mt-1 text-xs text-neutral-500">{action.detail}</p>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-neutral-500"><span className="rounded-lg bg-neutral-100 px-3 py-2">Property</span><span className="rounded-lg bg-neutral-100 px-3 py-2">Owner</span><span className="rounded-lg bg-neutral-100 px-3 py-2">NOI</span></div>
-              <button onClick={runFirstWin} className="mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
-            </div>
-          ) : (
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5">
-              <p className="text-sm font-medium text-neutral-950">Explore with sample data only</p>
-              <p className="mt-1 text-xs leading-5 text-neutral-500">{action.detail}</p>
-              <button onClick={runFirstWin} className="mt-4 rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{action.action}</button>
+          </div>
+
+          {contextOpen && (
+            <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-xs font-medium text-neutral-700">Attach context from Vault</p>
+                <button onClick={() => go(6)} className="text-xs text-[#2b0052]">Open Vault</button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {contextChips.map((chip) => <span key={chip} className="rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-xs text-neutral-600">{chip}</span>)}
+              </div>
             </div>
           )}
-        </section>
 
-        <p className="mt-4 text-xs leading-5 text-neutral-500">First win: Cactus reads this source, creates Vault rows, and lets you add data endpoint columns like Owner Name, YR 1 NOI, or Cap Rate.</p>
+          <section className="mt-6 grid grid-cols-[1.1fr_0.9fr] gap-4">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-neutral-950">{hasIntake ? "Vault is extracting" : selected.title}</p>
+                  <p className="mt-1 text-xs leading-5 text-neutral-500">{hasIntake ? `${sourceRunLabels[initialSource]} · Cactus is adding rows to Vault as source-linked facts are found.` : "You chose this source in onboarding. Complete it once and Cactus takes you straight to Vault while extraction runs."}</p>
+                </div>
+                <span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">From onboarding</span>
+              </div>
+
+              {!hasIntake ? (
+                <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-white p-4">
+                  <p className="text-sm font-medium text-neutral-900">{action.action}</p>
+                  <p className="mt-1 text-xs leading-5 text-neutral-500">{action.detail}</p>
+                  <div className="mt-4 flex items-center gap-2">
+                    <button className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-700">Choose files / scope</button>
+                    <button onClick={runFirstWin} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Add to Vault</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                  {["Extract facts", "Create Vault rows", "Unlock Spaces"].map((step, index) => <div key={step} className="rounded-lg border border-neutral-200 bg-white p-3"><p className="text-neutral-400">0{index + 1}</p><p className="mt-1 font-medium text-neutral-800">{step}</p></div>)}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-neutral-200 bg-white p-5">
+              <p className="text-sm font-medium text-neutral-950">Common Cactus work</p>
+              <div className="mt-3 space-y-2">
+                {["Create a deal review Space", "Pull market data into selected rows", "Build an IC memo workflow", "Add a YR 1 NOI endpoint"].map((item) => <button key={item} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50"><span>{item}</span><span className="text-neutral-300">→</span></button>)}
+              </div>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );
 }
-
 function Spaces({ go }: { go: (screenIndex: number) => void }) {
   const [view, setView] = useState<"grid" | "list" | "map">("grid");
   const viewButtons: Array<["grid" | "list" | "map", string]> = [["grid", "Grid"], ["list", "List"], ["map", "Map"]];
@@ -807,6 +832,73 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
             </div>
           </div>
         )}
+      </main>
+    </div>
+  );
+}
+
+function Workflows({ go }: { go: (screenIndex: number) => void }) {
+  const [selected, setSelected] = useState("Deal intake review");
+  const workflows = [
+    ["Deal intake review", "Upload/drive source → Vault extraction → audit → Space", "7 docs", "Ready"],
+    ["Weekly owner signals", "ATTOM + broker notes + approved markets", "3 datasets", "Draft"],
+    ["IC memo builder", "Selected Vault rows → model checks → memo sections", "Vault context", "Ready"],
+    ["BOV package", "Property row + comps + market narrative", "2 Spaces", "Template"],
+  ];
+  const dataSets = ["Green Street market outlook", "HelloData rent comps", "ATTOM ownership + tax", "FEMA flood layer"];
+
+  return (
+    <div className="flex h-screen flex-col bg-white text-neutral-950">
+      <header className="flex h-14 items-center justify-between border-b border-neutral-200 px-8">
+        <div>
+          <p className="text-sm font-medium">Workflows</p>
+          <p className="text-xs text-neutral-500">Repeatable CRE work using Vault context and approved data sets.</p>
+        </div>
+        <button className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ New workflow</button>
+      </header>
+      <main className="grid min-h-0 flex-1 grid-cols-[380px_1fr] overflow-hidden">
+        <aside className="overflow-auto border-r border-neutral-200 bg-neutral-50 p-4">
+          {workflows.map(([name, detail, context, status]) => (
+            <button key={name} onClick={() => setSelected(name)} className={`mb-2 w-full rounded-xl border p-4 text-left ${selected === name ? "border-neutral-300 bg-white shadow-sm" : "border-transparent bg-transparent hover:bg-white"}`}>
+              <div className="flex items-start justify-between gap-3"><p className="text-sm font-medium text-neutral-900">{name}</p><span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{status}</span></div>
+              <p className="mt-2 text-xs leading-5 text-neutral-500">{detail}</p>
+              <p className="mt-3 text-[11px] text-neutral-400">Context: {context}</p>
+            </button>
+          ))}
+        </aside>
+        <section className="overflow-auto p-8">
+          <div className="max-w-4xl">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">{selected}</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">Build it like Mike workflows, but every step understands Cactus context: selected Vault rows, source citations, CRE data sets, approval scopes, and output artifacts.</p>
+              </div>
+              <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Choose Vault rows</button>
+            </div>
+
+            <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+              <p className="text-sm font-medium">Workflow prompt</p>
+              <textarea className="mt-3 h-32 w-full resize-none rounded-xl border border-neutral-200 p-3 text-sm outline-none" defaultValue="When new deal documents are added, extract the core property and market rows into Vault, flag missing diligence, attach market data sets where helpful, then create a Space for review." />
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex gap-2 text-xs text-neutral-500"><span className="rounded-md border border-neutral-200 px-2 py-1">@Vault rows</span><span className="rounded-md border border-neutral-200 px-2 py-1">@Selected data sets</span><span className="rounded-md border border-neutral-200 px-2 py-1">@Space output</span></div>
+                <button className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Save workflow</button>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-neutral-200 p-5">
+                <p className="text-sm font-medium">Vault context</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">Users select property, market, report, or benchmark rows before a workflow runs.</p>
+                <div className="mt-4 space-y-2 text-sm">{["Subject Property", "Nashville MSA", "Green Street Southeast MF"].map((row) => <div key={row} className="rounded-lg bg-neutral-50 px-3 py-2">{row}</div>)}</div>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 p-5">
+                <p className="text-sm font-medium">Additional data sets</p>
+                <p className="mt-2 text-xs leading-5 text-neutral-500">Approved paid/free data can be attached when it improves the workflow.</p>
+                <div className="mt-4 space-y-2 text-sm">{dataSets.map((set) => <div key={set} className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2"><span>{set}</span><span className="text-xs text-neutral-400">Add</span></div>)}</div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
@@ -1254,8 +1346,9 @@ export default function Home() {
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} />;
     if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} />;
-    const AppScreen = [Spaces, VaultMap, Agents, DealAnalysis, CompsData, Outputs, Activity][active - 7] ?? Spaces;
-    return <AppScreen go={setActive} />;
+    if (active === 7) return <Spaces go={setActive} />;
+    if (active === 8) return <Workflows go={setActive} />;
+    return <Spaces go={setActive} />;
   };
 
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
@@ -1265,12 +1358,20 @@ export default function Home() {
   if (active === 4) return <><ThemeToggle theme={theme} setTheme={setTheme} /><LiveExtraction go={setActive} theme={theme} /></>;
 
   return (
-    <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950"}`}>
+    <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-white text-neutral-950"}`}>
       <ThemeToggle theme={theme} setTheme={setTheme} />
-      <div className="flex min-h-screen">
-        <aside className={`sticky top-0 flex h-screen w-16 shrink-0 flex-col items-center border-r py-4 ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-white"}`}>
-          <nav className="flex flex-col items-center gap-10">
-            {appNav.map(([screen, icon, screenIndex], index) => {
+      <div className="flex h-screen overflow-hidden">
+        <aside className={`flex h-screen w-64 shrink-0 flex-col border-r ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
+          <div className="flex items-center justify-between px-5 py-4">
+            <button onClick={() => setActive(5)} className="flex items-center gap-2 text-left">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#2b0052] text-xs font-semibold text-white">C</span>
+              <span className="font-serif text-2xl font-light tracking-[-0.04em]">Cactus</span>
+            </button>
+            <button className="rounded-md p-2 text-neutral-400 hover:bg-neutral-100">☰</button>
+          </div>
+
+          <nav className="px-2.5">
+            {appNav.map(([screen, icon, screenIndex]) => {
               const activeNav = active === screenIndex;
               return (
                 <button
@@ -1278,17 +1379,35 @@ export default function Home() {
                   onClick={() => setActive(screenIndex)}
                   title={screen}
                   aria-label={screen}
-                  className={`grid h-9 w-9 place-items-center text-lg transition ${activeNav ? "rounded-xl bg-pink-100 text-[#2b0052]" : isDark ? "text-neutral-400 hover:text-white" : "text-[#2b0052] hover:rounded-xl hover:bg-neutral-100"} ${index === 2 ? "mt-2" : ""}`}
+                  className={`mb-1 flex h-9 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition ${activeNav ? "bg-neutral-200/70 text-neutral-950" : isDark ? "text-neutral-300 hover:bg-white/10" : "text-neutral-700 hover:bg-neutral-100"}`}
                 >
-                  {icon}
+                  <span className="w-4 text-center text-base">{icon}</span>
+                  <span className="font-medium">{screen}</span>
                 </button>
               );
             })}
           </nav>
-          <button onClick={() => setActive(0)} title="Cactus account" aria-label="Cactus account" className="mt-auto grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-sm font-semibold text-white">T</button>
+
+          <div className="mt-5 flex min-h-0 flex-1 flex-col px-5">
+            <div className="flex items-center justify-between text-xs font-medium text-neutral-500">
+              <span>Assistant History</span>
+              <span>⌄</span>
+            </div>
+            <div className="mt-2 space-y-1 overflow-auto text-sm">
+              {["Review first deal package", "Add YR 1 NOI endpoint", "Compare MSA rent growth"].map((item) => (
+                <button key={item} onClick={() => setActive(5)} className="block w-full truncate rounded-md px-2 py-2 text-left text-neutral-600 hover:bg-white">{item}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-neutral-200 p-3">
+            <button onClick={() => setActive(0)} className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-neutral-100">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#2b0052] text-xs font-semibold text-white">T</span>
+              <span><span className="block text-sm font-medium">Tyler</span><span className="block text-xs text-neutral-500">Multifamily Vault</span></span>
+            </button>
+          </div>
         </aside>
-        <section className="min-w-0 flex-1">
-          <AppWorkHeader />
+        <section className="min-w-0 flex-1 overflow-hidden">
           {renderAppScreen()}
         </section>
       </div>

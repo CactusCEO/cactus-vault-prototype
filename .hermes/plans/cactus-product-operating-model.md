@@ -29,13 +29,14 @@ Cactus should help users:
 
 ## App menu
 
-The persistent app menu should be a narrow icon rail, not a full text sidebar. It contains only three primary destinations:
+The persistent app menu should now mirror Mike's system model, translated into Cactus language:
 
-1. **Assistant** — home page for chat, documents, Vault context, and workflow creation.
-2. **Vault** — configurable CRE data grid and source of truth.
-3. **Spaces** — dashboard/history of all past work and active workrooms.
+1. **Assistant** — home page for chat, documents/data sources, Vault context attachment, prompt enhancement, and workflow creation.
+2. **Spaces** — Mike Projects renamed. Spaces are project/workroom containers for CRE work, scoped Vault context, docs, chats, outputs, and sharing.
+3. **Vault** — Mike Tabular Review renamed and expanded. The Vault is the source-linked tabular CRE memory where uploaded/connected data auto-creates extracting rows, citations, confidence states, and custom data endpoint columns.
+4. **Workflows** — same Mike concept, adapted to CRE repeatable workflows such as package intake, comps, BOVs, IC memos, owner signals, and portfolio monitoring.
 
-Do not include the extra cube/third icon in the rail. Secondary product surfaces should be reached through Assistant/Spaces workflows rather than cluttering the primary menu.
+The shell should feel like Mike: quiet sidebar, compact toolbars, dense tables, assistant-first interaction, and no extra dashboard chrome.
 
 ## Vault
 
