@@ -231,12 +231,37 @@ const activityRows = [
   ["Yesterday", "Lender", "Debt quote comparison generated follow-up task", "Riverside lender package"],
 ];
 
-function AvatarStack({ team, size = "sm" }: { team: readonly string[] | string[]; size?: "sm" | "md" }) {
+const teamDirectorySeed = [
+  { initials: "TS", name: "Tyler Sellars", email: "tyler@cactus.local", role: "Admin / investor", access: "Owner" },
+  { initials: "AK", name: "Acquisitions", email: "acquisitions@cactus.local", role: "Acquisitions", access: "Edit" },
+  { initials: "MR", name: "Market research", email: "research@cactus.local", role: "Research", access: "Edit" },
+  { initials: "JL", name: "External lender", email: "lender@cactus.local", role: "Lender", access: "View" },
+];
+
+function TeamMemberDrawer({ member, members, onClose, onAdd, onRemove, notice }: { member: string | null; members: typeof teamDirectorySeed; onClose: () => void; onAdd: () => void; onRemove: (initials: string) => void; notice?: string }) {
+  const [activeMember, setActiveMember] = useState(member ?? members[0]?.initials ?? "TS");
+  const selected = members.find((item) => item.initials === activeMember) ?? members[0] ?? teamDirectorySeed[0];
+  return (
+    <aside className="fixed right-0 top-0 z-[70] h-full w-[420px] border-l border-neutral-200 bg-white p-5 shadow-2xl">
+      <div className="flex items-center justify-between"><div><p className="text-sm font-medium">Team + access</p><p className="mt-1 text-xs text-neutral-500">Click people anywhere to manage team membership, access, and assignments.</p></div><button onClick={onClose}>×</button></div>
+      {notice && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{notice}</div>}
+      <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-neutral-900 text-xs text-white">{selected.initials}</span><div><p className="text-sm font-medium">{selected.name}</p><p className="text-xs text-neutral-500">{selected.email}</p></div></div>
+        <div className="mt-4 grid grid-cols-2 gap-2 text-xs"><div className="rounded-lg bg-white p-3"><p className="text-neutral-400">Role</p><p className="mt-1 font-medium">{selected.role}</p></div><div className="rounded-lg bg-white p-3"><p className="text-neutral-400">Access</p><p className="mt-1 font-medium">{selected.access}</p></div></div>
+        <div className="mt-4 flex gap-2"><button className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Edit access</button><button onClick={() => onRemove(selected.initials)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Remove from team</button></div>
+      </div>
+      <div className="mt-5 flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workspace team</p><button onClick={onAdd} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600">+ Add member</button></div>
+      <div className="mt-3 space-y-2">{members.map((item) => <button key={item.initials} onClick={() => setActiveMember(item.initials)} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm hover:bg-neutral-50 ${activeMember === item.initials ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}><span className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{item.initials}</span><span><span className="block font-medium">{item.name}</span><span className="block text-xs text-neutral-500">{item.role}</span></span></span><span className="text-xs text-neutral-400">{item.access}</span></button>)}</div>
+    </aside>
+  );
+}
+
+function AvatarStack({ team, size = "sm", onPersonClick }: { team: readonly string[] | string[]; size?: "sm" | "md"; onPersonClick?: (person: string) => void }) {
   const dim = size === "md" ? "h-8 w-8 text-xs" : "h-6 w-6 text-[10px]";
   return (
     <div className="flex -space-x-2">
       {team.slice(0, 4).map((person, index) => (
-        <span key={`${person}-${index}`} className={`${dim} grid place-items-center rounded-full border-2 border-white bg-neutral-900 font-medium text-white shadow-sm`}>{person}</span>
+        <button key={`${person}-${index}`} onClick={(event) => { event.stopPropagation(); onPersonClick?.(person); }} className={`${dim} grid place-items-center rounded-full border-2 border-white bg-neutral-900 font-medium text-white shadow-sm ${onPersonClick ? "hover:scale-105" : ""}`}>{person}</button>
       ))}
     </div>
   );
@@ -855,6 +880,21 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   const [outputReady, setOutputReady] = useState(false);
   const [newContext, setNewContext] = useState("Selected Vault rows");
   const [newMode, setNewMode] = useState("Latest Vault context");
+  const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [teamNotice, setTeamNotice] = useState("Space team changes are prototype state; backend member invites will send email later.");
+  const openSpaceMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
+  const addSpaceMember = () => {
+    if (teamMembers.some((member) => member.initials === "NP")) return;
+    setTeamMembers((current) => [...current, { initials: "NP", name: "New partner", email: "new.partner@cactus.local", role: "External collaborator", access: "View" }]);
+    setTeamNotice("Invite email queued to new.partner@cactus.local for this Space.");
+  };
+  const removeSpaceMember = (initials: string) => {
+    setTeamMembers((current) => current.filter((member) => member.initials !== initials));
+    setTeamNotice(`${initials} removed from this Space.`);
+    setTeamOpen(false);
+  };
   const viewButtons: Array<["grid" | "list" | "map", string]> = [["list", "List"], ["grid", "Grid"], ["map", "Map"]];
   const currentTeam = selectedWorkspace?.team ?? ["TS", "AK", "MR"];
 
@@ -868,7 +908,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
               <p className="text-sm font-medium">{selectedWorkspace.title}</p>
               <p className="text-xs text-neutral-500">{selectedWorkspace.address} · {selectedWorkspace.market}</p>
             </div>
-            <AvatarStack team={currentTeam} />
+            <AvatarStack team={currentTeam} onPersonClick={openSpaceMember} />
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Vault context</button>
@@ -949,13 +989,14 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
             </div>
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-medium text-neutral-500">Assigned tasks</p>
-              <div className="mt-3 space-y-2 text-xs">{[["@AK", "Verify rent roll anomalies", taskDone ? "Done" : "Open"], ["@MR", "Pull 15-minute drive-time comps", "Queued"], ["@TS", "Approve draft lender reply", "Review"]].map(([person, task, status]) => <button key={task} onClick={() => setTaskDone(true)} className="flex w-full items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-left"><span><span className="font-medium">{person}</span> {task}</span><span className="text-neutral-400">{status}</span></button>)}</div>
+              <div className="mt-3 space-y-2 text-xs">{[["AK", "Verify rent roll anomalies", taskDone ? "Done" : "Open"], ["MR", "Pull 15-minute drive-time comps", "Queued"], ["TS", "Approve draft lender reply", "Review"]].map(([person, task, status]) => <button key={task} onClick={() => setTaskDone(true)} className="flex w-full items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-left"><span><span onClick={(event) => { event.stopPropagation(); openSpaceMember(person); }} className="font-medium underline-offset-2 hover:underline">@{person}</span> {task}</span><span className="text-neutral-400">{status}</span></button>)}</div>
             </div>
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-xs font-medium text-neutral-500">Context</p><div className="mt-3 flex flex-wrap gap-2">{['Subject Property', 'Nashville MSA', 'Green Street report', 'T12 + rent roll', 'HelloData comps'].map((row) => <button key={row} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700 hover:bg-[#fbf4ff]">{row}</button>)}</div><button onClick={() => go(6)} className="mt-3 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">+ Add Vault rows</button></div>
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-xs font-medium text-neutral-500">People</p><div className="mt-3 flex items-center justify-between"><AvatarStack team={currentTeam} size="md" /><button onClick={() => setShareOpen(true)} className="text-xs text-neutral-600">Manage</button></div></div>
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-xs font-medium text-neutral-500">People</p><div className="mt-3 flex items-center justify-between"><AvatarStack team={currentTeam} size="md" onPersonClick={openSpaceMember} /><button onClick={() => setShareOpen(true)} className="text-xs text-neutral-600">Manage</button></div></div>
           </aside>
         </main>
-        {shareOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div className="w-96 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl"><div className="flex items-center justify-between"><p className="text-sm font-medium">Share Space</p><button onClick={() => setShareOpen(false)}>×</button></div><div className="mt-4 space-y-2 text-sm">{[["TS", "Tyler Sellars", "Edit"], ["AK", "Acquisitions", "Edit"], ["MR", "Market research", "View"], ["JL", "External lender", "No access"]].map(([initials, name, access]) => <button key={name} className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left"><span className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{initials}</span>{name}</span><span>{access}</span></button>)}</div><button onClick={() => setShareOpen(false)} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Copy share link</button></div></div>}
+        {shareOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div className="w-96 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl"><div className="flex items-center justify-between"><p className="text-sm font-medium">Share Space</p><button onClick={() => setShareOpen(false)}>×</button></div><div className="mt-4 space-y-2 text-sm">{[["TS", "Tyler Sellars", "Edit"], ["AK", "Acquisitions", "Edit"], ["MR", "Market research", "View"], ["JL", "External lender", "No access"]].map(([initials, name, access]) => <button key={name} onClick={() => openSpaceMember(initials)} className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left"><span className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{initials}</span>{name}</span><span>{access}</span></button>)}</div><button onClick={() => { setTeamNotice("Share email queued for selected Space collaborators."); setShareOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Copy share link</button></div></div>}
+        {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
       </div>
     );
   }
@@ -973,16 +1014,17 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
       </div>
       <main className="overflow-auto p-6">
         {view === "list" && (
-          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white"><table className="w-full text-left text-sm"><thead className="border-b border-neutral-100 text-xs text-neutral-400"><tr>{["Name", "Type", "Location", "People", "Updated", "Status"].map((h) => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}</tr></thead><tbody>{workspaceLibrary.map((workspace) => <tr key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="cursor-pointer border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-3 font-medium text-neutral-950">{workspace.title}</td><td className="px-4 py-3 text-neutral-500">{workspace.type}</td><td className="px-4 py-3 text-neutral-500">{workspace.address}</td><td className="px-4 py-3"><AvatarStack team={workspace.team} /></td><td className="px-4 py-3 text-neutral-500">{workspace.updated}</td><td className="px-4 py-3"><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span></td></tr>)}</tbody></table></div>
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white"><table className="w-full text-left text-sm"><thead className="border-b border-neutral-100 text-xs text-neutral-400"><tr>{["Name", "Type", "Location", "People", "Updated", "Status"].map((h) => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}</tr></thead><tbody>{workspaceLibrary.map((workspace) => <tr key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="cursor-pointer border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-3 font-medium text-neutral-950">{workspace.title}</td><td className="px-4 py-3 text-neutral-500">{workspace.type}</td><td className="px-4 py-3 text-neutral-500">{workspace.address}</td><td className="px-4 py-3"><AvatarStack team={workspace.team} onPersonClick={openSpaceMember} /></td><td className="px-4 py-3 text-neutral-500">{workspace.updated}</td><td className="px-4 py-3"><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span></td></tr>)}</tbody></table></div>
         )}
         {view === "grid" && (
-          <div className="grid grid-cols-3 gap-4">{workspaceLibrary.map((workspace) => <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="rounded-xl border border-neutral-200 bg-white p-4 text-left hover:bg-neutral-50"><div className="flex items-start justify-between gap-3"><p className="text-sm font-medium">{workspace.title}</p><AvatarStack team={workspace.team} /></div><p className="mt-2 text-xs text-neutral-500">{workspace.address}<br />{workspace.market}</p><div className="mt-4 flex items-center justify-between"><span className="text-xs text-neutral-400">{workspace.updated}</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span></div></button>)}</div>
+          <div className="grid grid-cols-3 gap-4">{workspaceLibrary.map((workspace) => <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="rounded-xl border border-neutral-200 bg-white p-4 text-left hover:bg-neutral-50"><div className="flex items-start justify-between gap-3"><p className="text-sm font-medium">{workspace.title}</p><AvatarStack team={workspace.team} onPersonClick={openSpaceMember} /></div><p className="mt-2 text-xs text-neutral-500">{workspace.address}<br />{workspace.market}</p><div className="mt-4 flex items-center justify-between"><span className="text-xs text-neutral-400">{workspace.updated}</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span></div></button>)}</div>
         )}
         {view === "map" && (
-          <div className="grid min-h-[560px] grid-cols-[1fr_340px] gap-4"><div className="relative rounded-xl border border-neutral-200 bg-[#eef0eb]"><div className="absolute left-5 top-5 rounded-md bg-white px-3 py-2 text-xs text-neutral-600">Spaces map</div>{workspaceLibrary.map((workspace, index) => <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className={`absolute ${workspace.pin}`}><span className="grid h-8 w-8 place-items-center rounded-full bg-[#2b0052] text-xs text-white">{index + 1}</span></button>)}</div><div className="overflow-auto rounded-xl border border-neutral-200 bg-white p-3">{workspaceLibrary.map((workspace) => <button key={`side-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className="mb-2 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-neutral-50"><span><span className="block text-sm font-medium">{workspace.title}</span><span className="text-xs text-neutral-500">{workspace.market}</span></span><AvatarStack team={workspace.team} /></button>)}</div></div>
+          <div className="grid min-h-[560px] grid-cols-[1fr_340px] gap-4"><div className="relative rounded-xl border border-neutral-200 bg-[#eef0eb]"><div className="absolute left-5 top-5 rounded-md bg-white px-3 py-2 text-xs text-neutral-600">Spaces map</div>{workspaceLibrary.map((workspace, index) => <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className={`absolute ${workspace.pin}`}><span className="grid h-8 w-8 place-items-center rounded-full bg-[#2b0052] text-xs text-white">{index + 1}</span></button>)}</div><div className="overflow-auto rounded-xl border border-neutral-200 bg-white p-3">{workspaceLibrary.map((workspace) => <button key={`side-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className="mb-2 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-neutral-50"><span><span className="block text-sm font-medium">{workspace.title}</span><span className="text-xs text-neutral-500">{workspace.market}</span></span><AvatarStack team={workspace.team} onPersonClick={openSpaceMember} /></button>)}</div></div>
         )}
       </main>
-      {newOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div className="w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex justify-between"><div><p className="text-sm font-medium">New Space</p><p className="mt-1 text-xs text-neutral-500">Simple workroom setup. Start blank, from Vault context, or from a workflow.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Riverside Flats Deal Review" /><p className="mt-4 text-xs font-medium text-neutral-500">Start with</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Selected Vault rows", "Vault folder", "Uploaded source", "Saved workflow", "Blank Space", "Market watch"].map((item)=><button key={item} onClick={() => setNewContext(item)} className={`rounded-lg border px-3 py-3 text-left hover:bg-neutral-50 ${newContext===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div><p className="mt-4 text-xs font-medium text-neutral-500">Context mode</p><div className="mt-2 flex gap-2 text-xs">{["Frozen snapshot", "Latest Vault context", "Auto-updating"].map((mode)=><button key={mode} onClick={() => setNewMode(mode)} className={`rounded-md border px-3 py-2 ${newMode===mode ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{mode}</button>)}</div><div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"><span className="text-xs text-neutral-500">Collaborators</span><AvatarStack team={["TS", "AK", "MR"]} /></div><button onClick={() => { setSelectedWorkspace(workspaceLibrary[0]); setNewOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space from {newContext}</button></div></div>}
+      {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
+      {newOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div className="w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex justify-between"><div><p className="text-sm font-medium">New Space</p><p className="mt-1 text-xs text-neutral-500">Simple workroom setup. Start blank, from Vault context, or from a workflow.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Riverside Flats Deal Review" /><p className="mt-4 text-xs font-medium text-neutral-500">Start with</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Selected Vault rows", "Vault folder", "Uploaded source", "Saved workflow", "Blank Space", "Market watch"].map((item)=><button key={item} onClick={() => setNewContext(item)} className={`rounded-lg border px-3 py-3 text-left hover:bg-neutral-50 ${newContext===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div><p className="mt-4 text-xs font-medium text-neutral-500">Context mode</p><div className="mt-2 flex gap-2 text-xs">{["Frozen snapshot", "Latest Vault context", "Auto-updating"].map((mode)=><button key={mode} onClick={() => setNewMode(mode)} className={`rounded-md border px-3 py-2 ${newMode===mode ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{mode}</button>)}</div><div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"><span className="text-xs text-neutral-500">Collaborators</span><AvatarStack team={["TS", "AK", "MR"]} onPersonClick={openSpaceMember} /></div><button onClick={() => { setSelectedWorkspace(workspaceLibrary[0]); setNewOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space from {newContext}</button></div></div>}
     </div>
   );
 }
@@ -992,6 +1034,29 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
   const [search, setSearch] = useState("");
   const [selectedTask, setSelectedTask] = useState<(typeof taskRows)[number] | null>(taskRows[0]);
   const [done, setDone] = useState<string[]>([]);
+  const [taskOwners, setTaskOwners] = useState<Record<string, string>>({});
+  const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [notification, setNotification] = useState("Email notifications will queue when a task is created or reassigned.");
+  const ownerFor = (task: (typeof taskRows)[number]) => taskOwners[task.title] ?? task.owner;
+  const openMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
+  const addMember = () => {
+    if (teamMembers.some((member) => member.initials === "NP")) return;
+    setTeamMembers((current) => [...current, { initials: "NP", name: "New partner", email: "new.partner@cactus.local", role: "External collaborator", access: "View" }]);
+    setNotification("Invite email queued to new.partner@cactus.local. Prototype only — backend email service will send this.");
+  };
+  const removeMember = (initials: string) => {
+    setTeamMembers((current) => current.filter((member) => member.initials !== initials));
+    setNotification(`${initials} removed from this workspace. Future assigned tasks need reassignment.`);
+    setTeamOpen(false);
+  };
+  const assignTask = (task: (typeof taskRows)[number], initials: string) => {
+    setTaskOwners((current) => ({ ...current, [task.title]: initials }));
+    setSelectedMember(initials);
+    const member = teamMembers.find((item) => item.initials === initials);
+    setNotification(`Email queued to ${member?.email ?? initials}: “${task.title}” was assigned to you.`);
+  };
   const filteredTasks = taskRows.filter((task) => {
     const viewMatch = view === "Activity" ? false : view === "Team" ? true : task.type === view;
     const roleMatch = role === "All" || task.role === role;
@@ -1011,7 +1076,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
         </div>
         <div className="flex items-center gap-2">
           <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-8 w-72 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search tasks, Spaces, contacts, workflows…" />
-          <button onClick={() => setSelectedTask(taskRows[1])} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Task</button>
+          <button onClick={() => { setSelectedTask(taskRows[1]); setNotification(`Email queued to ${teamMembers.find((member) => member.initials === ownerFor(taskRows[1]))?.email}: “${taskRows[1].title}” was created for you.`); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Task</button>
         </div>
       </header>
 
@@ -1027,6 +1092,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
       </div>
 
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(640px,1fr)_390px] overflow-hidden">
+        <div className="absolute left-8 top-[7.25rem] z-10 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700 shadow-sm">{notification}</div>
         <section className="overflow-auto p-6">
           <div className="mb-4 grid grid-cols-4 gap-3 text-xs">
             {roleCounts.map(([label, count]) => <button key={label} onClick={() => setRole(label as string)} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-left hover:bg-white"><span className="block text-neutral-400">{label}</span><span className="mt-1 block text-lg font-semibold text-neutral-900">{count}</span></button>)}
@@ -1043,7 +1109,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
                       <td className="px-4 py-3"><span className="block font-medium text-neutral-950">{task.title}</span><span className="mt-1 block text-xs text-neutral-400">{task.source}</span></td>
                       <td className="px-4 py-3 text-neutral-500">{task.role}</td>
                       <td className="px-4 py-3 text-neutral-500">{task.space}</td>
-                      <td className="px-4 py-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{task.owner}</span></td>
+                      <td className="px-4 py-3"><button onClick={(event) => { event.stopPropagation(); openMember(ownerFor(task)); }} className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white hover:scale-105">{ownerFor(task)}</button></td>
                       <td className="px-4 py-3 text-neutral-500">{task.due}</td>
                       <td className="px-4 py-3"><span className={`rounded-md px-2 py-1 text-[11px] ${statusClass(taskStatus)}`}>{taskStatus}</span></td>
                       <td className="px-4 py-3"><button onClick={(event) => { event.stopPropagation(); setSelectedTask(task); }} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600">{task.action}</button></td>
@@ -1068,7 +1134,11 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
                 <p className="mt-4 text-xs font-medium text-neutral-400">Why this exists</p>
                 <p className="mt-1 text-sm leading-6 text-neutral-600">{selectedTask.evidence}</p>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                  {[["Owner", selectedTask.owner], ["Role", selectedTask.role], ["Due", selectedTask.due], ["Priority", selectedTask.priority]].map(([label, value]) => <div key={label} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 font-medium text-neutral-800">{value}</p></div>)}
+                  {[["Owner", ownerFor(selectedTask)], ["Role", selectedTask.role], ["Due", selectedTask.due], ["Priority", selectedTask.priority]].map(([label, value]) => <div key={label} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{label}</p>{label === "Owner" ? <button onClick={() => openMember(value)} className="mt-1 font-medium text-neutral-800 underline-offset-2 hover:underline">{value}</button> : <p className="mt-1 font-medium text-neutral-800">{value}</p>}</div>)}
+                </div>
+                <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                  <p className="text-xs font-medium text-neutral-500">Assign task</p>
+                  <div className="mt-2 flex flex-wrap gap-2">{teamMembers.map((member) => <button key={member.initials} onClick={() => assignTask(selectedTask, member.initials)} className={`rounded-full px-3 py-1 text-xs ${ownerFor(selectedTask) === member.initials ? "bg-neutral-950 text-white" : "bg-white text-neutral-600"}`}>{member.initials}</button>)}</div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button onClick={() => setDone((current) => current.includes(selectedTask.title) ? current : [...current, selectedTask.title])} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Mark done</button>
@@ -1083,12 +1153,13 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
               </div>
               <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                 <p className="text-xs font-medium text-neutral-500">Activity trail</p>
-                <div className="mt-3 space-y-2 text-xs text-neutral-600">{["Task created by workflow run", "Evidence linked from Vault/source", `Assigned to ${selectedTask.owner}`, "Awaiting human approval before write/send"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div>
+                <div className="mt-3 space-y-2 text-xs text-neutral-600">{["Task created by workflow run", "Evidence linked from Vault/source", `Assigned to ${ownerFor(selectedTask)}`, "Email notification queued to assignee", "Awaiting human approval before write/send"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div>
               </div>
             </div>
           ) : <div className="text-sm text-neutral-400">Select a task to inspect context, owner, evidence, and actions.</div>}
         </aside>
       </main>
+      {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={notification} onClose={() => setTeamOpen(false)} onAdd={addMember} onRemove={removeMember} />}
     </div>
   );
 }

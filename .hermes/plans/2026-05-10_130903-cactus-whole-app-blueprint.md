@@ -209,7 +209,8 @@ For internal/product review, explain each primary page's job in chat or docs rat
 **Tasks + Activity:**
 - Add a first-class Tasks + Activity destination before backend integration so tasks are not hidden inside Workflows or Spaces only.
 - Tasks should roll up work from Vault review, workflow maintenance, Spaces collaboration, investor workflows, lender workflows, broker workflows, connectors, scrapers, and output approvals.
-- The page should support role/job filters (Investor, Lender, Broker, Internal), task views (My tasks, Team, Maintenance, Vault review, Activity), search, and a detail drawer with evidence/context, related Space/Vault/workflow, assignee, due state, and actions.
+- The page should support role/job filters (Investor, Lender, Broker, Internal), task views (My tasks, Team, Maintenance, Vault review, Activity), search, and a detail drawer with evidence/context, related Space/Vault/workflow, assignee, due state, actions, assignment controls, and a visible email-notification state when a task is created or assigned.
+- Team member chips/avatars across Tasks and Spaces should be clickable and open a member/team drawer where the user can add/remove teammates or change assignment/access.
 - Activity should show meaningful product events — source connected, extraction completed, fact approved/rejected, workflow failed/retried, scraper repaired, Space created, output drafted/sent — not just technical logs.
  
  **Global rules:**

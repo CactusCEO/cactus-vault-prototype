@@ -446,6 +446,8 @@ Recommended Tasks + Activity UI:
 - Top-level app destination named `Tasks` or `Tasks + Activity` with compact filters/search.
 - Views: `My tasks`, `Team`, `Maintenance`, `Vault review`, `Activity`.
 - Filter by role/job type: Investor, Lender, Broker, Internal, All.
-- Each task row should show title, source/workflow, related Space/Vault context, owner, due/status, priority, and one primary action.
-- Selecting a task opens a detail drawer with evidence/context, next actions, related Vault rows/Space/workflow, and a short activity timeline.
-- Activity rows should be searchable and linked back to the underlying Space, Vault row, workflow run, or connector.
+- Each task row should show title, source/workflow, related Space/Vault context, owner/assignee, due/status, priority, and one primary action.
+- Selecting a task opens a detail drawer with evidence/context, next actions, related Vault rows/Space/workflow, a short activity timeline, and assignment controls.
+- Team members shown in tasks, Spaces, and collaboration surfaces should be clickable. Clicking a teammate opens a team/member drawer where the user can add/remove team members, adjust access, or reassign work.
+- Creating or assigning a task should visibly queue an email notification to the assignee in prototype state; backend email delivery will later own the real notification.
+- Activity rows should be searchable and linked back to the underlying Space, Vault row, workflow run, connector, assignee, or notification event.
