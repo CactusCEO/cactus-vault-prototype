@@ -36,6 +36,8 @@ const sourceRunLabels = [
   "Demo Vault loaded",
 ];
 
+const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as const;
+
 const systemCards = [
   {
     title: "Opportunity Finder",
@@ -608,7 +610,7 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(2)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
-            <button onClick={() => { onChooseSource(selectedSource); go(5); }} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue</button>
+            <button onClick={() => { onChooseSource(selectedSource); go(6); }} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to Vault setup</button>
           </div>
         </div>
       </div>
@@ -1047,7 +1049,7 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
@@ -1056,7 +1058,7 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
   const [filterOpen, setFilterOpen] = useState(false);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
   const [sourceSetupStatus, setSourceSetupStatus] = useState("Not started");
-  const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected">("deal");
+  const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected">(sourceSetupKeyByIndex[sourceIndex]);
   const [folderName, setFolderName] = useState("none");
   const [columns, setColumns] = useState([
     { key: "location", label: "Location", prompt: "Identify the property or market geography.", format: "Text" },
@@ -1115,94 +1117,121 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
     },
   ];
   const selectedSetup = vaultSetupModes.find((mode) => mode.key === selectedSetupMode) ?? vaultSetupModes[0];
-  const sourceSetupModal = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25">
-      <div className="max-h-[86vh] w-[980px] overflow-hidden rounded-2xl border border-neutral-200 bg-white text-neutral-950 shadow-2xl">
-        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
-          <div>
-            <p className="text-sm font-semibold">Add to Vault</p>
-            <p className="mt-1 text-xs text-neutral-500">Start with the type of CRE data you have. Cactus will scope it, map it, and ask you to review before anything becomes trusted.</p>
-          </div>
-          <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
-        </div>
-
-        <div className="grid max-h-[calc(86vh-73px)] grid-cols-[310px_1fr] overflow-hidden">
-          <aside className="border-r border-neutral-200 bg-neutral-50 p-4">
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-neutral-400">What are you adding?</p>
-            <div className="space-y-2">
-              {vaultSetupModes.map((mode) => {
-                const active = selectedSetupMode === mode.key;
-                return (
-                  <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`w-full rounded-xl border p-4 text-left ${active ? "border-neutral-950 bg-white shadow-sm" : "border-neutral-200 bg-white/70 hover:bg-white"}`}>
-                    <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold">{mode.title}</p><span className="text-neutral-300">›</span></div>
-                    <p className="mt-1 text-xs leading-5 text-neutral-500">{mode.subtitle}</p>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-5 rounded-xl border border-neutral-200 bg-white p-3">
-              <p className="text-xs font-medium text-neutral-950">Advanced sources later</p>
-              <p className="mt-1 text-xs leading-5 text-neutral-500">Provider APIs, public data, listings, county records, and market watchers can be added after the first Vault path is clear.</p>
-            </div>
-          </aside>
-
-          <main className="overflow-auto p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs text-neutral-400">Vault setup path</p>
-                <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em]">{selectedSetup.title}</h3>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">{selectedSetup.examples}</p>
-              </div>
-              <span className={`rounded-md px-2 py-1 text-[11px] ${sourceSetupStatus.includes("Approved") || sourceSetupStatus.includes("created") ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{sourceSetupStatus}</span>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {selectedSetup.chips.map((chip) => <button key={chip} onClick={() => setSourceSetupStatus(`${chip} selected`)} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">{chip}</button>)}
-            </div>
-
-            <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200">
-              {[
-                ["1", "Scope", selectedSetup.scope],
-                ["2", "Map", selectedSetup.maps],
-                ["3", "Review", selectedSetup.review],
-              ].map(([number, label, text]) => (
-                <button key={label} onClick={() => setSourceSetupStatus(`${label} ready`)} className="grid w-full grid-cols-[48px_110px_1fr] border-b border-neutral-100 px-4 py-4 text-left last:border-b-0 hover:bg-neutral-50">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-neutral-950 text-[11px] text-white">{number}</span>
-                  <span className="text-sm font-medium">{label}</span>
-                  <span className="text-sm leading-6 text-neutral-500">{text}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-5 grid grid-cols-3 gap-3 text-xs">
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-950">No blind import</p><p className="mt-1 leading-5 text-neutral-500">Facts stay in review until approved, edited, or rejected.</p></div>
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-950">Source-linked</p><p className="mt-1 leading-5 text-neutral-500">Every value keeps file, page, cell, email, or system provenance.</p></div>
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-950">Controlled sync</p><p className="mt-1 leading-5 text-neutral-500">Recurring sources need scope, cadence, and cost approval.</p></div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
-              <p className="text-xs text-neutral-500">Next: create a review queue, then write approved rows and endpoint columns into the Vault.</p>
-              <div className="flex gap-2">
-                <button onClick={() => setSourceSetupStatus(`${selectedSetup.title} setup created`)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">{selectedSetup.primary}</button>
-                <button onClick={() => { setSourceSetupStatus(`Approved ${selectedSetup.title}`); setSourceCenterOpen(false); }} className="rounded-md border border-neutral-200 px-4 py-2 text-xs font-medium text-neutral-700">Approve + add</button>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-    </div>
-  );
   const addColumn = () => {
     setColumns((current) => [...current, { key: `custom-${current.length}`, label: "YR 1 NOI", prompt: "Extract Year 1 NOI from the selected documents or model and cite the source line.", format: "Currency" }]);
     setShowColumnBuilder(false);
   };
+  const runSelectedSource = () => {
+    setSourceSetupStatus(`${selectedSetup.title} submitted`);
+    setSourceCenterOpen(false);
+    onCompleteIntake(sourceIndex);
+  };
+  const sourceSetupModal = (
+    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-neutral-950/20">
+      <aside className="flex h-full w-[520px] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
+        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
+          <div>
+            <p className="text-sm font-semibold">Create your Vault</p>
+            <p className="mt-1 text-xs text-neutral-500">One source path, one review queue, then Cactus writes approved rows and endpoint columns.</p>
+          </div>
+          <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+        </div>
+
+        <div className="flex-1 overflow-auto p-5">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Selected from onboarding</p>
+          <div className="mt-3 rounded-xl border border-neutral-950 bg-neutral-50 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold tracking-[-0.03em]">{selectedSetup.title}</h3>
+                <p className="mt-1 text-sm leading-6 text-neutral-500">{selectedSetup.examples}</p>
+              </div>
+              <span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{sourceSetupStatus}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {vaultSetupModes.map((mode) => (
+              <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`rounded-md border px-2.5 py-1.5 text-xs ${selectedSetupMode === mode.key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"}`}>{mode.title}</button>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-xl border border-neutral-200">
+            {[
+              ["Choose", selectedSetup.primary, selectedSetup.scope],
+              ["Review", "Cactus shows the queue first", selectedSetup.review],
+              ["Vault", "Rows + endpoint columns", selectedSetup.maps],
+            ].map(([label, title, note]) => (
+              <button key={label} onClick={() => setSourceSetupStatus(`${label} ready`)} className="flex w-full gap-3 border-b border-neutral-100 px-4 py-3 text-left last:border-b-0 hover:bg-neutral-50">
+                <span className="mt-0.5 w-14 shrink-0 text-xs font-medium text-neutral-400">{label}</span>
+                <span>
+                  <span className="block text-sm font-medium text-neutral-950">{title}</span>
+                  <span className="mt-1 block text-xs leading-5 text-neutral-500">{note}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-xs leading-5 text-neutral-600">
+            <p className="font-medium text-neutral-950">Review before trust</p>
+            <p className="mt-1">Every value keeps file/page/cell/email provenance and stays untrusted until approved, edited, or rejected.</p>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-dashed border-neutral-300 bg-white p-4 text-center">
+            <p className="text-sm font-medium text-neutral-950">{selectedSetup.primary}</p>
+            <p className="mt-1 text-xs text-neutral-500">Prototype action: create the first source and open the extracting Vault.</p>
+            <button onClick={runSelectedSource} className="mt-4 rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Submit to Vault</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  );
 
   if (!hasIntake) {
     return (
-      <div className="p-8">
-        <main className="mx-auto max-w-4xl rounded-[1.5rem] border border-neutral-200 bg-white p-6 shadow-sm">
-          <SectionHeader eyebrow="Empty Vault" title={`Set up ${sourceTitle} to fill the Vault`} subtitle="Your Vault is empty until the first source runs. Start from the source you chose in onboarding, then Cactus creates property/market rows and data endpoint columns." />
-          <button onClick={() => setSourceCenterOpen(true)} className="rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Add first source</button>
+      <div className="flex h-screen flex-col bg-white text-neutral-950">
+        <header className="flex h-14 items-center justify-between border-b border-neutral-100 px-6">
+          <div>
+            <h1 className="font-serif text-2xl font-medium tracking-[-0.03em]">Vault</h1>
+            <p className="text-xs text-neutral-500">Cactus Capital Partners · Multifamily · no sources connected</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setSourceCenterOpen(true)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">Change path</button>
+            <button onClick={() => setSourceCenterOpen(true)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">{selectedSetup.primary}</button>
+          </div>
+        </header>
+
+        <div className="flex h-10 items-center justify-between border-b border-neutral-100 px-6 text-xs text-neutral-500">
+          <span>Selected in onboarding: <strong className="font-medium text-neutral-800">{sourceTitle}</strong></span>
+          <span>Source → Review queue → Vault rows/columns → Spaces/outputs</span>
+        </div>
+
+        <main className="flex min-h-0 flex-1 flex-col p-6">
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+            <div className="grid h-9 grid-cols-[220px_160px_160px_160px_1fr] border-b border-neutral-200 bg-neutral-50 px-3 text-xs font-medium text-neutral-400">
+              {['Entity / source', 'Address / market', 'Owner', 'NOI', 'Source status'].map((heading) => <div key={heading} className="flex items-center border-r border-neutral-200 last:border-r-0">{heading}</div>)}
+            </div>
+            <div className="relative min-h-[430px] bg-white">
+              {Array.from({ length: 8 }).map((_, row) => (
+                <div key={row} className="grid h-12 grid-cols-[220px_160px_160px_160px_1fr] border-b border-neutral-50 px-3">
+                  {Array.from({ length: 5 }).map((__, col) => <div key={col} className="flex items-center border-r border-neutral-50 last:border-r-0"><span className="h-4 w-24 rounded bg-neutral-100" /></div>)}
+                </div>
+              ))}
+              <section className="absolute inset-0 flex items-center justify-center bg-white/85">
+                <div className="w-full max-w-[560px] rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Create your Vault from {sourceTitle}</h2>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-neutral-500">Cactus has the workspace and asset-class context. It still needs the source you chose before it can create property rows, market rows, data endpoints, and reviewable citations.</p>
+                  <div className="mt-5 grid grid-cols-3 gap-2 text-left text-xs">
+                    {[["1", "Add source", selectedSetup.primary], ["2", "Review", "Approve extracted facts"], ["3", "Use Vault", "Select rows → Space"]].map(([number, title, note]) => <div key={title} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><span className="text-neutral-400">{number}</span><p className="mt-1 font-medium text-neutral-950">{title}</p><p className="mt-1 leading-5 text-neutral-500">{note}</p></div>)}
+                  </div>
+                  <div className="mt-5 flex items-center justify-center gap-2">
+                    <button onClick={() => setSourceCenterOpen(true)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">{selectedSetup.primary}</button>
+                    <button onClick={() => go(5)} className="rounded-md border border-neutral-200 px-4 py-2 text-xs text-neutral-600">Ask Assistant</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
         </main>
 
         {sourceCenterOpen && sourceSetupModal}
@@ -1649,7 +1678,7 @@ export default function Home() {
   const isDark = theme === "dark";
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} />;
     if (active === 7) return <Spaces go={setActive} />;
     if (active === 8) return <Workflows go={setActive} />;
     return <Spaces go={setActive} />;

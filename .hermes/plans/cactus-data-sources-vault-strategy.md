@@ -139,13 +139,15 @@ The Vault source center should give every source type a clear creation path, not
 
 Provider APIs, public data, and listing/records watchers should be available as secondary/advanced additions, not the first thing users have to parse.
 
-Each source setup should answer five questions in a compact flow:
+Each source setup should answer five questions, but the default prototype should answer them inline and lightly rather than through a heavy modal/wizard:
 
 1. **Choose source type** — one-off file, imported list/comps, live inbox/folder, listing/record watcher, or provider/public data API.
 2. **Scope** — exact files, folders, senders, markets, saved searches, providers, endpoints, asset classes, and geography levels Cactus may use.
 3. **Map into the Vault** — which Vault rows and endpoint columns will be created or updated; e.g. properties, owners, comps, markets, risks, debt quotes, rent roll lines, T-12 line items, provider benchmarks.
 4. **Set refresh/cost rules** — one-time extraction, manual refresh, daily watcher, weekly pulse, monthly provider refresh, premium call approval, cache/freshness labels.
 5. **Review before activation** — facts enter the Vault with source link, citation/cell/page/URL, confidence, freshness, cost state, and approve/edit/reject review state.
+
+The first-run empty Vault should carry the onboarding choice directly into the Vault surface. Use a Mike-like empty table/workspace: quiet toolbar, no connected sources, a centered source-specific first action, and a compact preview of the rows/columns Cactus will create. `Add to Vault` should open a narrow focused sheet/drawer for the selected path, not a large left-nav modal. Let users switch paths only as a small secondary control.
 
 Source-specific setup examples:
 

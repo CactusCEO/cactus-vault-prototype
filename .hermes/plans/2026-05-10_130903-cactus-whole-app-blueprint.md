@@ -162,10 +162,10 @@ Pick one source and one first job. Cactus will show a plan before anything runs.
 **UX pattern:**
 - Do not show this as a separate confirmation screen in the main flow.
 - The Step 3 choice itself is the plan: selected source/path plus selected first job.
-- After Step 3, open Assistant directly with the selected source action already visible.
+- After Step 3, open directly into the selected first-source path. For Vault-building source choices, this can be the empty Vault setup surface rather than generic Assistant.
 - Avoid forcing the user to re-confirm the same source/job or re-choose among all sources.
-- Make the post-onboarding app start as an empty assistant/workspace with documents/projects/workflows concepts, adapted from MikeOSS for CRE.
-- The first app screen must include an obvious upload/connect function plus a visible explanation of how source data becomes Cactus value: extract facts → create Vault records → surface review lists/Spaces/outputs.
+- Make the post-onboarding app start as an empty MikeOSS-like workspace/table when no data is connected: the Vault exists, but rows are empty until the selected source runs.
+- The first app screen must include an obvious upload/connect/import action plus a visible explanation of how source data becomes Cactus value: source → extract/review → Vault rows/columns → Spaces/outputs.
 - Only show generated opportunities, rows, maps, or memos after real source data or demo data has been explicitly chosen.
 
 **Avoid:**
