@@ -224,7 +224,7 @@ function AppWorkHeader() {
   return null;
 }
 
-function Homepage({ go }: { go: (screenIndex: number) => void }) {
+function Homepage({ onSignup, onSignin }: { onSignup: () => void; onSignin: () => void }) {
   return (
     <div className="grid min-h-[690px] grid-cols-[1fr_440px] gap-8 p-8">
       <div className="flex flex-col justify-between rounded-[2rem] border border-neutral-200 bg-white p-10 shadow-sm">
@@ -259,8 +259,8 @@ function Homepage({ go }: { go: (screenIndex: number) => void }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => go(1)} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Build your engine</button>
-          <button onClick={() => go(1)} className="rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-neutral-700">Sign in</button>
+          <button onClick={onSignup} className="rounded-full bg-neutral-950 px-5 py-3 text-sm font-medium text-white shadow-sm">Build your engine</button>
+          <button onClick={onSignin} className="rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-medium text-neutral-700">Sign in</button>
         </div>
       </div>
       <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4">
@@ -327,8 +327,9 @@ function ThemeToggle({ theme, setTheme }: { theme: "light" | "dark"; setTheme: (
   );
 }
 
-function SignupScreen({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex: number) => void; theme: "light" | "dark"; initialMode?: "signup" | "signin" }) {
+  const [mode, setMode] = useState<"signup" | "signin">(initialMode);
+  const [emailSent, setEmailSent] = useState(false);
   const isSignup = mode === "signup";
   const isDark = theme === "dark";
 
@@ -371,10 +372,10 @@ function SignupScreen({ go, theme }: { go: (screenIndex: number) => void; theme:
 
         <div className="mx-auto mt-7 max-w-md">
           <div className="space-y-3">
-            <button onClick={() => go(2)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => isSignup ? go(2) : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="text-base">G</span>{isSignup ? "Sign up with Google" : "Sign in with Google"}
             </button>
-            <button onClick={() => go(2)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => isSignup ? go(2) : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="grid grid-cols-2 gap-0.5">
                 <span className="h-2 w-2 bg-[#f25022]" /><span className="h-2 w-2 bg-[#7fba00]" /><span className="h-2 w-2 bg-[#00a4ef]" /><span className="h-2 w-2 bg-[#ffb900]" />
               </span>{isSignup ? "Sign up with Microsoft" : "Sign in with Microsoft"}
@@ -384,14 +385,19 @@ function SignupScreen({ go, theme }: { go: (screenIndex: number) => void; theme:
           <div className={`my-5 flex items-center gap-3 text-xs ${muted}`}><div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} />or use work email<div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} /></div>
           <label className={`text-xs font-medium ${muted}`}>Work email</label>
           <input className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] ${inputClass}`} placeholder="you@company.com" />
-          <button onClick={() => go(2)} className={`mt-3 w-full rounded-xl px-4 py-3 text-sm font-medium transition ${primaryCta}`}>{isSignup ? "Create account" : "Email me a sign-in link"}</button>
+          <button onClick={() => isSignup ? go(2) : setEmailSent(true)} className={`mt-3 w-full rounded-xl px-4 py-3 text-sm font-medium transition ${primaryCta}`}>{isSignup ? "Create account" : emailSent ? "Sign-in link sent" : "Email me a sign-in link"}</button>
+          {!isSignup && emailSent && (
+            <div className={`mt-3 rounded-xl border px-3 py-2 text-left text-xs leading-5 ${isDark ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+              Check your email for a secure sign-in link. Prototype state only — backend auth will own this action.
+            </div>
+          )}
 
           <p className={`mt-4 text-center text-xs leading-5 ${muted}`}>
             {isSignup ? "Free 50-document trial · No payment before setup · Add more sources during trial" : "Returning workspace · SSO and org login later"}
           </p>
           <p className={`mt-3 text-center text-xs ${muted}`}>
             {isSignup ? "Already have an account? " : "New to Cactus? "}
-            <button onClick={() => setMode(isSignup ? "signin" : "signup")} className={`font-medium underline-offset-4 hover:underline ${isDark ? "text-emerald-200" : "text-neutral-900"}`}>
+            <button onClick={() => { setEmailSent(false); setMode(isSignup ? "signin" : "signup"); }} className={`font-medium underline-offset-4 hover:underline ${isDark ? "text-emerald-200" : "text-neutral-900"}`}>
               {isSignup ? "Sign in" : "Create an account"}
             </button>
           </p>
@@ -687,9 +693,8 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
 }
 
 function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void }) {
-  const [contextOpen, setContextOpen] = useState(false);
+  const [activeComposerTool, setActiveComposerTool] = useState<"context" | "workflow" | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
-  const [workflowOpen, setWorkflowOpen] = useState(false);
   const [enhanced, setEnhanced] = useState(false);
   const [asked, setAsked] = useState(false);
   const [vaultCheckbox, setVaultCheckbox] = useState(true);
@@ -708,14 +713,22 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
   const promptText = enhanced
     ? "Review the files/context I attach, create a Space if this is durable work, and call a workflow when the request repeats."
     : "Ask Cactus to review a deal, create a Space, build a Vault datapoint, or run a saved CRE workflow…";
+  const openComposerTool = (tool: "context" | "workflow") => {
+    setSourceOpen(false);
+    setActiveComposerTool((current) => current === tool ? null : tool);
+  };
+  const openAdd = () => {
+    setActiveComposerTool(null);
+    setSourceOpen(true);
+  };
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
       <header className="flex h-12 items-center justify-end border-b border-neutral-100 px-8">
         <div className="flex items-center gap-2">
-          <button onClick={() => setContextOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Context</button>
-          <button onClick={() => setWorkflowOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Workflow</button>
-          <button onClick={() => setSourceOpen(true)} className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">Add +</button>
+          <button onClick={() => openComposerTool("context")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Context</button>
+          <button onClick={() => openComposerTool("workflow")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Workflow</button>
+          <button onClick={openAdd} className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">Add +</button>
         </div>
       </header>
 
@@ -730,9 +743,9 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
             <textarea className="h-32 w-full resize-none px-3 py-3 text-[15px] outline-none placeholder:text-neutral-400" placeholder={promptText} defaultValue={enhanced ? promptText : ""} />
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-2 pt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <button onClick={() => setSourceOpen(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Add +</button>
-                <button onClick={() => setContextOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▣ Context</button>
-                <button onClick={() => setWorkflowOpen((open) => !open)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▤ Workflow</button>
+                <button onClick={openAdd} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Add +</button>
+                <button onClick={() => openComposerTool("context")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▣ Context</button>
+                <button onClick={() => openComposerTool("workflow")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">▤ Workflow</button>
                 <button onClick={() => setEnhanced(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Enhance prompt</button>
                 {filesAdded && <span className="rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-700">7 files attached</span>}
               </div>
@@ -755,7 +768,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
             </div>
           )}
 
-          {contextOpen && (
+          {activeComposerTool === "context" && (
             <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <div><p className="text-xs font-medium text-neutral-800">Vault context for this ask</p><p className="mt-1 text-xs text-neutral-500">Choose the rows, reports, maps, or datasets Cactus should use before it acts.</p></div>
@@ -765,11 +778,11 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
               <div className="grid grid-cols-2 gap-2">
                 {[...contextChips.slice(0, 4), "Drive-time micro Vault", "Unmatched portfolio queue"].map((chip) => <button key={chip} className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left text-xs text-neutral-700 hover:border-[#2b0052]"><span>{chip}</span><span className="text-neutral-400">+</span></button>)}
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-neutral-100 pt-3 text-xs"><span className="text-neutral-500">3 Vault rows · 1 report · latest context</span><button onClick={() => setContextOpen(false)} className="rounded-md bg-neutral-950 px-3 py-2 font-medium text-white">Apply context</button></div>
+              <div className="mt-3 flex items-center justify-between border-t border-neutral-100 pt-3 text-xs"><span className="text-neutral-500">3 Vault rows · 1 report · latest context</span><button onClick={() => setActiveComposerTool(null)} className="rounded-md bg-neutral-950 px-3 py-2 font-medium text-white">Apply context</button></div>
             </div>
           )}
 
-          {workflowOpen && (
+          {activeComposerTool === "workflow" && (
             <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-medium text-neutral-700">Call a saved workflow from Assistant</p>
@@ -800,7 +813,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
               </label>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-              <button onClick={() => { setContextOpen(true); setSourceOpen(false); }} className="rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-50"><span className="font-medium">Add from Vault</span><span className="mt-1 block text-xs text-neutral-500">Attach existing rows, folders, market rows, or provider datasets.</span></button>
+              <button onClick={() => { setSourceOpen(false); setActiveComposerTool("context"); }} className="rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-50"><span className="font-medium">Add from Vault</span><span className="mt-1 block text-xs text-neutral-500">Attach existing rows, folders, market rows, or provider datasets.</span></button>
               <button onClick={() => { setSourceOpen(false); go(6); }} className="rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-50"><span className="font-medium">Live source</span><span className="mt-1 block text-xs text-neutral-500">Drive, email, deal rooms, listing watchers, and provider feeds need scope/sync/cost approval in Vault.</span></button>
             </div>
           </div>
@@ -960,19 +973,33 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [runState, setRunState] = useState("Ready");
   const [newMode, setNewMode] = useState("Ongoing");
   const [newStart, setNewStart] = useState("Assistant command");
+  const [maintenanceOpen, setMaintenanceOpen] = useState(false);
   const filtered = workflowLibrary
     .filter((workflow) => activeTab === "all" || (activeTab === "ongoing" ? workflow.mode === "Ongoing" : workflow.mode === "Template"))
     .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output].join(" ").toLowerCase().includes(search.toLowerCase()));
   const toggle = (name: string) => setSelectedIds((current) => current.includes(name) ? current.filter((id) => id !== name) : [...current, name]);
   const allSelected = filtered.length > 0 && filtered.every((workflow) => selectedIds.includes(workflow.name));
   const detail = workflowLibrary.find((workflow) => workflow.name === selectedWorkflow);
+  const maintenanceTasks = [
+    ["Gmail re-auth", "Inbox watcher", "Assign"],
+    ["Crexi selector changed", "Listing scraper", "Retry"],
+    ["Review queue overdue", "Extraction review", "Open"]
+  ];
+  const updateSearch = (value: string) => {
+    setSearch(value);
+    setSelectedWorkflow(null);
+  };
+  const updateTab = (value: "all" | "ongoing" | "template") => {
+    setActiveTab(value);
+    setSelectedWorkflow(null);
+  };
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
         <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Workflows</h1>
         <div className="flex items-center gap-2">
-          <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-8 w-64 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search OM parser, BOV, submarket pulse…" />
+          <input value={search} onChange={(event) => updateSearch(event.target.value)} className="h-8 w-64 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search OM parser, BOV, submarket pulse…" />
           <button onClick={() => setNewOpen(true)} className="grid h-8 w-8 place-items-center rounded-md text-lg text-neutral-500 hover:bg-neutral-100">+</button>
         </div>
       </header>
@@ -980,14 +1007,14 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
         <div className="flex items-center gap-5 text-sm">
           {[["all", "All"], ["ongoing", "Ongoing automations"], ["template", "One-off templates"]].map(([key, label]) => (
-            <button key={key} onClick={() => setActiveTab(key as "all" | "ongoing" | "template")} className={`${activeTab === key ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{label}</button>
+            <button key={key} onClick={() => updateTab(key as "all" | "ongoing" | "template")} className={`${activeTab === key ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{label}</button>
           ))}
         </div>
         <div className="flex items-center gap-4 text-xs text-neutral-400">
           {selectedIds.length > 0 && <button onClick={() => setRunState(`${selectedIds.length} selected · batch action ready`)} className="text-neutral-700">Actions</button>}
-          <button onClick={() => setSearch("Sourcing")}>Sourcing</button>
-          <button onClick={() => setSearch("Underwriting")}>Underwriting</button>
-          <button onClick={() => setSearch("Market Intel")}>Market intel</button>
+          <button onClick={() => updateSearch("Sourcing")}>Sourcing</button>
+          <button onClick={() => updateSearch("Underwriting")}>Underwriting</button>
+          <button onClick={() => updateSearch("Market Intel")}>Market intel</button>
         </div>
       </div>
 
@@ -1021,9 +1048,28 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         <button onClick={() => go(5)} className="ml-3 text-neutral-700">Open Assistant</button>
         <button onClick={() => go(6)} className="ml-3 text-neutral-700">Choose Vault rows</button>
       </div>
-      <div className="border-t border-amber-100 bg-amber-50 px-8 py-2 text-xs text-amber-800">
-        Tasks: 2 workflow maintenance items · Gmail watcher needs re-auth · Crexi scraper selector changed · assign/retry from task queue.
+      <div className="flex items-center gap-2 border-t border-amber-100 bg-amber-50 px-8 py-2 text-xs text-amber-800">
+        <span className="font-medium">Maintenance</span>
+        {maintenanceTasks.map(([title, source, action]) => (
+          <button key={title} onClick={() => setMaintenanceOpen(true)} className="rounded-full border border-amber-200 bg-white px-3 py-1 text-left text-amber-800 hover:bg-amber-100">
+            {title} <span className="text-amber-500">· {source} · {action}</span>
+          </button>
+        ))}
       </div>
+
+      {maintenanceOpen && (
+        <aside className="absolute right-0 top-0 z-50 h-full w-[420px] border-l border-amber-200 bg-white p-5 shadow-2xl">
+          <div className="flex items-center justify-between"><div><p className="text-sm font-medium">Workflow maintenance tasks</p><p className="mt-1 text-xs text-neutral-500">Failures and upkeep become assignable tasks before backend automation runs unattended.</p></div><button onClick={() => setMaintenanceOpen(false)}>×</button></div>
+          <div className="mt-5 space-y-3">
+            {maintenanceTasks.map(([title, source, action]) => (
+              <div key={title} className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
+                <div className="flex items-start justify-between gap-3"><div><p className="font-medium text-neutral-950">{title}</p><p className="mt-1 text-xs text-amber-800">{source} · owner needed · due today</p></div><span className="rounded-md bg-white px-2 py-1 text-[11px] text-amber-700">{action}</span></div>
+                <div className="mt-3 flex gap-2"><button onClick={() => setRunState(`${title} assigned to TS`)} className="rounded-md bg-neutral-950 px-2.5 py-1.5 text-xs text-white">Assign</button><button onClick={() => setRunState(`${title} retry queued`)} className="rounded-md border border-amber-200 bg-white px-2.5 py-1.5 text-xs text-amber-800">Retry</button><button onClick={() => setRunState(`${title} review opened`)} className="rounded-md border border-amber-200 bg-white px-2.5 py-1.5 text-xs text-amber-800">Review</button></div>
+              </div>
+            ))}
+          </div>
+        </aside>
+      )}
 
       {detail && (
         <aside className="absolute right-0 top-0 z-40 h-full w-[460px] border-l border-neutral-200 bg-white p-5 shadow-2xl">
@@ -1104,6 +1150,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
   const [auditOpen, setAuditOpen] = useState(false);
+  const [auditFocus, setAuditFocus] = useState<{ row: string; field: string; value: string } | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
@@ -1128,6 +1175,14 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     { id: "national", kind: "Benchmark", location: "U.S. National\n(same asset class)", client: "", irr: "", cap: "", noi: "2.2%", demand: "1.8%", climate: "Varies", rent: "$1,310 (±4% · n=22)" },
     { id: "provider-report", kind: "Report", location: "Green Street report\n(Southeast MF)", client: "", irr: "", cap: "5.4%", noi: "2.9%", demand: "2.1%", climate: "Source", rent: "" },
   ];
+  const normalizedSearch = aiSearch.trim().toLowerCase();
+  const filteredVaultRows = normalizedSearch
+    ? vaultRows.filter((row) => Object.values(row).join(" ").toLowerCase().includes(normalizedSearch))
+    : vaultRows;
+  const openAuditFor = (row: typeof vaultRows[number], column: typeof columns[number]) => {
+    setAuditFocus({ row: row.location.split("\n").join(" "), field: column.label.split("\n").join(" "), value: String(row[column.key as keyof typeof row] || "Needs extraction") });
+    setAuditOpen(true);
+  };
   const selectedCount = selectedRows.length;
   const sourceRun = sourceRunLabels[sourceIndex];
   const sourceTitle = sourceCards[sourceIndex].title;
@@ -1328,8 +1383,14 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
           </div>
 
           <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
-            {microVault} · {sourceRun} · extraction filling this grid · {aiSearch ? `AI search: ${aiSearch}` : "rows may be properties, markets, or provider reports"} · columns are data endpoints you can create
+            {microVault} · {sourceRun} · extraction filling this grid · {aiSearch ? `AI search: ${aiSearch} · ${filteredVaultRows.length}/${vaultRows.length} rows visible` : "rows may be properties, markets, or provider reports"} · columns are data endpoints you can create
           </div>
+
+          {aiSearch && (
+            <div className="border-b border-purple-100 bg-[#fbf4ff] px-4 py-2 text-xs text-[#2b0052]">
+              AI search preview: filtered the Vault locally for “{aiSearch}”. Backend AI will expand this into semantic search, citations, and suggested micro-vaults.
+            </div>
+          )}
 
           {filterOpen && (
             <div className="border-b border-neutral-200 bg-white px-4 py-3 text-xs text-neutral-600">
@@ -1363,7 +1424,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                 </tr>
               </thead>
               <tbody>
-                {vaultRows.map((row, rowIndex) => {
+                {filteredVaultRows.map((row, rowIndex) => {
                   const selected = selectedRows.includes(row.id);
                   return (
                     <tr key={row.id} className={`${selected ? "bg-[#fbf4ff]" : rowIndex % 2 ? "bg-white" : "bg-white"} hover:bg-[#fbf4ff]`}>
@@ -1373,7 +1434,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                           <td key={`${row.id}-${column.key}`} className={`h-[64px] border-b border-r border-neutral-200 px-3 align-middle ${index === 0 ? "sticky left-0 z-10 bg-inherit font-medium text-[#22003f]" : "text-[#22003f]"}`}>
                             <div className="flex items-center gap-2">
                               {index === 0 && <input type="checkbox" checked={selected} onChange={() => toggleRow(row.id)} className="h-3 w-3 accent-[#2b0052]" aria-label={`select ${row.location}`} />}
-                              {value ? <span className="whitespace-pre-line leading-5">{value}</span> : <span className="block h-6 w-full rounded bg-neutral-100" />}
+                              {value ? <button onClick={() => openAuditFor(row, column)} className="whitespace-pre-line text-left leading-5 underline-offset-2 hover:underline">{value}</button> : <button onClick={() => openAuditFor(row, column)} className="block h-6 w-full rounded bg-neutral-100" aria-label={`Audit empty ${column.label} for ${row.location}`} />}
                             </div>
                             {index === 0 && <p className="ml-5 mt-1 text-[11px] text-neutral-400">{row.kind}</p>}
                           </td>
@@ -1402,7 +1463,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                   <button onClick={() => setMicroVault("Drive-time micro Vault")} className="rounded-md border border-neutral-200 px-2 py-1.5 text-neutral-600">3 mi radius</button>
                   <button onClick={() => setMicroVault("Drive-time micro Vault")} className="rounded-md border border-neutral-200 px-2 py-1.5 text-neutral-600">15 min drive</button>
                 </div>
-                {vaultRows.map((row, index) => (
+                {filteredVaultRows.map((row, index) => (
                   <button key={`vault-pin-${row.id}`} onClick={() => toggleRow(row.id)} className={`absolute ${["left-[28%] top-[45%]", "left-[36%] top-[38%]", "left-[48%] top-[50%]", "left-[62%] top-[42%]", "left-[72%] top-[58%]"][index]} group`}>
                     <span className={`grid h-9 w-9 place-items-center rounded-full border-2 border-white text-xs font-semibold shadow-lg ${selectedRows.includes(row.id) ? "bg-pink-200 text-[#2b0052]" : "bg-[#2b0052] text-white"}`}>{index + 1}</span>
                     <span className="absolute left-7 top-8 hidden w-56 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{row.location.split("\n").join(" ")}</span><br /><span className="text-neutral-500">{row.kind} · {row.cap || row.noi || "source context"}</span></span>
@@ -1412,7 +1473,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
                 <div className="border-b border-neutral-200 px-4 py-3"><p className="text-sm font-semibold text-[#22003f]">Vault rows on map</p><p className="mt-1 text-xs text-neutral-500">Select rows or draw a radius/drive time to open a micro-vault, then chat to create a Space.</p></div>
                 <div className="max-h-[500px] overflow-auto p-3">
-                  {vaultRows.map((row) => (
+                  {filteredVaultRows.map((row) => (
                     <button key={`vault-map-list-${row.id}`} onClick={() => toggleRow(row.id)} className={`mb-2 flex w-full items-start justify-between rounded-xl border p-3 text-left ${selectedRows.includes(row.id) ? "border-[#2b0052] bg-[#fbf4ff]" : "border-neutral-200 hover:bg-neutral-50"}`}>
                       <span><span className="block text-sm font-medium text-[#22003f]">{row.location.split("\n").join(" ")}</span><span className="mt-1 block text-xs text-neutral-500">{row.kind} · Cap {row.cap || "—"} · NOI {row.noi || "—"}</span></span>
                       <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{selectedRows.includes(row.id) ? "Selected" : "Select"}</span>
@@ -1449,7 +1510,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       {auditOpen && (
         <aside className="fixed right-0 top-0 z-50 h-full w-[980px] border-l border-neutral-200 bg-white text-[#22003f] shadow-2xl">
           <div className="flex h-14 items-center justify-between border-b border-neutral-200 px-5">
-            <div><p className="text-sm font-semibold">Verify extracted facts</p><p className="text-xs text-neutral-500">Original source on the left. Facts, citations, and approval controls on the right.</p></div>
+            <div><p className="text-sm font-semibold">Verify extracted facts{auditFocus ? ` · ${auditFocus.field}` : ""}</p><p className="text-xs text-neutral-500">{auditFocus ? `${auditFocus.row} · current value: ${auditFocus.value}` : "Original source on the left. Facts, citations, and approval controls on the right."}</p></div>
             <button onClick={() => setAuditOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
           </div>
           <div className="grid h-[calc(100%-56px)] grid-cols-[1fr_380px]">
@@ -1477,7 +1538,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               </div>
               <div className="space-y-2">
                 {[
-                  ["Total Units", "136", "PDF · page 4", "95%"],
+                  [auditFocus?.field ?? "Total Units", auditFocus?.value ?? "136", "Selected Vault cell · source citation", "96%"],
                   ["Address", "16 Enviro Drive, Moncton", "PDF · page 4", "99%"],
                   ["Property Type", "Self-storage facility", "PDF · page 4", "95%"],
                   ["Year Built", "2021", "PDF · page 4", "97%"],
@@ -1763,6 +1824,7 @@ function Activity() {
 export default function Home() {
   const [active, setActive] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
   const [hasIntake, setHasIntake] = useState(false);
   const [sourceIndex, setSourceIndex] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -1777,8 +1839,8 @@ export default function Home() {
     return <Spaces go={setActive} />;
   };
 
-  if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage go={setActive} /></>;
-  if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} /></>;
+  if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage onSignup={() => { setAuthMode("signup"); setActive(1); }} onSignin={() => { setAuthMode("signin"); setActive(1); }} /></>;
+  if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} initialMode={authMode} /></>;
   if (active === 2) return <><ThemeToggle theme={theme} setTheme={setTheme} /><AccountSetup go={setActive} theme={theme} /></>;
   if (active === 3) return <><ThemeToggle theme={theme} setTheme={setTheme} /><VaultSetup go={setActive} theme={theme} onChooseSource={setSourceIndex} /></>;
   if (active === 4) return <><ThemeToggle theme={theme} setTheme={setTheme} /><LiveExtraction go={setActive} theme={theme} /></>;

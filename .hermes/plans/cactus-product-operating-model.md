@@ -414,3 +414,14 @@ The next connected prototype pass should show a Space as the center of real work
 - Assistant: keep the composer simple. `Vault context` opens a focused context picker, not a confusing generic feature. Send is an icon button; mic is a separate voice affordance with a small glowing talk state. Sending should route into a Space/chat workroom so the request becomes durable.
 - Empty Vault setup: after onboarding source selection, route directly to the relevant source action. Upload documents means choose/drop deal files immediately, with review/audit noted secondarily. The user should not have to decode an explanatory three-step card.
 - Spaces should use depth/texture carefully to explain hierarchy: history/list first, then individual Space as split workroom with left chat/workstream and right output canvas/tasks/context.
+
+## Pre-backend hardening sprint
+
+Before wiring auth, AI APIs, OCR, Google Maps, email/Drive connectors, scrapers, or workflow execution, harden the prototype interaction contract:
+
+- Auth must distinguish new signup from returning login; landing sign-in routes directly to login mode and email login shows a visible magic-link confirmation.
+- Assistant composer tools are exclusive. Context, Workflow, and Add are different modes of the same composer, so opening one closes the others.
+- Vault AI search should have a visible local response before a real AI endpoint exists: filtered rows/result count plus clear search scope.
+- Vault audit should be focused by row/cell/fact selection so source verification feels connected to the grid.
+- Workflow library search/filter must not leave stale detail drawers open when the selected workflow is hidden; maintenance issues should become task chips/drawers users can assign, retry, or review.
+- Static prototype controls should either mutate visible state, open a drawer/modal, navigate, or clearly say what backend endpoint will own them later.

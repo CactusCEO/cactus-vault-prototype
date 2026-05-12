@@ -197,6 +197,15 @@ For internal/product review, explain each primary page's job in chat or docs rat
 - Source popups must be practical action surfaces, not three-step confirmation pages. Prefer drag/drop, selected files, Vault-import controls, and clear “live sources are managed in Vault” routing over selectable pseudo-steps.
 - Extraction audit is a core competitive surface. Users need a visual document/fact verification view: the original PDF/Excel/design stays visually intact on one side, while extracted facts, confidence, source location, and approve/edit/reject controls sit beside it. Clicking a fact should reveal the exact page/cell/line highlight without redesigning the source document.
 
+**Pre-backend hardening rules:**
+- Landing `Sign in` must route directly to login mode, while `Build your engine` routes to signup mode.
+- Login email actions should show a visible magic-link confirmation state before real auth exists.
+- Assistant composer tools are mutually exclusive: Context, Workflow, and Add should not stack on top of each other.
+- Vault AI search must visibly respond before backend integration, even if only through local row filtering plus a small result/status panel.
+- Vault audit should be row/cell-aware: clicking a fact should open audit focused on that selected row/field, not a generic review drawer.
+- Workflow search/filter changes must close or reconcile stale detail drawers when the selected workflow is no longer visible.
+- Workflow maintenance issues should be task chips/drawers with assign/retry/review affordances, not clipped status prose.
+
 **Global rules:**
 - Compact nav.
 - Clear active state.
