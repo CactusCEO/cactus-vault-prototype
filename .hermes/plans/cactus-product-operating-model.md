@@ -38,6 +38,12 @@ The persistent app menu should now mirror Mike's system model, translated into C
 
 The shell should feel like Mike: quiet sidebar, compact toolbars, dense tables, assistant-first interaction, and no extra dashboard chrome.
 
+Clickable page goals:
+- **Assistant** starts the loop. It explains what the user can do next, lets them add data, attach Vault rows, or start a Space/Workflow.
+- **Vault** proves where data goes. It shows extraction, custom datapoint columns, provenance/review states, and selected context that can be used by Assistant, Spaces, or Workflows.
+- **Spaces** make work durable. They are the place for analysis/playground, tasks, files, assumptions, sharing, and outputs created from selected Vault context or Assistant requests.
+- **Workflows** automate what became repeatable. They package Vault context, selected data sets, and Space/output patterns into reusable CRE work instructions.
+
 ## Vault
 
 The Vault is the master memory and source of truth. It should be visibly filled by source data, not appear pre-populated without explanation.

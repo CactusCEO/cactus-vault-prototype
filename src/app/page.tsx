@@ -189,6 +189,20 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
   );
 }
 
+function PageGoal({ page, goal, connects }: { page: string; goal: string; connects: string }) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Page goal</p>
+          <p className="mt-1 font-medium text-neutral-950">{page}: {goal}</p>
+        </div>
+        <p className="max-w-xl text-xs leading-5 text-neutral-500">{connects}</p>
+      </div>
+    </div>
+  );
+}
+
 const appNav = [
   ["Assistant", "✦", 5],
   ["Spaces", "□", 7],
@@ -679,7 +693,8 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
 
       <main className="flex flex-1 flex-col items-center justify-center px-8 pb-10">
         <div className="w-full max-w-4xl">
-          <div className="mb-8 flex items-center justify-center gap-4">
+          <PageGoal page="Assistant" goal="start or steer any CRE job" connects="Add the first source, attach selected Vault context, create a Space for durable work, or turn a repeated task into a Workflow." />
+          <div className="mb-8 mt-8 flex items-center justify-center gap-4">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#2b0052] text-sm font-semibold text-white">C</div>
             <h1 className="font-serif text-4xl font-light tracking-[-0.03em] text-neutral-900">Hi, Tyler</h1>
           </div>
@@ -738,7 +753,12 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
             <div className="rounded-xl border border-neutral-200 bg-white p-5">
               <p className="text-sm font-medium text-neutral-950">Common Cactus work</p>
               <div className="mt-3 space-y-2">
-                {["Create a deal review Space", "Pull market data into selected rows", "Build an IC memo workflow", "Add a YR 1 NOI endpoint"].map((item) => <button key={item} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50"><span>{item}</span><span className="text-neutral-300">→</span></button>)}
+                {[
+                  ["Create a deal review Space", 7],
+                  ["Pull market data into selected rows", 6],
+                  ["Build an IC memo workflow", 8],
+                  ["Add a YR 1 NOI endpoint", 6],
+                ].map(([item, target]) => <button key={item as string} onClick={() => go(target as number)} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50"><span>{item}</span><span className="text-neutral-300">→</span></button>)}
               </div>
             </div>
           </section>
@@ -749,13 +769,91 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
 }
 function Spaces({ go }: { go: (screenIndex: number) => void }) {
   const [view, setView] = useState<"grid" | "list" | "map">("grid");
+  const [selectedWorkspace, setSelectedWorkspace] = useState<(typeof workspaceLibrary)[number] | null>(null);
+  const [spaceTab, setSpaceTab] = useState<"work" | "playground" | "outputs">("work");
   const viewButtons: Array<["grid" | "list" | "map", string]> = [["grid", "Grid"], ["list", "List"], ["map", "Map"]];
+
+  if (selectedWorkspace) {
+    return (
+      <div className="flex h-screen flex-col bg-white text-neutral-950">
+        <header className="flex h-14 items-center justify-between border-b border-neutral-200 px-8">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSelectedWorkspace(null)} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-500">← Spaces</button>
+            <div>
+              <p className="text-sm font-medium">{selectedWorkspace.title}</p>
+              <p className="text-xs text-neutral-500">{selectedWorkspace.address} · {selectedWorkspace.market}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Open Vault context</button>
+            <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">Automate this</button>
+            <button className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">Share</button>
+          </div>
+        </header>
+        <main className="grid min-h-0 flex-1 grid-cols-[260px_1fr_360px] overflow-hidden">
+          <aside className="border-r border-neutral-200 bg-neutral-50 p-4">
+            <PageGoal page="Space" goal="do the actual work" connects="A Space is created from Assistant or selected Vault rows. It holds scoped context, analysis/playground, files, tasks, outputs, and sharing." />
+            <div className="mt-4 space-y-1">
+              {[["work", "Work"], ["playground", "Playground"], ["outputs", "Outputs"]].map(([key, label]) => <button key={key} onClick={() => setSpaceTab(key as "work" | "playground" | "outputs")} className={`w-full rounded-md px-3 py-2 text-left text-sm ${spaceTab === key ? "bg-white font-medium text-neutral-950 shadow-sm" : "text-neutral-600 hover:bg-white"}`}>{label}</button>)}
+            </div>
+            <div className="mt-5 rounded-xl border border-neutral-200 bg-white p-3">
+              <p className="text-xs font-medium text-neutral-500">Scoped Vault context</p>
+              {['Subject Property', 'Nashville MSA', 'Green Street report'].map((row) => <div key={row} className="mt-2 rounded-md bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700">{row}</div>)}
+            </div>
+          </aside>
+
+          <section className="overflow-auto p-8">
+            {spaceTab === "work" && (
+              <div className="max-w-4xl">
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">Workspace brief</h2>
+                <p className="mt-2 text-sm leading-6 text-neutral-500">Cactus keeps the deal context, source trail, tasks, and analyst conversation together so this is more than a one-off chat.</p>
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  {[["Status", selectedWorkspace.status], ["Context", "3 Vault rows"], ["Next", "Review assumptions"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 bg-white p-4"><p className="text-xs text-neutral-400">{label}</p><p className="mt-2 text-sm font-medium">{value}</p></div>)}
+                </div>
+                <div className="mt-5 rounded-2xl border border-neutral-200 bg-white p-5">
+                  <p className="text-sm font-medium">Open work items</p>
+                  <div className="mt-3 space-y-2">{['Confirm T12 NOI variance', 'Refresh rent comps against market row', 'Draft recommendation section', 'Freeze source appendix before share'].map((item, i) => <button key={item} className="flex w-full items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-left text-sm"><span>{item}</span><span className="text-xs text-neutral-400">{i === 0 ? 'Review' : 'Open'}</span></button>)}</div>
+                </div>
+              </div>
+            )}
+            {spaceTab === "playground" && (
+              <div className="max-w-4xl">
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">Playground</h2>
+                <p className="mt-2 text-sm leading-6 text-neutral-500">Run what-needs-to-change analysis against Vault facts and market benchmarks without leaving the Space.</p>
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  {[["Seller case", "15.8% IRR"], ["Cactus base", "12.4% IRR"], ["Needed", "$1.3M price cut"]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-4"><p className="text-xs text-neutral-400">{label}</p><p className="mt-2 text-lg font-medium">{value}</p></div>)}
+                </div>
+                <textarea className="mt-5 h-28 w-full resize-none rounded-2xl border border-neutral-200 p-4 text-sm outline-none" placeholder="Ask: What needs to change for this to hit a 16% IRR?" />
+              </div>
+            )}
+            {spaceTab === "outputs" && (
+              <div className="max-w-4xl">
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">Outputs</h2>
+                <p className="mt-2 text-sm leading-6 text-neutral-500">Outputs are the business endpoint: memos, BOVs, lender packages, investor updates, OMs, and diligence summaries.</p>
+                <div className="mt-6 grid grid-cols-2 gap-3">{outputArtifacts.map(([type, name, status, context]) => <button key={`${type}-${name}`} className="rounded-xl border border-neutral-200 p-4 text-left hover:bg-neutral-50"><p className="text-sm font-medium">{type}</p><p className="mt-1 text-xs text-neutral-500">{name} · {context}</p><span className="mt-3 inline-flex rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{status}</span></button>)}</div>
+              </div>
+            )}
+          </section>
+
+          <aside className="border-l border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-sm font-medium">Space assistant</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-500">Uses only this Space, selected Vault rows, attached docs, and approved data sets.</p>
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3">
+              <textarea className="h-28 w-full resize-none text-sm outline-none" placeholder="Ask the analyst to change assumptions, draft output sections, or explain source evidence…" />
+              <button className="mt-3 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Send</button>
+            </div>
+          </aside>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-[720px] bg-white text-neutral-950">
+    <div className="flex h-screen flex-col bg-white text-neutral-950">
       <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.04em]">Spaces History</h2>
-          <p className="mt-1 text-xs text-neutral-500"></p>
+          <p className="mt-1 text-xs text-neutral-500">Durable workrooms created from Assistant requests or selected Vault context.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
@@ -763,15 +861,16 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
               <button key={key} onClick={() => setView(key)} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${view === key ? "bg-white text-[#2b0052] shadow-sm" : "text-neutral-500"}`}>{label}</button>
             ))}
           </div>
-          <button className="rounded-xl bg-[#2b0052] px-4 py-2.5 text-sm font-medium text-white">+ New Workspace</button>
+          <button onClick={() => setSelectedWorkspace(workspaceLibrary[0])} className="rounded-xl bg-[#2b0052] px-4 py-2.5 text-sm font-medium text-white">+ New Workspace</button>
         </div>
       </div>
 
-      <main className="p-6">
+      <main className="overflow-auto p-6">
+        <PageGoal page="Spaces" goal="make Cactus work durable" connects="Vault rows or Assistant chats become Spaces. This is where analysis, playground, tasks, sharing, and outputs happen before repeatable work becomes a Workflow." />
         {view === "grid" && (
-          <div className="grid grid-cols-3 gap-5">
-            {workspaceLibrary.map((workspace, index) => (
-              <button key={workspace.title} onClick={() => go(index === 0 ? 7 : 12)} className="min-h-[166px] rounded-xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:border-[#2b0052] hover:shadow-md">
+          <div className="mt-5 grid grid-cols-3 gap-5">
+            {workspaceLibrary.map((workspace) => (
+              <button key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="min-h-[166px] rounded-xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:border-[#2b0052] hover:shadow-md">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-lg font-semibold tracking-[-0.03em] text-neutral-950">{workspace.title}</p>
@@ -780,56 +879,22 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
                   <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span>
                 </div>
                 <div className="mt-8 flex items-center justify-between">
-                  <div className="flex -space-x-2">
-                    {workspace.team.map((person, personIndex) => <span key={`${workspace.title}-${person}`} className={`grid h-8 w-8 place-items-center rounded-full border-2 border-white text-[10px] font-semibold text-white ${["bg-[#2b0052]", "bg-neutral-700", "bg-amber-700", "bg-emerald-700"][personIndex % 4]}`}>{person}</span>)}
-                  </div>
+                  <div className="flex -space-x-2">{workspace.team.map((person, personIndex) => <span key={`${workspace.title}-${person}`} className={`grid h-8 w-8 place-items-center rounded-full border-2 border-white text-[10px] font-semibold text-white ${["bg-[#2b0052]", "bg-neutral-700", "bg-amber-700", "bg-emerald-700"][personIndex % 4]}`}>{person}</span>)}</div>
                   <span className="text-xs text-neutral-400">{workspace.updated}</span>
                 </div>
               </button>
             ))}
           </div>
         )}
-
         {view === "list" && (
-          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-neutral-200 bg-neutral-50 text-xs text-neutral-500">
-                <tr>{["Workspace", "Type", "Location", "Team", "Updated", "Status"].map((header) => <th key={header} className="px-4 py-3 font-medium">{header}</th>)}</tr>
-              </thead>
-              <tbody>
-                {workspaceLibrary.map((workspace, index) => (
-                  <tr key={workspace.title} onClick={() => go(index === 0 ? 7 : 12)} className="cursor-pointer border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50">
-                    <td className="px-4 py-4 font-medium text-neutral-950">{workspace.title}</td>
-                    <td className="px-4 py-4 text-neutral-500">{workspace.type}</td>
-                    <td className="px-4 py-4 text-neutral-500">{workspace.address} · {workspace.market}</td>
-                    <td className="px-4 py-4"><div className="flex -space-x-2">{workspace.team.slice(0, 3).map((person) => <span key={`${workspace.title}-list-${person}`} className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-[9px] font-semibold text-white">{person}</span>)}</div></td>
-                    <td className="px-4 py-4 text-neutral-500">{workspace.updated}</td>
-                    <td className="px-4 py-4"><span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-600">{workspace.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm"><thead className="border-b border-neutral-200 bg-neutral-50 text-xs text-neutral-500"><tr>{["Workspace", "Type", "Location", "Team", "Updated", "Status"].map((header) => <th key={header} className="px-4 py-3 font-medium">{header}</th>)}</tr></thead><tbody>{workspaceLibrary.map((workspace) => <tr key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="cursor-pointer border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-4 font-medium text-neutral-950">{workspace.title}</td><td className="px-4 py-4 text-neutral-500">{workspace.type}</td><td className="px-4 py-4 text-neutral-500">{workspace.address} · {workspace.market}</td><td className="px-4 py-4"><div className="flex -space-x-2">{workspace.team.slice(0, 3).map((person) => <span key={`${workspace.title}-list-${person}`} className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-[9px] font-semibold text-white">{person}</span>)}</div></td><td className="px-4 py-4 text-neutral-500">{workspace.updated}</td><td className="px-4 py-4"><span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-600">{workspace.status}</span></td></tr>)}</tbody></table>
           </div>
         )}
-
         {view === "map" && (
-          <div className="grid min-h-[580px] grid-cols-[1fr_360px] gap-5">
-            <div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-[#eef0eb] shadow-sm">
-              <div className="absolute inset-0 opacity-70 [background-image:linear-gradient(35deg,transparent_47%,rgba(82,82,82,.14)_48%,rgba(82,82,82,.14)_52%,transparent_53%),linear-gradient(120deg,transparent_47%,rgba(82,82,82,.10)_48%,rgba(82,82,82,.10)_52%,transparent_53%)] [background-size:160px_160px,220px_220px]" />
-              <div className="absolute left-6 top-5 rounded-full border border-neutral-200 bg-white/90 px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm">Workspace map · Los Angeles focus</div>
-              {workspaceLibrary.map((workspace, index) => (
-                <button key={`pin-${workspace.title}`} onClick={() => go(index === 0 ? 7 : 12)} className={`absolute ${workspace.pin} group`}>
-                  <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-xs font-semibold text-white shadow-lg">{index + 1}</span>
-                  <span className="absolute left-5 top-7 hidden w-52 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{workspace.title}</span><br /><span className="text-neutral-500">{workspace.type} · {workspace.status}</span></span>
-                </button>
-              ))}
-            </div>
-            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-              <div className="border-b border-neutral-200 px-4 py-3"><p className="text-sm font-semibold">Mapped work history</p><p className="mt-1 text-xs text-neutral-500">Pins are Spaces tied to properties, markets, or portfolio work.</p></div>
-              <div className="max-h-[510px] overflow-auto p-3">
-                {workspaceLibrary.map((workspace, index) => <button key={`map-list-${workspace.title}`} onClick={() => go(index === 0 ? 7 : 12)} className="flex w-full items-start gap-3 rounded-xl p-3 text-left hover:bg-neutral-50"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#2b0052] text-xs text-white">{index + 1}</span><span><span className="block text-sm font-medium text-neutral-950">{workspace.title}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{workspace.address}<br />{workspace.status} · {workspace.updated}</span></span></button>)}
-              </div>
-            </div>
+          <div className="mt-5 grid min-h-[580px] grid-cols-[1fr_360px] gap-5">
+            <div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-[#eef0eb] shadow-sm"><div className="absolute inset-0 opacity-70 [background-image:linear-gradient(35deg,transparent_47%,rgba(82,82,82,.14)_48%,rgba(82,82,82,.14)_52%,transparent_53%),linear-gradient(120deg,transparent_47%,rgba(82,82,82,.10)_48%,rgba(82,82,82,.10)_52%,transparent_53%)] [background-size:160px_160px,220px_220px]" /><div className="absolute left-6 top-5 rounded-full border border-neutral-200 bg-white/90 px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm">Spaces map · same history</div>{workspaceLibrary.map((workspace, index) => <button key={`pin-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className={`absolute ${workspace.pin} group`}><span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-[#2b0052] text-xs font-semibold text-white shadow-lg">{index + 1}</span><span className="absolute left-5 top-7 hidden w-52 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{workspace.title}</span><br /><span className="text-neutral-500">{workspace.type} · {workspace.status}</span></span></button>)}</div>
+            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"><div className="border-b border-neutral-200 px-4 py-3"><p className="text-sm font-semibold">Mapped work history</p><p className="mt-1 text-xs text-neutral-500">Pins are Spaces tied to properties, markets, or portfolio work.</p></div><div className="max-h-[510px] overflow-auto p-3">{workspaceLibrary.map((workspace, index) => <button key={`map-list-${workspace.title}`} onClick={() => setSelectedWorkspace(workspace)} className="flex w-full items-start gap-3 rounded-xl p-3 text-left hover:bg-neutral-50"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#2b0052] text-xs text-white">{index + 1}</span><span><span className="block text-sm font-medium text-neutral-950">{workspace.title}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{workspace.address}<br />{workspace.status} · {workspace.updated}</span></span></button>)}</div></div>
           </div>
         )}
       </main>
@@ -856,6 +921,9 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         </div>
         <button className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ New workflow</button>
       </header>
+      <div className="border-b border-neutral-200 bg-white px-8 py-3">
+        <PageGoal page="Workflows" goal="automate repeatable CRE work" connects="Workflows are created after Assistant/Vault/Spaces reveal a repeatable process, then they reuse approved Vault rows, data sets, and output templates." />
+      </div>
       <main className="grid min-h-0 flex-1 grid-cols-[380px_1fr] overflow-hidden">
         <aside className="overflow-auto border-r border-neutral-200 bg-neutral-50 p-4">
           {workflows.map(([name, detail, context, status]) => (
@@ -998,6 +1066,9 @@ function VaultTable({ hasIntake, go, sourceIndex }: { hasIntake: boolean; go: (s
 
           <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
             {sourceRun} · extraction filling this grid · rows may be properties, markets, or provider reports · columns are data endpoints you can create
+          </div>
+          <div className="border-b border-neutral-200 bg-white px-4 py-3">
+            <PageGoal page="Vault" goal="turn source data into structured CRE memory" connects="Vault feeds every other page: select rows for Assistant context, create Spaces from row chat, or use row sets as Workflow inputs." />
           </div>
 
           {vaultView === "table" ? (
