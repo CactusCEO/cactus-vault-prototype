@@ -405,7 +405,7 @@ The next connected prototype pass should show a Space as the center of real work
 - Ongoing workflows/scrapers need maintenance states and a task page: running, needs credentials, selector/source changed, low confidence, retrying, overdue review, and assigned owner.
 - Spaces are where multi-step CRE work happens. Space detail should be split screen: left chat/work/task stream with @person and /action shortcuts; right artifact canvas for documents, maps, tables, outputs, and results. Workflows can run inside Spaces and repeated work can be saved as a template.
 - Vault should support AI search, searchable micro-vault/folder dropdowns with a back path to main Vault, column resizing, cleaner top toolbar, and map-driven micro-vault creation from selected properties or dropped pins with radius/drive-time filters.
-- Account menu from the bottom-left profile should open org/settings surfaces: Account, Organization, Members, Billing/plan/trial, Integrations, Security/audit, Notifications, and Logout.
+- Bottom-left profile menu should not showcase static Account, Organization, Members, Billing/trial, or Integrations pages unless they contain real actions. Keep it to immediate actions: manage workspace/team/billing/integrations via the correct product surface or external console, appearance/sidebar controls, privacy/security docs in a new tab, notifications if actionable, and logout. Clicking outside any popup/side menu should close it.
 
 ## Latest UX corrections — account shell, Assistant, Vault setup, Spaces
 
@@ -498,7 +498,7 @@ Underwriting workflows should default to “prepare, check, map, and explain the
 
 ## Integrations, security, and data movement
 
-The Vault needs an integration center in both Vault and Account settings. It should organize connectors by user intent instead of a vendor list:
+The Vault needs the primary integration/source center. Account should not become a giant integration catalog or static settings showcase; when there are hundreds of integrations, users care about intent, source/destination direction, status, and the next action, not a vendor list in the profile menu. Organize connectors by user intent instead of a vendor list:
 
 - **Incoming to Vault**: Clay/enrichment, email, Drive/OneDrive, CRMs, property-management systems, accounting systems, banking/Plaid, scrapers/watchers, provider APIs, uploaded files, custom API, webhooks, and MCP tools that can add or query approved context.
 - **Outgoing from Vault**: exports to Excel/Sheets/CSV, CRM/task systems, email/report sending, webhooks, API reads, MCP tool calls, and downstream model/report destinations.

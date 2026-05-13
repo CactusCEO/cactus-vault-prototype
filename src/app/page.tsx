@@ -266,7 +266,8 @@ function TeamMemberDrawer({ member, members, onClose, onAdd, onRemove, notice }:
   const [activeMember, setActiveMember] = useState(member ?? members[0]?.initials ?? "TS");
   const selected = members.find((item) => item.initials === activeMember) ?? members[0] ?? teamDirectorySeed[0];
   return (
-    <aside className="fixed right-0 top-0 z-[70] h-full w-[420px] border-l border-neutral-200 bg-white p-5 shadow-2xl">
+    <div className="fixed inset-0 z-[70] bg-neutral-950/10" onClick={onClose}>
+    <aside onClick={(event) => event.stopPropagation()} className="absolute right-0 top-0 h-full w-[420px] border-l border-neutral-200 bg-white p-5 shadow-2xl">
       <div className="flex items-center justify-between"><div><p className="text-sm font-medium">Team + access</p><p className="mt-1 text-xs text-neutral-500">Click people anywhere to manage team membership, access, and assignments.</p></div><button onClick={onClose}>×</button></div>
       {notice && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{notice}</div>}
       <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
@@ -277,6 +278,7 @@ function TeamMemberDrawer({ member, members, onClose, onAdd, onRemove, notice }:
       <div className="mt-5 flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workspace team</p><button onClick={onAdd} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600">+ Add member</button></div>
       <div className="mt-3 space-y-2">{members.map((item) => <button key={item.initials} onClick={() => setActiveMember(item.initials)} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm hover:bg-neutral-50 ${activeMember === item.initials ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}><span className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{item.initials}</span><span><span className="block font-medium">{item.name}</span><span className="block text-xs text-neutral-500">{item.role}</span></span></span><span className="text-xs text-neutral-400">{item.access}</span></button>)}</div>
     </aside>
+    </div>
   );
 }
 
@@ -861,8 +863,8 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
       </main>
 
       {sourceOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25">
-          <div className="w-[620px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25" onClick={() => setSourceOpen(false)}>
+          <div onClick={(event) => event.stopPropagation()} className="w-[620px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <div><p className="text-sm font-medium text-neutral-950">Add</p><p className="mt-1 text-xs text-neutral-500">Files stay in Assistant. Vault ingestion is controlled by the checkbox. Live sources are managed in Vault.</p></div>
               <button onClick={() => setSourceOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
@@ -1000,7 +1002,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-xs font-medium text-neutral-500">People</p><div className="mt-3 flex items-center justify-between"><AvatarStack team={currentTeam} size="md" onPersonClick={openSpaceMember} /><button onClick={() => setShareOpen(true)} className="text-xs text-neutral-600">Manage</button></div></div>
           </aside>
         </main>
-        {shareOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div className="w-96 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl"><div className="flex items-center justify-between"><p className="text-sm font-medium">Share Space</p><button onClick={() => setShareOpen(false)}>×</button></div><div className="mt-4 space-y-2 text-sm">{[["TS", "Tyler Sellars", "Edit"], ["AK", "Acquisitions", "Edit"], ["MR", "Market research", "View"], ["JL", "External lender", "No access"]].map(([initials, name, access]) => <button key={name} onClick={() => openSpaceMember(initials)} className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left"><span className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{initials}</span>{name}</span><span>{access}</span></button>)}</div><button onClick={() => { setTeamNotice("Share email queued for selected Space collaborators."); setShareOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Copy share link</button></div></div>}
+        {shareOpen && <div onClick={() => setShareOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div onClick={(event) => event.stopPropagation()} className="w-96 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl"><div className="flex items-center justify-between"><p className="text-sm font-medium">Share Space</p><button onClick={() => setShareOpen(false)}>×</button></div><div className="mt-4 space-y-2 text-sm">{[["TS", "Tyler Sellars", "Edit"], ["AK", "Acquisitions", "Edit"], ["MR", "Market research", "View"], ["JL", "External lender", "No access"]].map(([initials, name, access]) => <button key={name} onClick={() => openSpaceMember(initials)} className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-left"><span className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{initials}</span>{name}</span><span>{access}</span></button>)}</div><button onClick={() => { setTeamNotice("Share email queued for selected Space collaborators."); setShareOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Copy share link</button></div></div>}
         {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
       </div>
     );
@@ -1029,7 +1031,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
         )}
       </main>
       {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
-      {newOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div className="w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex justify-between"><div><p className="text-sm font-medium">New Space</p><p className="mt-1 text-xs text-neutral-500">Simple workroom setup. Start blank, from Vault context, or from a workflow.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Riverside Flats Deal Review" /><p className="mt-4 text-xs font-medium text-neutral-500">Start with</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Selected Vault rows", "Vault folder", "Uploaded source", "Saved workflow", "Blank Space", "Market watch"].map((item)=><button key={item} onClick={() => setNewContext(item)} className={`rounded-lg border px-3 py-3 text-left hover:bg-neutral-50 ${newContext===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div><p className="mt-4 text-xs font-medium text-neutral-500">Context mode</p><div className="mt-2 flex gap-2 text-xs">{["Frozen snapshot", "Latest Vault context", "Auto-updating"].map((mode)=><button key={mode} onClick={() => setNewMode(mode)} className={`rounded-md border px-3 py-2 ${newMode===mode ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{mode}</button>)}</div><div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"><span className="text-xs text-neutral-500">Collaborators</span><AvatarStack team={["TS", "AK", "MR"]} onPersonClick={openSpaceMember} /></div><button onClick={() => { setSelectedWorkspace(workspaceLibrary[0]); setNewOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space from {newContext}</button></div></div>}
+      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div onClick={(event) => event.stopPropagation()} className="w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex justify-between"><div><p className="text-sm font-medium">New Space</p><p className="mt-1 text-xs text-neutral-500">Simple workroom setup. Start blank, from Vault context, or from a workflow.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Riverside Flats Deal Review" /><p className="mt-4 text-xs font-medium text-neutral-500">Start with</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Selected Vault rows", "Vault folder", "Uploaded source", "Saved workflow", "Blank Space", "Market watch"].map((item)=><button key={item} onClick={() => setNewContext(item)} className={`rounded-lg border px-3 py-3 text-left hover:bg-neutral-50 ${newContext===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div><p className="mt-4 text-xs font-medium text-neutral-500">Context mode</p><div className="mt-2 flex gap-2 text-xs">{["Frozen snapshot", "Latest Vault context", "Auto-updating"].map((mode)=><button key={mode} onClick={() => setNewMode(mode)} className={`rounded-md border px-3 py-2 ${newMode===mode ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{mode}</button>)}</div><div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"><span className="text-xs text-neutral-500">Collaborators</span><AvatarStack team={["TS", "AK", "MR"]} onPersonClick={openSpaceMember} /></div><button onClick={() => { setSelectedWorkspace(workspaceLibrary[0]); setNewOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space from {newContext}</button></div></div>}
     </div>
   );
 }
@@ -1339,8 +1341,8 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       )}
 
       {newOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-3 lg:p-6">
-          <div className="grid max-h-[92vh] w-full max-w-[1060px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-3 lg:p-6">
+          <div onClick={(event) => event.stopPropagation()} className="grid max-h-[92vh] w-full max-w-[1060px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl lg:grid-cols-[minmax(0,1fr)_360px]">
             <section className="min-h-0 overflow-auto p-4 lg:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">Build it as steps. Edit the chain on the right.</p></div>
@@ -1509,8 +1511,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     onCompleteIntake(selectedSetupSourceIndex);
   };
   const sourceSetupModal = (
-    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-neutral-950/20">
-      <aside className="flex h-full w-[640px] max-w-[96vw] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-neutral-950/20" onClick={() => setSourceCenterOpen(false)}>
+      <aside onClick={(event) => event.stopPropagation()} className="flex h-full w-[640px] max-w-[96vw] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
         <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
           <div><p className="text-sm font-semibold">Add to Vault</p><p className="mt-1 text-xs text-neutral-500">Drop files, import documents, or connect an app.</p></div>
           <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
@@ -1738,6 +1740,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       </div>
 
       {showColumnBuilder && (
+        <>
+        <button aria-label="Close column builder" onClick={() => setShowColumnBuilder(false)} className="fixed inset-0 z-30 cursor-default bg-transparent" />
         <div className="absolute right-14 top-28 z-40 w-[390px] rounded-2xl border border-neutral-200 bg-white p-5 text-[#22003f] shadow-2xl">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -1756,10 +1760,12 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
           <textarea className="mt-1 h-32 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm leading-5 outline-none" defaultValue={"For the searched property/market context, extract the average monthly 1BR rent for Class A multifamily properties.\n\nReturn: $X,XXX (±Y% · n=Z)\n\nCite the file, page, cell, email, or provider row used."} />
           <div className="mt-4 flex items-center justify-between text-xs text-neutral-400"><span>Use @ to mention columns</span><button onClick={addColumn} className="rounded-full bg-[#2b0052] px-3 py-2 text-xs font-medium text-white">AI generate</button></div>
         </div>
+        </>
       )}
 
       {auditOpen && (
-        <aside className="fixed right-0 top-0 z-50 h-full w-[980px] border-l border-neutral-200 bg-white text-[#22003f] shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-neutral-950/15" onClick={() => setAuditOpen(false)}>
+        <aside onClick={(event) => event.stopPropagation()} className="absolute right-0 top-0 h-full w-[980px] border-l border-neutral-200 bg-white text-[#22003f] shadow-2xl">
           <div className="flex h-14 items-center justify-between border-b border-neutral-200 px-5">
             <div><p className="text-sm font-semibold">Verify extracted facts{auditFocus ? ` · ${auditFocus.field}` : ""}</p><p className="text-xs text-neutral-500">{auditFocus ? `${auditFocus.row} · current value: ${auditFocus.value}` : "Original source on the left. Facts, citations, and approval controls on the right."}</p></div>
             <button onClick={() => setAuditOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
@@ -1808,13 +1814,17 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
             </div>
           </div>
         </aside>
+        </div>
       )}
 
       {templateOpen && (
+        <>
+        <button aria-label="Close templates" onClick={() => setTemplateOpen(false)} className="fixed inset-0 z-30 cursor-default bg-transparent" />
         <div className="absolute left-5 top-20 z-40 w-[340px] rounded-2xl border border-neutral-200 bg-white p-4 text-[#22003f] shadow-2xl">
           <div className="flex items-center justify-between"><p className="text-sm font-semibold">Vault templates</p><button onClick={() => setTemplateOpen(false)}>×</button></div>
           <div className="mt-4 space-y-2 text-sm">{["Acquisition screen", "Market benchmark pack", "Owner/contact research", "Debt quote comparison"].map((template) => <button key={template} onClick={() => setTemplateOpen(false)} className="block w-full rounded-lg border border-neutral-200 px-3 py-2 text-left hover:bg-neutral-50">{template}</button>)}</div>
         </div>
+        </>
       )}
 
       {sourceCenterOpen && sourceSetupModal}
@@ -2079,7 +2089,6 @@ export default function Home() {
   const [hasIntake, setHasIntake] = useState(false);
   const [sourceIndex, setSourceIndex] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [accountPage, setAccountPage] = useState("Account");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
   const renderAppScreen = () => {
@@ -2146,10 +2155,17 @@ export default function Home() {
               {!sidebarCollapsed && <span><span className="block text-sm font-medium">Tyler</span><span className="block text-xs text-neutral-500">Multifamily Vault</span></span>}
             </button>
             {accountOpen && (
-              <div className={`absolute bottom-16 ${sidebarCollapsed ? "left-2" : "left-3"} z-50 w-64 rounded-xl border border-neutral-200 bg-white p-2 text-sm shadow-2xl`}>
-                {["Account", "Organization", "Members", "Billing + trial", "Integrations", "Privacy + security", "Notifications", "Appearance"].map((item) => (
-                  <button key={item} onClick={() => item === "Privacy + security" ? window.open("/privacy-security", "_blank") : setAccountPage(item)} className={`block w-full rounded-md px-3 py-2 text-left ${accountPage === item ? "bg-neutral-100 text-neutral-950" : "text-neutral-600 hover:bg-neutral-50"}`}>{item}</button>
-                ))}
+              <div className={`absolute bottom-16 ${sidebarCollapsed ? "left-2" : "left-3"} z-50 w-72 rounded-xl border border-neutral-200 bg-white p-2 text-sm text-neutral-950 shadow-2xl`}>
+                <div className="px-3 py-2">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workspace actions</p>
+                </div>
+                <button onClick={() => { setActive(6); setAccountOpen(false); }} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Manage integrations in Vault</span><span className="text-neutral-400">▣</span></button>
+                <button onClick={() => { setActive(9); setAccountOpen(false); }} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Team + tasks</span><span className="text-neutral-400">✓</span></button>
+                <button onClick={() => window.open("/billing", "_blank")} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Billing</span><span className="text-neutral-400">↗</span></button>
+                <button onClick={() => window.open("/privacy-security", "_blank")} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Privacy + security</span><span className="text-neutral-400">↗</span></button>
+                <div className="my-1 border-t border-neutral-100" />
+                <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Theme</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-xs">{theme === "dark" ? "Dark" : "Light"}</span></button>
+                <button onClick={() => setSidebarCollapsed((collapsed) => !collapsed)} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Sidebar</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-xs">{sidebarCollapsed ? "Collapsed" : "Expanded"}</span></button>
                 <div className="my-1 border-t border-neutral-100" />
                 <button onClick={() => setActive(0)} className="block w-full rounded-md px-3 py-2 text-left text-red-600 hover:bg-red-50">Logout</button>
               </div>
@@ -2157,36 +2173,6 @@ export default function Home() {
           </div>
         </aside>
         {accountOpen && <button aria-label="Close account menu" onClick={() => setAccountOpen(false)} className="fixed inset-0 z-30 cursor-default bg-transparent" />}
-        {accountOpen && (
-          <div className={`fixed bottom-20 ${sidebarCollapsed ? "left-20" : "left-72"} z-40 w-[520px] rounded-2xl border border-neutral-200 bg-white p-5 text-neutral-950 shadow-2xl`}>
-            <div className="flex items-start justify-between">
-              <div><p className="text-sm font-semibold">{accountPage}</p><p className="mt-1 text-xs text-neutral-500">{accountPage === "Appearance" ? "Theme and sidebar preferences." : accountPage === "Billing + trial" ? "Trial usage, billing owner, and plan controls." : accountPage === "Integrations" ? "Connected sources, direction, and approval state." : `${accountPage} settings for this organization.`}</p></div>
-              <button onClick={() => setAccountOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
-            </div>
-            {accountPage === "Appearance" ? (
-              <div className="mt-4 space-y-3 text-xs">
-                <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="flex w-full items-center justify-between rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span><span className="block font-medium">Theme</span><span className="text-neutral-500">Switch between light and dark mode.</span></span><span className="rounded-md bg-neutral-100 px-2 py-1">{theme === "dark" ? "Dark" : "Light"}</span></button>
-                <button onClick={() => setSidebarCollapsed((collapsed) => !collapsed)} className="flex w-full items-center justify-between rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span><span className="block font-medium">Sidebar</span><span className="text-neutral-500">Collapse or expand the app menu.</span></span><span className="rounded-md bg-neutral-100 px-2 py-1">{sidebarCollapsed ? "Collapsed" : "Expanded"}</span></button>
-              </div>
-            ) : accountPage === "Integrations" ? (
-              <div className="mt-4 space-y-3 text-xs">
-                <div className="grid grid-cols-3 gap-2">{[["Incoming", integrationCatalog.filter((item) => item.lane !== "Outgoing").length], ["Outgoing", integrationCatalog.filter((item) => item.lane !== "Incoming").length], ["Needs approval", integrationCatalog.filter((item) => item.status.includes("Approval") || item.status.includes("Scope") || item.status.includes("Design")).length]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 text-lg font-semibold text-neutral-900">{value}</p></div>)}</div>
-                <div className="max-h-72 overflow-auto rounded-xl border border-neutral-200 p-2">{integrationCatalog.map((item) => <button key={item.name} onClick={() => setAccountPage("Integrations")} className="mb-1 flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">{item.name}</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[10px] text-neutral-600">{item.direction}</span></button>)}</div>
-                <button onClick={() => window.open("/privacy-security", "_blank")} className="w-full rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">Privacy + security</span><span className="mt-1 block text-neutral-500">Open policy, model/data use, and security docs in a new tab.</span></button>
-              </div>
-            ) : accountPage === "Security + audit" ? (
-              <div className="mt-4 space-y-3 text-xs">
-                {[ ["Model training", "Customer Vault data is not used to train public models in this prototype policy."], ["Where facts come from", "Every fact links to file/page/cell/email/API/source URL, timestamp, confidence, and reviewer."], ["Where data can go", "Outgoing API, MCP, webhooks, exports, emails, and reports require scoped destination approval."], ["Competitor / LLM access", "External users, competitors, and unapproved LLM tools cannot access org Vault context."], ["Write/send gates", "Human approval before trusted Vault writes, scheduled cost, emails, exports, or side effects."], ["Audit trail", "Connector scope, workflow run, approval, rejection, export, and model/tool access are logged." ]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-900">{label}</p><p className="mt-1 leading-5 text-neutral-600">{value}</p></div>)}
-              </div>
-            ) : (
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                {(accountPage === "Account" ? [["Name", "Tyler Sellars"], ["Email", "tyler@company.com"], ["Role", "Owner"], ["Login", "Google + email link"]] : accountPage === "Organization" ? [["Org", "Cactus Capital Partners"], ["Workspace", "Multifamily Vault"], ["Asset classes", "Multifamily + Self storage"], ["Region", "US"]] : accountPage === "Members" ? [["Active", "3 members"], ["Pending", "1 invite"], ["Default access", "Deals + comps"], ["External", "View-only links"]] : accountPage === "Billing + trial" ? [["Plan", "Trial access"], ["Documents", "7 / 50 used"], ["Billing", "No payment before setup"], ["Upgrade", "Add card later"]] : [["Email", "Weekly digest"], ["Workflow tasks", "Immediate"], ["Source errors", "Immediate"], ["Billing", "Owner only"]]).map(([label, value]) => (
-                  <div key={label} className="rounded-xl border border-neutral-200 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 font-medium text-neutral-800">{value}</p></div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         <section className="min-w-0 flex-1 overflow-hidden">
           {renderAppScreen()}
         </section>
