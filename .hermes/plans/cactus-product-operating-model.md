@@ -441,16 +441,15 @@ Task sources:
 
 Activity should not be a generic audit log only. It should show meaningful state changes across Vault/Spaces/Workflows: source connected, extraction completed, fact approved/rejected, Space created, workflow run started/failed, scraper repaired, output drafted/sent, and task assignment/status changes.
 
-Recommended Tasks + Activity UI:
+Recommended Tasks UI:
 
-- Top-level app destination named `Tasks` or `Tasks + Activity` with compact filters/search.
-- Views: `My tasks`, `Team`, `Maintenance`, `Vault review`, `Activity`.
-- Filter by role/job type: Investor, Lender, Broker, Internal, All.
-- Each task row should show title, source/workflow, related Space/Vault context, owner/assignee, due/status, priority, and one primary action.
-- Selecting a task opens a detail drawer with evidence/context, next actions, related Vault rows/Space/workflow, a short activity timeline, and assignment controls.
+- Top-level app destination named `Tasks`, not a confusing activity dashboard. The user's job is to triage, open the related work, approve/remove/assign, move work across stages, and complete tasks.
+- Default structure should behave more like folders/kanban than persona filters. Users can create or use folders such as `Vault review`, `Workflows`, `Spaces`, `Diligence`, `Investor reporting`, and `Maintenance`, then move tasks through `Inbox`, `Doing`, `Review`, and `Done`.
+- Each task card/row should show title, source/workflow, related Space/Vault context, owner/assignee, due/status, priority, and one primary action: open, approve, remove, assign, retry, or complete.
+- Selecting a task opens a detail drawer with evidence/context, next action, related Vault rows/Space/workflow, assignment controls, and direct `Open Space`, `Open Vault`, `Open workflow`, `Approve`, `Remove`, `Assign`, or `Complete` actions.
 - Team members shown in tasks, Spaces, and collaboration surfaces should be clickable. Clicking a teammate opens a team/member drawer where the user can add/remove team members, adjust access, or reassign work.
 - Creating or assigning a task should visibly queue an email notification to the assignee in prototype state; backend email delivery will later own the real notification.
-- Activity rows should be searchable and linked back to the underlying Space, Vault row, workflow run, connector, assignee, or notification event.
+- Activity should be secondary, not a primary page. Use it only when it creates value: evidence/history on a task, source provenance, org-level audit, workflow run history, or billing/security trace. Avoid generic usage feeds unless tied to an action or trust question.
 
 ## Scraper workflow builder
 
@@ -503,5 +502,8 @@ The Vault needs an integration center in both Vault and Account settings. It sho
 
 - **Incoming to Vault**: Clay/enrichment, email, Drive/OneDrive, CRMs, property-management systems, accounting systems, banking/Plaid, scrapers/watchers, provider APIs, uploaded files, custom API, webhooks, and MCP tools that can add or query approved context.
 - **Outgoing from Vault**: exports to Excel/Sheets/CSV, CRM/task systems, email/report sending, webhooks, API reads, MCP tool calls, and downstream model/report destinations.
-- **Connection setup**: scope first, then map fields to Vault rows/endpoints, set refresh/cost rules, require review before trusted writes, and show what data can leave the Vault.
+- **Connection setup**: scope first, then map fields to Vault rows/endpoints, set refresh/cost rules, require review before trusted writes, and show what data can leave the Vault. In the UI, integrations should be simple app tiles with no explanatory paragraph under every logo/name; detail appears only after selection.
+- **Document intake/audit**: creating a Vault should start with drag/drop/import documents or choosing an incoming app/source. Documents with unclear property/entity/location mapping should enter audit as unmatched items. The uploader can `Approve`, `Remove`, or `Assign` the confirmation task to someone else.
+- **Connector permissions**: show read/write direction plainly: `Read to Vault`, `Write from Vault`, or `Read + write`. Incoming connectors feed or enrich Vault facts; outgoing connectors export approved Vault facts/artifacts. Writes/sends require explicit approval.
 - **Security posture**: clearly answer whether data trains models, where facts came from, where they are sent, who can access them, what scopes were granted, and what audit/approval gates protect side effects. Competitors or external LLMs must not have access to customer Vault data; model/provider usage should be explicit and governed by org policy.
+- **Account security page**: the account menu should expose actionable settings only. If the surface is mostly policy/explanation, open a privacy/security page in a new tab instead of pretending it is an in-app workspace.

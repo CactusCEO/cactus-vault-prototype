@@ -220,18 +220,18 @@ const workflowExamples = [
 ] as const;
 
 const integrationCatalog = [
-  { name: "Gmail / Outlook", lane: "Incoming", group: "Email", status: "Scope needed", use: "Broker packages, attachments, sender details, deadlines", guardrail: "Read-only labels/senders first" },
-  { name: "Google Drive / OneDrive", lane: "Incoming", group: "Files", status: "Ready", use: "Deal rooms, rent rolls, T-12s, models, reports", guardrail: "Folder + file-type scope" },
-  { name: "Clay", lane: "Incoming", group: "Enrichment", status: "Plan", use: "Owner/contact enrichment and outbound list context", guardrail: "Write to review queue only" },
-  { name: "Salesforce / HubSpot / Affinity", lane: "Both", group: "CRM", status: "Map fields", use: "Pipeline, contacts, owner outreach, broker relationships", guardrail: "Approved fields only" },
-  { name: "Yardi / RealPage / AppFolio / Entrata", lane: "Incoming", group: "Property management", status: "Not connected", use: "Rent roll, occupancy, charges, delinquency, unit history", guardrail: "Property/entity mapping required" },
-  { name: "QuickBooks / NetSuite / Sage", lane: "Incoming", group: "Accounting", status: "Not connected", use: "T-12, GL, budget variance, investor reporting", guardrail: "Period/version snapshots" },
-  { name: "Plaid / Banking", lane: "Incoming", group: "Banking", status: "Approval required", use: "Cash activity, debt payments, reserves, reconciliation", guardrail: "Least-privilege account scope" },
-  { name: "CoStar / Crexi / LoopNet watchers", lane: "Incoming", group: "Scrapers", status: "2 maintenance tasks", use: "Deal sourcing, listing changes, comp refreshes", guardrail: "Cadence + cost approval" },
-  { name: "Provider APIs", lane: "Incoming", group: "Market data", status: "Configured", use: "Green Street, ATTOM, HelloData, FEMA, FRED, ACS", guardrail: "Cache, cost, freshness policy" },
-  { name: "Vault API", lane: "Outgoing", group: "API", status: "Design", use: "Read/write approved Vault objects from customer systems", guardrail: "Scoped tokens + audit log" },
-  { name: "Vault MCP", lane: "Both", group: "MCP", status: "Design", use: "Let approved agents query/create Vault context and tasks", guardrail: "No unapproved writes or broad export" },
-  { name: "Webhooks / exports", lane: "Outgoing", group: "Export", status: "Plan", use: "Push approved facts, tasks, reports, CSV/Excel/Sheets", guardrail: "Destination approval before send" },
+  { name: "Gmail / Outlook", lane: "Incoming", direction: "Read to Vault", group: "Email", status: "Scope needed", use: "Broker packages, attachments, sender details, deadlines", guardrail: "Read-only labels/senders first" },
+  { name: "Google Drive / OneDrive", lane: "Incoming", direction: "Read to Vault", group: "Files", status: "Scope needed", use: "Folders, deal rooms, OMs, T12s, rent rolls", guardrail: "Approved folders only" },
+  { name: "Clay", lane: "Incoming", direction: "Read to Vault", group: "Enrichment", status: "Not connected", use: "Owner/company enrichment and contact signals", guardrail: "Review before trusted contact writes" },
+  { name: "Salesforce / HubSpot / Affinity", lane: "Both", direction: "Read + write", group: "CRM", status: "Map fields", use: "Pipeline, contacts, owner outreach, broker relationships", guardrail: "Approved fields only" },
+  { name: "Yardi / RealPage / AppFolio / Entrata", lane: "Incoming", direction: "Read to Vault", group: "PM", status: "Not connected", use: "Rent rolls, occupancy, delinquency, property IDs", guardrail: "Read-only reports first" },
+  { name: "QuickBooks / NetSuite / Sage", lane: "Incoming", direction: "Read to Vault", group: "Accounting", status: "Not connected", use: "T12, GL, budget variance, cash reports", guardrail: "Period + entity scoped" },
+  { name: "Plaid / banking", lane: "Incoming", direction: "Read to Vault", group: "Banking", status: "Approval required", use: "Cash history, debt payments, reserves", guardrail: "Read-only accounts" },
+  { name: "Provider APIs", lane: "Incoming", direction: "Read to Vault", group: "Data", status: "Cost approval", use: "Green Street, ATTOM, HelloData, Census, FRED", guardrail: "Cost + license visible" },
+  { name: "Watchers / scrapers", lane: "Incoming", direction: "Read to Vault", group: "Sourcing", status: "Needs review", use: "Crexi, LoopNet, county records, saved searches", guardrail: "Approval before recurring runs" },
+  { name: "Vault API", lane: "Both", direction: "Read + write", group: "API", status: "Design", use: "Programmatic read/write with scoped tokens", guardrail: "Least-privilege tokens" },
+  { name: "Vault MCP", lane: "Both", direction: "Read + write", group: "MCP", status: "Design", use: "Approved tool access to Vault context/actions", guardrail: "Tool scopes + audit" },
+  { name: "Exports / webhooks", lane: "Outgoing", direction: "Write from Vault", group: "Outbound", status: "Approval required", use: "Sheets, Excel, CRM updates, emails, reports, webhooks", guardrail: "No send/write without approval" },
 ];
 
 const taskRows = [
@@ -1034,101 +1034,76 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   );
 }
 function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
-  const [view, setView] = useState<"My tasks" | "Team" | "Maintenance" | "Vault review" | "Activity">("My tasks");
-  const [role, setRole] = useState("All");
-  const [search, setSearch] = useState("");
+  const folders = ["Vault review", "Workflows", "Spaces", "Diligence", "Investor reporting", "Maintenance"];
+  const stages = ["Inbox", "Doing", "Review", "Done"];
+  const [folder, setFolder] = useState("Vault review");
   const [selectedTask, setSelectedTask] = useState<(typeof taskRows)[number] | null>(taskRows[0]);
   const [done, setDone] = useState<string[]>([]);
   const [taskOwners, setTaskOwners] = useState<Record<string, string>>({});
   const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
   const [teamOpen, setTeamOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [notification, setNotification] = useState("Email notifications will queue when a task is created or reassigned.");
+  const [notification, setNotification] = useState("Select a task, open the work, assign it, or move it forward.");
   const ownerFor = (task: (typeof taskRows)[number]) => taskOwners[task.title] ?? task.owner;
   const openMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
+  const folderFor = (task: (typeof taskRows)[number]) => task.type === "Vault review" ? "Vault review" : task.type === "Maintenance" ? "Maintenance" : task.source.includes("workflow") || task.source.includes("Workflow") ? "Workflows" : task.space.includes("Space") ? "Spaces" : task.role === "Investor" ? "Investor reporting" : "Diligence";
+  const stageFor = (task: (typeof taskRows)[number]) => done.includes(task.title) || task.status === "Done" ? "Done" : task.status === "Blocked" || task.status === "Maintenance" ? "Review" : task.status === "Open" ? "Doing" : "Inbox";
+  const shownTasks = taskRows.filter((task) => folderFor(task) === folder);
   const addMember = () => {
     if (teamMembers.some((member) => member.initials === "NP")) return;
     setTeamMembers((current) => [...current, { initials: "NP", name: "New partner", email: "new.partner@cactus.local", role: "External collaborator", access: "View" }]);
-    setNotification("Invite email queued to new.partner@cactus.local. Prototype only — backend email service will send this.");
+    setNotification("Invite email queued to new.partner@cactus.local.");
   };
   const removeMember = (initials: string) => {
     setTeamMembers((current) => current.filter((member) => member.initials !== initials));
-    setNotification(`${initials} removed from this workspace. Future assigned tasks need reassignment.`);
+    setNotification(`${initials} removed. Reassign open tasks if needed.`);
     setTeamOpen(false);
   };
   const assignTask = (task: (typeof taskRows)[number], initials: string) => {
     setTaskOwners((current) => ({ ...current, [task.title]: initials }));
-    setSelectedMember(initials);
     const member = teamMembers.find((item) => item.initials === initials);
-    setNotification(`Email queued to ${member?.email ?? initials}: “${task.title}” was assigned to you.`);
+    setNotification(`Email queued to ${member?.email ?? initials}: “${task.title}” was assigned.`);
   };
-  const filteredTasks = taskRows.filter((task) => {
-    const viewMatch = view === "Activity" ? false : view === "Team" ? true : task.type === view;
-    const roleMatch = role === "All" || task.role === role;
-    const searchMatch = !search || [task.title, task.source, task.space, task.context, task.role, task.status].join(" ").toLowerCase().includes(search.toLowerCase());
-    return viewMatch && roleMatch && searchMatch;
-  });
-  const visibleActivity = activityRows.filter((row) => !search || row.join(" ").toLowerCase().includes(search.toLowerCase()));
+  const completeTask = (task: (typeof taskRows)[number]) => {
+    setDone((current) => current.includes(task.title) ? current : [...current, task.title]);
+    setNotification(`Completed: ${task.title}`);
+  };
+  const removeTask = (task: (typeof taskRows)[number]) => {
+    setDone((current) => current.includes(task.title) ? current : [...current, task.title]);
+    setNotification(`Removed from active queue: ${task.title}`);
+  };
   const statusClass = (status: string) => status === "Blocked" || status === "Maintenance" ? "bg-amber-50 text-amber-700" : status === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-600";
-  const roleCounts = ["Investor", "Lender", "Broker", "Internal"].map((item) => [item, taskRows.filter((task) => task.role === item).length]);
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
         <div>
-          <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Tasks + Activity</h1>
-          <p className="mt-1 text-xs text-neutral-500">One inbox for Vault review, workflow maintenance, Space assignments, investor, lender, and broker work.</p>
+          <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Tasks</h1>
+          <p className="mt-1 text-xs text-neutral-500">Open work, approve, assign, remove, or complete.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-8 w-72 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search tasks, Spaces, contacts, workflows…" />
-          <button onClick={() => { setSelectedTask(taskRows[1]); setNotification(`Email queued to ${teamMembers.find((member) => member.initials === ownerFor(taskRows[1]))?.email}: “${taskRows[1].title}” was created for you.`); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Task</button>
-        </div>
+        <button onClick={() => { setSelectedTask(taskRows[1]); setNotification("New task created in Inbox."); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Task</button>
       </header>
 
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
-        <div className="flex items-center gap-5 text-sm">
-          {["My tasks", "Team", "Maintenance", "Vault review", "Activity"].map((item) => (
-            <button key={item} onClick={() => setView(item as typeof view)} className={`${view === item ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{item}</button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 text-xs">
-          {["All", "Investor", "Lender", "Broker", "Internal"].map((item) => <button key={item} onClick={() => setRole(item)} className={`rounded-md px-2 py-1 ${role === item ? "bg-neutral-950 text-white" : "text-neutral-500 hover:bg-neutral-100"}`}>{item}</button>)}
-        </div>
+      <div className="flex h-12 shrink-0 items-center gap-2 overflow-x-auto border-b border-neutral-100 px-8 text-xs">
+        {folders.map((item) => <button key={item} onClick={() => setFolder(item)} className={`rounded-md px-3 py-2 ${folder === item ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}>{item}</button>)}
       </div>
 
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(640px,1fr)_390px] overflow-hidden">
-        <div className="absolute left-8 top-[7.25rem] z-10 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700 shadow-sm">{notification}</div>
+      <main className="grid min-h-0 flex-1 grid-cols-[minmax(720px,1fr)_380px] overflow-hidden">
         <section className="overflow-auto p-6">
-          <div className="mb-4 grid grid-cols-4 gap-3 text-xs">
-            {roleCounts.map(([label, count]) => <button key={label} onClick={() => setRole(label as string)} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-left hover:bg-white"><span className="block text-neutral-400">{label}</span><span className="mt-1 block text-lg font-semibold text-neutral-900">{count}</span></button>)}
+          <div className="mb-4 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">{notification}</div>
+          <div className="grid grid-cols-4 gap-3">
+            {stages.map((stage) => (
+              <div key={stage} className="min-h-[520px] rounded-xl border border-neutral-200 bg-neutral-50 p-2">
+                <div className="flex items-center justify-between px-2 py-2 text-xs"><span className="font-medium text-neutral-700">{stage}</span><span className="text-neutral-400">{shownTasks.filter((task) => stageFor(task) === stage).length}</span></div>
+                <div className="space-y-2">
+                  {shownTasks.filter((task) => stageFor(task) === stage).map((task) => {
+                    const taskStatus = done.includes(task.title) ? "Done" : task.status;
+                    return <button key={task.title} onClick={() => setSelectedTask(task)} className={`w-full rounded-lg border bg-white p-3 text-left text-xs hover:border-neutral-300 ${selectedTask?.title === task.title ? "border-neutral-950" : "border-neutral-200"}`}><span className="block text-sm font-medium text-neutral-950">{task.title}</span><span className="mt-1 block text-neutral-500">{task.space}</span><div className="mt-3 flex items-center justify-between"><button onClick={(event) => { event.stopPropagation(); openMember(ownerFor(task)); }} className="grid h-6 w-6 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{ownerFor(task)}</button><span className={`rounded-md px-2 py-1 text-[10px] ${statusClass(taskStatus)}`}>{taskStatus}</span></div></button>;
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-
-          {view !== "Activity" ? (
-            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-neutral-100 text-xs text-neutral-400"><tr>{["Task", "Role", "Context", "Owner", "Due", "Status", "Action"].map((head) => <th key={head} className="px-4 py-3 font-medium">{head}</th>)}</tr></thead>
-                <tbody>{filteredTasks.map((task) => {
-                  const taskStatus = done.includes(task.title) ? "Done" : task.status;
-                  return (
-                    <tr key={task.title} onClick={() => setSelectedTask(task)} className="cursor-pointer border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50">
-                      <td className="px-4 py-3"><span className="block font-medium text-neutral-950">{task.title}</span><span className="mt-1 block text-xs text-neutral-400">{task.source}</span></td>
-                      <td className="px-4 py-3 text-neutral-500">{task.role}</td>
-                      <td className="px-4 py-3 text-neutral-500">{task.space}</td>
-                      <td className="px-4 py-3"><button onClick={(event) => { event.stopPropagation(); openMember(ownerFor(task)); }} className="grid h-7 w-7 place-items-center rounded-full bg-neutral-900 text-[10px] text-white hover:scale-105">{ownerFor(task)}</button></td>
-                      <td className="px-4 py-3 text-neutral-500">{task.due}</td>
-                      <td className="px-4 py-3"><span className={`rounded-md px-2 py-1 text-[11px] ${statusClass(taskStatus)}`}>{taskStatus}</span></td>
-                      <td className="px-4 py-3"><button onClick={(event) => { event.stopPropagation(); setSelectedTask(task); }} className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600">{task.action}</button></td>
-                    </tr>
-                  );
-                })}</tbody>
-              </table>
-              {filteredTasks.length === 0 && <div className="p-8 text-center text-sm text-neutral-400">No tasks match this view. Try Team or All roles.</div>}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-neutral-200 bg-white p-2">
-              {visibleActivity.map(([time, type, event, context]) => <button key={`${time}-${event}`} onClick={() => setSearch(context)} className="flex w-full items-start gap-4 rounded-lg px-3 py-3 text-left hover:bg-neutral-50"><span className="w-20 text-xs text-neutral-400">{time}</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{type}</span><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{event}</span><span className="mt-1 block text-xs text-neutral-500">{context}</span></span></button>)}
-            </div>
-          )}
         </section>
 
         <aside className="overflow-auto border-l border-neutral-100 bg-neutral-50 p-5">
@@ -1139,29 +1114,27 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
                 <p className="mt-4 text-xs font-medium text-neutral-400">Why this exists</p>
                 <p className="mt-1 text-sm leading-6 text-neutral-600">{selectedTask.evidence}</p>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                  {[["Owner", ownerFor(selectedTask)], ["Role", selectedTask.role], ["Due", selectedTask.due], ["Priority", selectedTask.priority]].map(([label, value]) => <div key={label} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{label}</p>{label === "Owner" ? <button onClick={() => openMember(value)} className="mt-1 font-medium text-neutral-800 underline-offset-2 hover:underline">{value}</button> : <p className="mt-1 font-medium text-neutral-800">{value}</p>}</div>)}
-                </div>
-                <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <p className="text-xs font-medium text-neutral-500">Assign task</p>
-                  <div className="mt-2 flex flex-wrap gap-2">{teamMembers.map((member) => <button key={member.initials} onClick={() => assignTask(selectedTask, member.initials)} className={`rounded-full px-3 py-1 text-xs ${ownerFor(selectedTask) === member.initials ? "bg-neutral-950 text-white" : "bg-white text-neutral-600"}`}>{member.initials}</button>)}</div>
+                  {[["Owner", ownerFor(selectedTask)], ["Folder", folderFor(selectedTask)], ["Due", selectedTask.due], ["Priority", selectedTask.priority]].map(([label, value]) => <div key={label} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{label}</p>{label === "Owner" ? <button onClick={() => openMember(value)} className="mt-1 font-medium text-neutral-800 underline-offset-2 hover:underline">{value}</button> : <p className="mt-1 font-medium text-neutral-800">{value}</p>}</div>)}
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button onClick={() => setDone((current) => current.includes(selectedTask.title) ? current : [...current, selectedTask.title])} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Mark done</button>
-                  <button onClick={() => go(7)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button>
-                  <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Vault context</button>
+                  <button onClick={() => go(7)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Open work</button>
+                  <button onClick={() => completeTask(selectedTask)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Approve / complete</button>
+                  <button onClick={() => removeTask(selectedTask)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Remove</button>
+                  <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Vault</button>
                   <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open workflow</button>
                 </div>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-medium text-neutral-500">Assign</p>
+                <div className="mt-2 flex flex-wrap gap-2">{teamMembers.map((member) => <button key={member.initials} onClick={() => assignTask(selectedTask, member.initials)} className={`rounded-full px-3 py-1 text-xs ${ownerFor(selectedTask) === member.initials ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{member.initials}</button>)}</div>
               </div>
               <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                 <p className="text-xs font-medium text-neutral-500">Context</p>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">{selectedTask.context.split(" + ").map((item) => <button key={item} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-neutral-700 hover:bg-[#fbf4ff]">{item}</button>)}</div>
               </div>
-              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-                <p className="text-xs font-medium text-neutral-500">Activity trail</p>
-                <div className="mt-3 space-y-2 text-xs text-neutral-600">{["Task created by workflow run", "Evidence linked from Vault/source", `Assigned to ${ownerFor(selectedTask)}`, "Email notification queued to assignee", "Awaiting human approval before write/send"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div>
-              </div>
+              <details className="rounded-2xl border border-neutral-200 bg-white p-4 text-xs text-neutral-600 shadow-sm"><summary className="cursor-pointer font-medium text-neutral-900">Activity / history</summary><div className="mt-3 space-y-2">{["Task created", "Evidence linked", `Assigned to ${ownerFor(selectedTask)}`, "Awaiting human action"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div></details>
             </div>
-          ) : <div className="text-sm text-neutral-400">Select a task to inspect context, owner, evidence, and actions.</div>}
+          ) : <div className="text-sm text-neutral-400">Select a task.</div>}
         </aside>
       </main>
       {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={notification} onClose={() => setTeamOpen(false)} onAdd={addMember} onRemove={removeMember} />}
@@ -1455,6 +1428,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [filterOpen, setFilterOpen] = useState(false);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
   const [sourceSetupStatus, setSourceSetupStatus] = useState("Not started");
+  const [auditAction, setAuditAction] = useState("3 unmatched documents need location confirmation");
   const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected">(sourceSetupKeyByIndex[sourceIndex]);
   const [microVault, setMicroVault] = useState("Main Vault");
   const [aiSearch, setAiSearch] = useState("");
@@ -1536,28 +1510,42 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   };
   const sourceSetupModal = (
     <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-neutral-950/20">
-      <aside className="flex h-full w-[640px] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
+      <aside className="flex h-full w-[640px] max-w-[96vw] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
         <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
-          <div><p className="text-sm font-semibold">Add to Vault</p><p className="mt-1 text-xs text-neutral-500">Choose a source, scope access, map to Vault, review before trust.</p></div>
+          <div><p className="text-sm font-semibold">Add to Vault</p><p className="mt-1 text-xs text-neutral-500">Drop files, import documents, or connect an app.</p></div>
           <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
         </div>
         <div className="flex-1 overflow-auto p-5">
-          <div className="grid grid-cols-4 gap-2 text-xs">
-            {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`rounded-xl border p-3 text-left ${selectedSetupMode === mode.key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 hover:bg-neutral-50"}`}><span className="block font-medium">{mode.title}</span><span className="mt-1 block opacity-70">{mode.subtitle}</span></button>)}
-            <button onClick={() => setSourceSetupStatus("Browse integrations")} className="rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span className="block font-medium">Integrations + API</span><span className="mt-1 block text-neutral-500">Clay, CRM, PM, accounting, Plaid, MCP</span></button>
-          </div>
-          <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">{selectedSetup.title}</p><p className="mt-1 text-xs text-neutral-500">{selectedSetup.examples}</p></div><span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{sourceSetupStatus}</span></div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-              {[["1", "Scope", selectedSetup.scope], ["2", "Map", selectedSetup.maps], ["3", "Review", selectedSetup.review]].map(([num, title, note]) => <button key={title} onClick={() => setSourceSetupStatus(`${title} ready`)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left hover:bg-neutral-50"><span className="text-neutral-400">{num}</span><span className="ml-2 font-medium text-neutral-950">{title}</span><span className="mt-1 block leading-5 text-neutral-500">{note}</span></button>)}
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center">
+            <p className="text-sm font-semibold text-neutral-950">Drag files here</p>
+            <p className="mt-1 text-xs text-neutral-500">PDF · Excel · CSV · email exports · models</p>
+            <div className="mt-4 flex justify-center gap-2">
+              <button onClick={runSelectedSource} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Import documents</button>
+              <button onClick={() => setAuditOpen(true)} className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-xs text-neutral-600">Open audit</button>
             </div>
-            <button onClick={runSelectedSource} className="mt-4 rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">{selectedSetup.primary} → create review queue</button>
           </div>
-          <div className="mt-5 flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Integration center</p><p className="text-xs text-neutral-500">Incoming adds to Vault · outgoing sends approved artifacts</p></div>
+
+          <div className="mt-5 grid grid-cols-4 gap-2 text-xs">
+            {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`rounded-xl border p-3 text-left ${selectedSetupMode === mode.key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 hover:bg-neutral-50"}`}><span className="block font-medium">{mode.title}</span></button>)}
+            <button onClick={() => setSourceSetupStatus("Browse integrations")} className="rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span className="block font-medium">Apps + API</span></button>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+            <div className="flex items-center justify-between"><p className="text-sm font-semibold">{selectedSetup.title}</p><span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{sourceSetupStatus}</span></div>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+              {[["Scope", selectedSetup.scope], ["Map", selectedSetup.maps], ["Review", selectedSetup.review]].map(([title, note]) => <button key={title} onClick={() => setSourceSetupStatus(`${title} ready`)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left hover:bg-neutral-50"><span className="font-medium text-neutral-950">{title}</span><span className="mt-1 block truncate text-neutral-500">{note}</span></button>)}
+            </div>
+          </div>
+
+          <div className="mt-5 flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Apps</p><p className="text-xs text-neutral-500">Read to Vault · write from Vault</p></div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            {integrationCatalog.map((connector) => <button key={connector.name} onClick={() => setSourceSetupStatus(`${connector.name} selected · ${connector.guardrail}`)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs hover:bg-neutral-50"><div className="flex items-start justify-between gap-2"><span className="font-medium text-neutral-950">{connector.name}</span><span className={`rounded-md px-2 py-1 text-[10px] ${connector.lane === "Outgoing" ? "bg-blue-50 text-blue-700" : connector.lane === "Both" ? "bg-purple-50 text-purple-700" : "bg-emerald-50 text-emerald-700"}`}>{connector.lane}</span></div><p className="mt-1 text-neutral-500">{connector.use}</p><p className="mt-2 text-neutral-400">{connector.status} · {connector.guardrail}</p></button>)}
+            {integrationCatalog.map((connector) => <button key={connector.name} onClick={() => setSourceSetupStatus(`${connector.name} · ${connector.direction}`)} className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs hover:bg-neutral-50"><span className="font-medium text-neutral-950">{connector.name}</span><span className={`rounded-md px-2 py-1 text-[10px] ${connector.lane === "Outgoing" ? "bg-blue-50 text-blue-700" : connector.lane === "Both" ? "bg-purple-50 text-purple-700" : "bg-emerald-50 text-emerald-700"}`}>{connector.direction}</span></button>)}
           </div>
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800"><p className="font-medium">Security + data movement</p><p className="mt-1">No broad scans. No trusted writes or outbound sends without approval. Each connector shows granted scope, source provenance, destination, audit log, and model/data-use policy.</p></div>
+
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
+            <div className="flex items-center justify-between gap-3"><p className="font-medium">Unmatched document audit</p><span>{auditAction}</span></div>
+            <div className="mt-3 flex gap-2"><button onClick={() => setAuditAction("Uploader approved 3 locations")} className="rounded-md bg-amber-900 px-3 py-1.5 text-white">Approve</button><button onClick={() => setAuditAction("Unclear documents removed") } className="rounded-md border border-amber-200 bg-white px-3 py-1.5">Remove</button><button onClick={() => { setAuditAction("Assigned to AK"); go(9); }} className="rounded-md border border-amber-200 bg-white px-3 py-1.5">Assign</button></div>
+          </div>
         </div>
       </aside>
     </div>
@@ -1597,13 +1585,13 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               <section className="absolute inset-0 flex items-center justify-center bg-white/85">
                 <div className="w-full max-w-[760px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
                   <div className="flex items-start justify-between gap-4">
-                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Start by adding one trusted source.</h2><p className="mt-2 text-sm leading-6 text-neutral-500">Pick the action that matches what you have. Cactus creates a review queue first, then approved facts become Vault rows and columns.</p></div>
-                    <button onClick={() => setSourceCenterOpen(true)} className="shrink-0 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">All integrations</button>
+                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Add documents or connect an app.</h2></div>
+                    <button onClick={() => setSourceCenterOpen(true)} className="shrink-0 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">Apps</button>
                   </div>
                   <div className="mt-5 grid grid-cols-3 gap-3">
-                    {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); runSelectedSource(); }} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-left hover:border-neutral-300 hover:bg-white"><span className="block text-sm font-medium text-neutral-950">{mode.title}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{mode.subtitle}</span><span className="mt-3 inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 text-xs font-medium text-white">{mode.primary}</span></button>)}
+                    {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceCenterOpen(true); }} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-left hover:border-neutral-300 hover:bg-white"><span className="block text-sm font-medium text-neutral-950">{mode.title}</span><span className="mt-3 inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 text-xs font-medium text-white">{mode.primary}</span></button>)}
                   </div>
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-600"><span>Selected from onboarding: <strong>{sourceTitle}</strong></span><span>Source → review → Vault → Space/output</span></div>
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-600"><span>{sourceTitle}</span><span>Review queue first</span></div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">{integrationCatalog.slice(0, 6).map((item) => <button key={item.name} onClick={() => { setSourceSetupStatus(`${item.name} selected`); setSourceCenterOpen(true); }} className="rounded-full border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">{item.name}</button>)}</div>
                 </div>
               </section>
@@ -2159,8 +2147,8 @@ export default function Home() {
             </button>
             {accountOpen && (
               <div className={`absolute bottom-16 ${sidebarCollapsed ? "left-2" : "left-3"} z-50 w-64 rounded-xl border border-neutral-200 bg-white p-2 text-sm shadow-2xl`}>
-                {["Account", "Organization", "Members", "Billing + trial", "Integrations", "Security + audit", "Notifications", "Appearance"].map((item) => (
-                  <button key={item} onClick={() => setAccountPage(item)} className={`block w-full rounded-md px-3 py-2 text-left ${accountPage === item ? "bg-neutral-100 text-neutral-950" : "text-neutral-600 hover:bg-neutral-50"}`}>{item}</button>
+                {["Account", "Organization", "Members", "Billing + trial", "Integrations", "Privacy + security", "Notifications", "Appearance"].map((item) => (
+                  <button key={item} onClick={() => item === "Privacy + security" ? window.open("/privacy-security", "_blank") : setAccountPage(item)} className={`block w-full rounded-md px-3 py-2 text-left ${accountPage === item ? "bg-neutral-100 text-neutral-950" : "text-neutral-600 hover:bg-neutral-50"}`}>{item}</button>
                 ))}
                 <div className="my-1 border-t border-neutral-100" />
                 <button onClick={() => setActive(0)} className="block w-full rounded-md px-3 py-2 text-left text-red-600 hover:bg-red-50">Logout</button>
@@ -2172,7 +2160,7 @@ export default function Home() {
         {accountOpen && (
           <div className={`fixed bottom-20 ${sidebarCollapsed ? "left-20" : "left-72"} z-40 w-[520px] rounded-2xl border border-neutral-200 bg-white p-5 text-neutral-950 shadow-2xl`}>
             <div className="flex items-start justify-between">
-              <div><p className="text-sm font-semibold">{accountPage}</p><p className="mt-1 text-xs text-neutral-500">{accountPage === "Appearance" ? "Theme and sidebar preferences." : accountPage === "Billing + trial" ? "Trial usage, billing owner, and plan controls." : accountPage === "Integrations" ? "Connected sources and connector health." : accountPage === "Security + audit" ? "Access, audit log, and approval controls." : `${accountPage} settings for this organization.`}</p></div>
+              <div><p className="text-sm font-semibold">{accountPage}</p><p className="mt-1 text-xs text-neutral-500">{accountPage === "Appearance" ? "Theme and sidebar preferences." : accountPage === "Billing + trial" ? "Trial usage, billing owner, and plan controls." : accountPage === "Integrations" ? "Connected sources, direction, and approval state." : `${accountPage} settings for this organization.`}</p></div>
               <button onClick={() => setAccountOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
             </div>
             {accountPage === "Appearance" ? (
@@ -2183,7 +2171,8 @@ export default function Home() {
             ) : accountPage === "Integrations" ? (
               <div className="mt-4 space-y-3 text-xs">
                 <div className="grid grid-cols-3 gap-2">{[["Incoming", integrationCatalog.filter((item) => item.lane !== "Outgoing").length], ["Outgoing", integrationCatalog.filter((item) => item.lane !== "Incoming").length], ["Needs approval", integrationCatalog.filter((item) => item.status.includes("Approval") || item.status.includes("Scope") || item.status.includes("Design")).length]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 text-lg font-semibold text-neutral-900">{value}</p></div>)}</div>
-                <div className="max-h-72 overflow-auto rounded-xl border border-neutral-200 p-2">{integrationCatalog.map((item) => <button key={item.name} onClick={() => setAccountPage("Security + audit")} className="mb-1 flex w-full items-start justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-neutral-50"><span><span className="block font-medium text-neutral-900">{item.name}</span><span className="mt-1 block text-neutral-500">{item.use}</span></span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[10px] text-neutral-600">{item.lane}</span></button>)}</div>
+                <div className="max-h-72 overflow-auto rounded-xl border border-neutral-200 p-2">{integrationCatalog.map((item) => <button key={item.name} onClick={() => setAccountPage("Integrations")} className="mb-1 flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">{item.name}</span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[10px] text-neutral-600">{item.direction}</span></button>)}</div>
+                <button onClick={() => window.open("/privacy-security", "_blank")} className="w-full rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span className="block font-medium text-neutral-900">Privacy + security</span><span className="mt-1 block text-neutral-500">Open policy, model/data use, and security docs in a new tab.</span></button>
               </div>
             ) : accountPage === "Security + audit" ? (
               <div className="mt-4 space-y-3 text-xs">

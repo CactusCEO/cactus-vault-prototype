@@ -138,7 +138,9 @@ The Vault source center should give every source type a clear creation path, not
 3. **Inbox + drive** — Gmail, Outlook, Google Drive, OneDrive, broker senders, and deal-room folders.
 4. **Integrations + APIs** — Clay, Salesforce/HubSpot/Affinity, Yardi/RealPage/AppFolio/Entrata, QuickBooks/NetSuite/Sage, Plaid/banking, provider APIs, custom API, webhooks, and MCP tools.
 
-The Vault should distinguish **incoming connectors** that add/enrich Vault facts from **outgoing connectors** that export approved facts, tasks, reports, webhooks, API responses, or MCP tool calls. Provider APIs, public data, and listing/records watchers should be available as secondary/advanced additions, not the first thing users have to parse.
+The Vault should distinguish **incoming connectors** that add/enrich Vault facts from **outgoing connectors** that export approved facts, tasks, reports, webhooks, API responses, or MCP tool calls. Provider APIs, public data, and listing/records watchers should be available as secondary/advanced additions, not the first thing users have to parse. Connector tiles should be visually simple: app/source name plus direction (`Read to Vault`, `Write from Vault`, `Read + write`) and status; detail appears after selection, not under every tile.
+
+Documents are first-class sources. Vault creation should support drag/drop or import, then route unclear documents into an audit/unmatched queue. If Cactus cannot confidently place a document into a property/entity/market/location in the Vault, the uploader sees `Approve`, `Remove`, or `Assign` so responsibility is explicit and the uncertain item does not become trusted data.
 
 Each source setup should answer five questions, but the default prototype should answer them inline and lightly rather than through a heavy modal/wizard:
 
