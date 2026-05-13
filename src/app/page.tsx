@@ -219,6 +219,21 @@ const workflowExamples = [
   { title: "Market pulse / trigger monitor", role: "Market", trigger: "Market/provider/news refresh", cadence: "Weekly", source: "Market feeds + news + permits", fields: ["Permits", "Deliveries", "Absorption", "Transactions", "SOFR", "Employer news"], output: "Market rows + opportunity flags", skill: "Market analysis skill", result: "Adds market context to Vault and opens Spaces for notable changes." },
 ] as const;
 
+const integrationCatalog = [
+  { name: "Gmail / Outlook", lane: "Incoming", group: "Email", status: "Scope needed", use: "Broker packages, attachments, sender details, deadlines", guardrail: "Read-only labels/senders first" },
+  { name: "Google Drive / OneDrive", lane: "Incoming", group: "Files", status: "Ready", use: "Deal rooms, rent rolls, T-12s, models, reports", guardrail: "Folder + file-type scope" },
+  { name: "Clay", lane: "Incoming", group: "Enrichment", status: "Plan", use: "Owner/contact enrichment and outbound list context", guardrail: "Write to review queue only" },
+  { name: "Salesforce / HubSpot / Affinity", lane: "Both", group: "CRM", status: "Map fields", use: "Pipeline, contacts, owner outreach, broker relationships", guardrail: "Approved fields only" },
+  { name: "Yardi / RealPage / AppFolio / Entrata", lane: "Incoming", group: "Property management", status: "Not connected", use: "Rent roll, occupancy, charges, delinquency, unit history", guardrail: "Property/entity mapping required" },
+  { name: "QuickBooks / NetSuite / Sage", lane: "Incoming", group: "Accounting", status: "Not connected", use: "T-12, GL, budget variance, investor reporting", guardrail: "Period/version snapshots" },
+  { name: "Plaid / Banking", lane: "Incoming", group: "Banking", status: "Approval required", use: "Cash activity, debt payments, reserves, reconciliation", guardrail: "Least-privilege account scope" },
+  { name: "CoStar / Crexi / LoopNet watchers", lane: "Incoming", group: "Scrapers", status: "2 maintenance tasks", use: "Deal sourcing, listing changes, comp refreshes", guardrail: "Cadence + cost approval" },
+  { name: "Provider APIs", lane: "Incoming", group: "Market data", status: "Configured", use: "Green Street, ATTOM, HelloData, FEMA, FRED, ACS", guardrail: "Cache, cost, freshness policy" },
+  { name: "Vault API", lane: "Outgoing", group: "API", status: "Design", use: "Read/write approved Vault objects from customer systems", guardrail: "Scoped tokens + audit log" },
+  { name: "Vault MCP", lane: "Both", group: "MCP", status: "Design", use: "Let approved agents query/create Vault context and tasks", guardrail: "No unapproved writes or broad export" },
+  { name: "Webhooks / exports", lane: "Outgoing", group: "Export", status: "Plan", use: "Push approved facts, tasks, reports, CSV/Excel/Sheets", guardrail: "Destination approval before send" },
+];
+
 const taskRows = [
   { title: "Approve Riverside IC memo sections", owner: "TS", role: "Investor", source: "IC memo workflow", space: "Riverside Flats Deal Review", status: "Review", priority: "High", due: "Today", action: "Review output", type: "My tasks", context: "Verified T12, rent comps, debt quote", evidence: "3 draft sections need approval before investor memo export." },
   { title: "Resolve missing addresses in portfolio import", owner: "AK", role: "Investor", source: "Unmatched portfolio queue", space: "Portfolio cleanup", status: "Open", priority: "High", due: "Today", action: "Match rows", type: "Vault review", context: "12 rows · owner/entity hints", evidence: "Rows have property names, PM IDs, city/state, and bank/account references but no trusted address." },
@@ -893,6 +908,9 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   const [teamOpen, setTeamOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [teamNotice, setTeamNotice] = useState("Space team changes are prototype state; backend member invites will send email later.");
+  const [spaceSplit, setSpaceSplit] = useState<"chat" | "balanced" | "canvas">("chat");
+  const [canvasTab, setCanvasTab] = useState<"Brief" | "Context" | "Tasks" | "Outputs">("Brief");
+  const [spaceNotice, setSpaceNotice] = useState("Space is scoped to approved Vault rows, source files, people, and review rules.");
   const openSpaceMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
   const addSpaceMember = () => {
     if (teamMembers.some((member) => member.initials === "NP")) return;
@@ -932,75 +950,60 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
           ))}
         </div>
 
-        <main className="grid min-h-0 flex-1 grid-cols-[minmax(420px,0.92fr)_minmax(500px,1.08fr)] overflow-hidden bg-[#f7f5f0]">
-          <section className="overflow-auto border-r border-neutral-200/70 px-7 py-6">
-            {spaceTab === "work" && (
-              <div className="mx-auto max-w-2xl space-y-4">
-                <div className="rounded-2xl border border-neutral-200 bg-[linear-gradient(180deg,#ffffff,#fbfaf7)] p-4 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Space workroom</p>
-                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Ask, verify, and produce from one context</h2>
-                  <p className="mt-2 text-sm leading-6 text-neutral-500">Left side is the work stream and chat. Right side is the output canvas for documents, maps, results, tasks, and context.</p>
-                </div>
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-                  <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3"><p className="text-sm font-medium">Work stream</p><button onClick={() => go(8)} className="text-xs text-neutral-500">Save as workflow</button></div>
-                  {[
-                    ["Scope the Space", "Vault rows, source files, people, and update mode are set.", "Context"],
-                    ["Verify T12 / rent roll facts", "Open source audit before facts become durable Vault data.", taskDone ? "Done" : "Review"],
-                    ["Run comp finder + market rent survey", "Pull sales/rent comps and explain which comps Cactus weighted.", "Open"],
-                    ["Clean T-12 and benchmark expenses", "Normalize one-time items, owner-paid utilities, reserves, and opex categories.", "Queued"],
-                    ["Draft recommendation and diligence asks", "Create IC memo/BOV/debt memo sections from verified facts only.", "Ready"],
-                  ].map(([title, note, status], index) => (
-                    <button key={title} onClick={() => index === 1 && setTaskDone(true)} className="flex w-full items-start justify-between gap-4 border-b border-neutral-50 px-4 py-3 text-left last:border-b-0 hover:bg-neutral-50">
-                      <span><span className="block text-sm font-medium text-neutral-900">{title}</span><span className="mt-1 block text-xs text-neutral-500">{note}</span></span>
-                      <span className={`rounded-md px-2 py-1 text-[11px] ${status === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{status}</span>
-                    </button>
-                  ))}
-                </div>
-                <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-                  <textarea className="h-24 w-full resize-none text-sm outline-none placeholder:text-neutral-400" placeholder="Chat with this Space. Use @AK to assign a person or /task, /draft, /map, /workflow to create an action…" />
-                  <div className="flex items-center justify-between border-t border-neutral-100 pt-3">
-                    <div className="flex gap-2 text-xs text-neutral-500"><span className="rounded-md border border-neutral-200 px-2 py-1">@person</span><span className="rounded-md border border-neutral-200 px-2 py-1">/task</span><span className="rounded-md border border-neutral-200 px-2 py-1">/draft</span><span className="rounded-md border border-neutral-200 px-2 py-1">/workflow</span></div>
-                    <button onClick={() => setTaskDone(true)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Send</button>
+        <main className={`grid min-h-0 flex-1 overflow-hidden bg-[#f7f5f0] ${spaceSplit === "chat" ? "grid-cols-[minmax(560px,1.45fr)_minmax(380px,0.75fr)]" : spaceSplit === "canvas" ? "grid-cols-[minmax(420px,0.8fr)_minmax(620px,1.4fr)]" : "grid-cols-[minmax(520px,1fr)_minmax(520px,1fr)]"}`}>
+          <section className="flex min-h-0 flex-col border-r border-neutral-200/70 bg-[#fbfaf7]">
+            <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3 text-xs">
+              <div className="flex items-center gap-2 text-neutral-500"><span className="font-medium text-neutral-900">Work stream</span><span>{spaceNotice}</span></div>
+              <div className="flex rounded-md border border-neutral-200 bg-white p-0.5">
+                {[["chat", "More chat"], ["balanced", "Split"], ["canvas", "More canvas"]].map(([key, label]) => <button key={key} onClick={() => setSpaceSplit(key as typeof spaceSplit)} className={`rounded px-2 py-1 ${spaceSplit === key ? "bg-neutral-950 text-white" : "text-neutral-500"}`}>{label}</button>)}
+              </div>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto p-5">
+              {spaceTab === "work" && (
+                <div className="mx-auto max-w-3xl space-y-3">
+                  <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Space workroom</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.04em]">Ask Cactus, add context, approve artifacts.</h2></div><button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Save as workflow</button></div>
+                    <div className="mt-4 grid grid-cols-4 gap-2 text-xs">
+                      {[["1", "Context", "Vault rows + files"], ["2", "Work", "Analyze / verify"], ["3", "Review", "Approve facts"], ["4", "Output", "Memo/model/tasks"]].map(([num, label, note]) => <button key={label} onClick={() => { setCanvasTab(label === "Context" ? "Context" : label === "Output" ? "Outputs" : label === "Review" ? "Tasks" : "Brief"); setSpaceNotice(`${label}: ${note}`); }} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-left hover:bg-white"><span className="text-neutral-400">{num}</span><span className="ml-2 font-medium text-neutral-900">{label}</span><span className="mt-1 block text-neutral-500">{note}</span></button>)}
+                    </div>
+                  </div>
+                  <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                    {[
+                      ["Set context", "5 Vault rows, 4 files, 4 people, latest market rows", "Context"],
+                      ["Verify T12 / rent roll facts", "Open source audit before facts become durable Vault data.", taskDone ? "Done" : "Review"],
+                      ["Run comp finder + market rent survey", "Cactus explains which comps it weighted and why.", "Open"],
+                      ["Clean T-12 and benchmark expenses", "Normalize one-time items, owner-paid utilities, reserves, and opex categories.", "Queued"],
+                      ["Draft recommendation and diligence asks", "Create IC memo/BOV/debt memo sections from verified artifacts only.", "Ready"],
+                    ].map(([title, note, status], index) => (
+                      <button key={title} onClick={() => { if (index === 1) setTaskDone(true); setCanvasTab(index === 0 ? "Context" : index === 4 ? "Outputs" : "Tasks"); setSpaceNotice(`${title}: ${note}`); }} className="flex w-full items-start justify-between gap-4 border-b border-neutral-50 px-4 py-3 text-left last:border-b-0 hover:bg-neutral-50">
+                        <span><span className="block text-sm font-medium text-neutral-900">{title}</span><span className="mt-1 block text-xs text-neutral-500">{note}</span></span>
+                        <span className={`rounded-md px-2 py-1 text-[11px] ${status === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>{status}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {spaceTab === "playground" && (
-              <div className="mx-auto max-w-3xl">
-                <div className="rounded-xl border border-neutral-200 bg-white p-5">
-                  <p className="text-sm font-medium">Playground</p>
-                  <p className="mt-1 text-xs text-neutral-500">Run scenario, sensitivity, and what-needs-to-change work against verified Vault facts and market benchmarks.</p>
-                  <div className="mt-5 flex flex-wrap gap-2">{["Base case", "Seller case", "Downside", "$1.3M price cut", "Debt quote stress", "Rent growth miss"].map((item) => <button key={item} onClick={() => setScenario(item)} className={`rounded-md border px-3 py-2 text-xs ${scenario === item ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{item}</button>)}</div>
-                  <div className="mt-5 overflow-hidden rounded-lg border border-neutral-200"><table className="w-full text-left text-sm"><tbody>{[["Scenario", scenario], ["Cactus base", scenario === "$1.3M price cut" ? "16.1% IRR" : "12.4% IRR"], ["Needed", scenario === "$1.3M price cut" ? "Meets hurdle" : "$1.3M price cut or +9% NOI"], ["Evidence", "T12 + rent comps + market row + debt quote"], ["Next", "Save scenario to Vault or output"]].map(([label, value]) => <tr key={label} className="border-b border-neutral-100 last:border-b-0"><td className="w-40 bg-neutral-50 px-3 py-3 text-xs text-neutral-500">{label}</td><td className="px-3 py-3 font-medium">{value}</td></tr>)}</tbody></table></div>
-                </div>
-              </div>
-            )}
-
-            {spaceTab === "outputs" && (
-              <div className="mx-auto max-w-3xl">
-                <div className="rounded-xl border border-neutral-200 bg-white">
-                  <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3"><p className="text-sm font-medium">Outputs</p><div className="flex gap-2"><button onClick={() => setOutputReady(true)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Generate IC memo</button><button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Automate output</button></div></div>
-                  {[...outputArtifacts, ["BOV", "Broker valuation package", "Template", "Selected comps"], ["Debt quote table", "Lender comparison", "Queued", "Capital workflow"]].map(([type, name, status, context]) => <button key={`${type}-${name}`} className="flex w-full items-center justify-between border-b border-neutral-50 px-4 py-3 text-left last:border-b-0 hover:bg-neutral-50"><span><span className="block text-sm font-medium">{type}</span><span className="block text-xs text-neutral-500">{name} · {context}</span></span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{outputReady && type === "IC memo" ? "Draft created" : status}</span></button>)}
-                </div>
-              </div>
-            )}
+              )}
+              {spaceTab === "playground" && (
+                <div className="mx-auto max-w-3xl rounded-xl border border-neutral-200 bg-white p-5"><p className="text-sm font-medium">Playground</p><p className="mt-1 text-xs text-neutral-500">Sensitivity and what-needs-to-change work against verified facts and assumptions.</p><div className="mt-5 flex flex-wrap gap-2">{["Base case", "Seller case", "Downside", "$1.3M price cut", "Debt quote stress", "Rent growth miss"].map((item) => <button key={item} onClick={() => setScenario(item)} className={`rounded-md border px-3 py-2 text-xs ${scenario === item ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{item}</button>)}</div><div className="mt-5 overflow-hidden rounded-lg border border-neutral-200"><table className="w-full text-left text-sm"><tbody>{[["Scenario", scenario], ["Cactus base", scenario === "$1.3M price cut" ? "16.1% IRR" : "12.4% IRR"], ["Needed", scenario === "$1.3M price cut" ? "Meets hurdle" : "$1.3M price cut or +9% NOI"], ["Evidence", "T12 + rent comps + market row + debt quote"], ["Next", "Save scenario to Vault or output"]].map(([label, value]) => <tr key={label} className="border-b border-neutral-100 last:border-b-0"><td className="w-40 bg-neutral-50 px-3 py-3 text-xs text-neutral-500">{label}</td><td className="px-3 py-3 font-medium">{value}</td></tr>)}</tbody></table></div></div>
+              )}
+              {spaceTab === "outputs" && (
+                <div className="mx-auto max-w-3xl rounded-xl border border-neutral-200 bg-white"><div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3"><p className="text-sm font-medium">Outputs</p><div className="flex gap-2"><button onClick={() => setOutputReady(true)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Generate IC memo</button><button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Automate output</button></div></div>{[...outputArtifacts, ["BOV", "Broker valuation package", "Template", "Selected comps"], ["Debt quote table", "Lender comparison", "Queued", "Capital workflow"]].map(([type, name, status, context]) => <button key={`${type}-${name}`} onClick={() => setCanvasTab("Outputs")} className="flex w-full items-center justify-between border-b border-neutral-50 px-4 py-3 text-left last:border-b-0 hover:bg-neutral-50"><span><span className="block text-sm font-medium">{type}</span><span className="block text-xs text-neutral-500">{name} · {context}</span></span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{outputReady && type === "IC memo" ? "Draft created" : status}</span></button>)}</div>
+              )}
+            </div>
+            <div className="border-t border-neutral-200 bg-white p-4">
+              <textarea className="h-28 w-full resize-none text-sm outline-none placeholder:text-neutral-400" placeholder="Ask Cactus what to do next, add @person, or type /task, /draft, /map, /workflow…" />
+              <div className="flex items-center justify-between pt-3"><div className="flex gap-2 text-xs text-neutral-500">{["@person", "/task", "/draft", "/map", "/workflow"].map((cmd)=><button key={cmd} onClick={() => setSpaceNotice(`${cmd} command ready`)} className="rounded-md border border-neutral-200 px-2 py-1">{cmd}</button>)}</div><button onClick={() => { setTaskDone(true); setSpaceNotice("Cactus created a reviewed task/output draft in this Space."); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Send</button></div>
+            </div>
           </section>
 
-          <aside className="overflow-auto bg-[linear-gradient(180deg,#fbfaf7,#f3f0ea)] p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Output canvas</p>
-              <div className="flex rounded-md border border-neutral-200 bg-white p-0.5 text-xs">{["Docs", "Map", "Results"].map((item) => <button key={item} className="rounded px-2 py-1 text-neutral-600 hover:bg-neutral-50">{item}</button>)}</div>
-            </div>
+          <aside className="min-h-0 overflow-auto bg-[linear-gradient(180deg,#fbfaf7,#f3f0ea)] p-5">
+            <div className="flex items-center justify-between"><p className="text-sm font-medium">Output canvas</p><div className="flex rounded-md border border-neutral-200 bg-white p-0.5 text-xs">{["Brief", "Context", "Tasks", "Outputs"].map((item) => <button key={item} onClick={() => setCanvasTab(item as typeof canvasTab)} className={`rounded px-2 py-1 ${canvasTab === item ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{item}</button>)}</div></div>
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-medium text-neutral-500">Document / output preview</p>
-              <div className="mt-3 space-y-2">{["IC memo draft", "T-12 audit table", "Rent comp map", "Diligence request list"].map((row) => <button key={row} onClick={() => row.includes("map") ? go(6) : setOutputReady(true)} className="block w-full rounded-md border border-neutral-100 px-3 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-50">{row}</button>)}</div>
+              {canvasTab === "Brief" && <div><p className="text-xs font-medium text-neutral-500">Current focus</p><h3 className="mt-2 text-lg font-semibold">{selectedWorkspace.title}</h3><p className="mt-2 text-sm leading-6 text-neutral-600">Cactus uses the selected Vault rows, source files, people, tasks, and approval rules to keep work grounded. Pick a step in the work stream or ask in chat.</p><div className="mt-4 grid grid-cols-2 gap-2 text-xs">{[["Needs", "Verified rent roll + comps"], ["Next", taskDone ? "Draft memo" : "Review facts"], ["Can write", "Review queue only"], ["Can send", "Nothing without approval"]].map(([a,b])=><div key={a} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{a}</p><p className="mt-1 font-medium">{b}</p></div>)}</div></div>}
+              {canvasTab === "Context" && <div><p className="text-xs font-medium text-neutral-500">Vault context</p><div className="mt-3 flex flex-wrap gap-2">{['Subject Property', 'Nashville MSA', 'Green Street report', 'T12 + rent roll', 'HelloData comps'].map((row) => <button key={row} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700 hover:bg-[#fbf4ff]">{row}</button>)}</div><button onClick={() => go(6)} className="mt-4 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Add/change Vault context</button><p className="mt-4 text-xs leading-5 text-neutral-500">Non-technical setup rule: choose rows/files first, then Cactus explains what it can use and what needs approval.</p></div>}
+              {canvasTab === "Tasks" && <div><p className="text-xs font-medium text-neutral-500">Assigned tasks</p><div className="mt-3 space-y-2 text-xs">{[["AK", "Verify rent roll anomalies", taskDone ? "Done" : "Open"], ["MR", "Pull 15-minute drive-time comps", "Queued"], ["TS", "Approve draft lender reply", "Review"]].map(([person, task, status]) => <button key={task} onClick={() => setTaskDone(true)} className="flex w-full items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-left"><span><span onClick={(event) => { event.stopPropagation(); openSpaceMember(person); }} className="font-medium underline-offset-2 hover:underline">@{person}</span> {task}</span><span className="text-neutral-400">{status}</span></button>)}</div><button onClick={() => go(9)} className="mt-4 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Tasks</button></div>}
+              {canvasTab === "Outputs" && <div><p className="text-xs font-medium text-neutral-500">Artifacts</p><div className="mt-3 space-y-2">{["IC memo draft", "T-12 audit table", "Rent comp map", "Diligence request list"].map((row) => <button key={row} onClick={() => row.includes("map") ? go(6) : setOutputReady(true)} className="block w-full rounded-md border border-neutral-100 px-3 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-50">{row}</button>)}</div><p className="mt-4 text-xs leading-5 text-neutral-500">Outputs assemble from reviewed artifacts; unapproved facts stay marked.</p></div>}
             </div>
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-medium text-neutral-500">Assigned tasks</p>
-              <div className="mt-3 space-y-2 text-xs">{[["AK", "Verify rent roll anomalies", taskDone ? "Done" : "Open"], ["MR", "Pull 15-minute drive-time comps", "Queued"], ["TS", "Approve draft lender reply", "Review"]].map(([person, task, status]) => <button key={task} onClick={() => setTaskDone(true)} className="flex w-full items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-left"><span><span onClick={(event) => { event.stopPropagation(); openSpaceMember(person); }} className="font-medium underline-offset-2 hover:underline">@{person}</span> {task}</span><span className="text-neutral-400">{status}</span></button>)}</div>
-            </div>
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-xs font-medium text-neutral-500">Context</p><div className="mt-3 flex flex-wrap gap-2">{['Subject Property', 'Nashville MSA', 'Green Street report', 'T12 + rent roll', 'HelloData comps'].map((row) => <button key={row} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700 hover:bg-[#fbf4ff]">{row}</button>)}</div><button onClick={() => go(6)} className="mt-3 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">+ Add Vault rows</button></div>
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"><p className="text-xs font-medium text-neutral-500">People</p><div className="mt-3 flex items-center justify-between"><AvatarStack team={currentTeam} size="md" onPersonClick={openSpaceMember} /><button onClick={() => setShareOpen(true)} className="text-xs text-neutral-600">Manage</button></div></div>
           </aside>
         </main>
@@ -1180,6 +1183,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [runState, setRunState] = useState("Ready");
+  const [runPanel, setRunPanel] = useState<{ title: string; mode: "Run once" | "Enable" | "Open Space"; note: string } | null>(null);
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState("Weekly Crexi multifamily deal scraper");
   const [workflowType, setWorkflowType] = useState("Scraper / source watcher");
@@ -1325,8 +1329,16 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
             <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Context</p><p className="mt-1">{detail.context}</p></div>
             <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Steps</p><ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-neutral-600"><li>Trigger from Assistant, Space, selected Vault rows, schedule, or watcher.</li><li>Extract source data, contacts, documents, and facts.</li><li>Run prompts/enrichment with citations and confidence.</li><li>Draft output/action and create review tasks before side effects.</li></ol></div><div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><p className="text-xs text-amber-700">Maintenance tasks</p><p className="mt-1 text-xs text-amber-800">Auth expired, scraper selector changed, stale source, low confidence, or human review overdue → assign to owner and show in Tasks.</p></div>
           </div>
-          <div className="mt-5 flex gap-2"><button onClick={() => setRunState(`${detail.name} run queued`)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Run once</button><button onClick={() => setRunState(`${detail.name} automation enabled`)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Enable</button><button onClick={() => go(7)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button></div>
+          <div className="mt-5 flex gap-2"><button onClick={() => { setRunState(`${detail.name} run preview created`); setRunPanel({ title: detail.name, mode: "Run once", note: "Preview extracts context, drafts artifacts, and creates review tasks without enabling a schedule." }); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Run once</button><button onClick={() => { setRunState(`${detail.name} approval gate opened`); setRunPanel({ title: detail.name, mode: "Enable", note: "Approve cadence, connector scope, cost, destinations, and side effects before this becomes always-on." }); }} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Enable</button><button onClick={() => { setRunState(`${detail.name} Space ready`); setRunPanel({ title: detail.name, mode: "Open Space", note: "Creates a workroom with Vault context, tasks, artifacts, and chat so the team can execute/review." }); go(7); }} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button></div>
         </aside>
+      )}
+
+      {runPanel && (
+        <div className="absolute bottom-20 right-8 z-30 w-[380px] rounded-2xl border border-neutral-200 bg-white p-4 text-sm shadow-2xl">
+          <div className="flex items-start justify-between gap-3"><div><p className="font-medium">{runPanel.mode}: {runPanel.title}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{runPanel.note}</p></div><button onClick={() => setRunPanel(null)}>×</button></div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-xs">{["Context", "Artifacts", "Approval"].map((item) => <div key={item} className="rounded-lg bg-neutral-50 p-2 text-center text-neutral-600">{item}</div>)}</div>
+          <button onClick={() => setRunPanel(null)} className="mt-3 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Got it</button>
+        </div>
       )}
 
       {newOpen && (
@@ -1498,63 +1510,33 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   };
   const sourceSetupModal = (
     <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-neutral-950/20">
-      <aside className="flex h-full w-[520px] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
+      <aside className="flex h-full w-[640px] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
         <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
-          <div>
-            <p className="text-sm font-semibold">Create your Vault</p>
-            <p className="mt-1 text-xs text-neutral-500">One source path, one review queue, then Cactus writes approved rows and endpoint columns.</p>
-          </div>
+          <div><p className="text-sm font-semibold">Add to Vault</p><p className="mt-1 text-xs text-neutral-500">Choose a source, scope access, map to Vault, review before trust.</p></div>
           <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
         </div>
-
         <div className="flex-1 overflow-auto p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Selected from onboarding</p>
-          <div className="mt-3 rounded-xl border border-neutral-950 bg-neutral-50 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-semibold tracking-[-0.03em]">{selectedSetup.title}</h3>
-                <p className="mt-1 text-sm leading-6 text-neutral-500">{selectedSetup.examples}</p>
-              </div>
-              <span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{sourceSetupStatus}</span>
+          <div className="grid grid-cols-4 gap-2 text-xs">
+            {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`rounded-xl border p-3 text-left ${selectedSetupMode === mode.key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 hover:bg-neutral-50"}`}><span className="block font-medium">{mode.title}</span><span className="mt-1 block opacity-70">{mode.subtitle}</span></button>)}
+            <button onClick={() => setSourceSetupStatus("Browse integrations")} className="rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span className="block font-medium">Integrations + API</span><span className="mt-1 block text-neutral-500">Clay, CRM, PM, accounting, Plaid, MCP</span></button>
+          </div>
+          <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">{selectedSetup.title}</p><p className="mt-1 text-xs text-neutral-500">{selectedSetup.examples}</p></div><span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{sourceSetupStatus}</span></div>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+              {[["1", "Scope", selectedSetup.scope], ["2", "Map", selectedSetup.maps], ["3", "Review", selectedSetup.review]].map(([num, title, note]) => <button key={title} onClick={() => setSourceSetupStatus(`${title} ready`)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left hover:bg-neutral-50"><span className="text-neutral-400">{num}</span><span className="ml-2 font-medium text-neutral-950">{title}</span><span className="mt-1 block leading-5 text-neutral-500">{note}</span></button>)}
             </div>
+            <button onClick={runSelectedSource} className="mt-4 rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">{selectedSetup.primary} → create review queue</button>
           </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {vaultSetupModes.map((mode) => (
-              <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`rounded-md border px-2.5 py-1.5 text-xs ${selectedSetupMode === mode.key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"}`}>{mode.title}</button>
-            ))}
+          <div className="mt-5 flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Integration center</p><p className="text-xs text-neutral-500">Incoming adds to Vault · outgoing sends approved artifacts</p></div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {integrationCatalog.map((connector) => <button key={connector.name} onClick={() => setSourceSetupStatus(`${connector.name} selected · ${connector.guardrail}`)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs hover:bg-neutral-50"><div className="flex items-start justify-between gap-2"><span className="font-medium text-neutral-950">{connector.name}</span><span className={`rounded-md px-2 py-1 text-[10px] ${connector.lane === "Outgoing" ? "bg-blue-50 text-blue-700" : connector.lane === "Both" ? "bg-purple-50 text-purple-700" : "bg-emerald-50 text-emerald-700"}`}>{connector.lane}</span></div><p className="mt-1 text-neutral-500">{connector.use}</p><p className="mt-2 text-neutral-400">{connector.status} · {connector.guardrail}</p></button>)}
           </div>
-
-          <div className="mt-6 rounded-xl border border-neutral-200">
-            {[
-              ["Choose", selectedSetup.primary, selectedSetup.scope],
-              ["Review", "Cactus shows the queue first", selectedSetup.review],
-              ["Vault", "Rows + endpoint columns", selectedSetup.maps],
-            ].map(([label, title, note]) => (
-              <button key={label} onClick={() => setSourceSetupStatus(`${label} ready`)} className="flex w-full gap-3 border-b border-neutral-100 px-4 py-3 text-left last:border-b-0 hover:bg-neutral-50">
-                <span className="mt-0.5 w-14 shrink-0 text-xs font-medium text-neutral-400">{label}</span>
-                <span>
-                  <span className="block text-sm font-medium text-neutral-950">{title}</span>
-                  <span className="mt-1 block text-xs leading-5 text-neutral-500">{note}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-xs leading-5 text-neutral-600">
-            <p className="font-medium text-neutral-950">Review before trust</p>
-            <p className="mt-1">Every value keeps file/page/cell/email provenance and stays untrusted until approved, edited, or rejected.</p>
-          </div>
-
-          <div className="mt-5 rounded-xl border border-dashed border-neutral-300 bg-white p-4 text-center">
-            <p className="text-sm font-medium text-neutral-950">{selectedSetup.primary}</p>
-            <p className="mt-1 text-xs text-neutral-500">Prototype action: create the first source and open the extracting Vault.</p>
-            <button onClick={runSelectedSource} className="mt-4 rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Submit to Vault</button>
-          </div>
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800"><p className="font-medium">Security + data movement</p><p className="mt-1">No broad scans. No trusted writes or outbound sends without approval. Each connector shows granted scope, source provenance, destination, audit log, and model/data-use policy.</p></div>
         </div>
       </aside>
     </div>
   );
+
 
   if (!hasIntake) {
     return (
@@ -1586,24 +1568,17 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                   {Array.from({ length: 5 }).map((__, col) => <div key={col} className="flex items-center border-r border-neutral-50 last:border-r-0"><span className="h-4 w-24 rounded bg-neutral-100" /></div>)}
                 </div>
               ))}
-              <section className="absolute inset-0 flex items-center justify-center bg-white/80">
-                <div className="w-full max-w-[520px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
+              <section className="absolute inset-0 flex items-center justify-center bg-white/85">
+                <div className="w-full max-w-[760px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p>
-                      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">{selectedSetup.primary}</h2>
-                      <p className="mt-2 text-sm leading-6 text-neutral-500">Selected in onboarding: <span className="font-medium text-neutral-800">{sourceTitle}</span>. Start this path now; review/audit happens before facts become trusted Vault data.</p>
-                    </div>
-                    <button onClick={() => setSourceCenterOpen(true)} className="shrink-0 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">Change</button>
+                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Start by adding one trusted source.</h2><p className="mt-2 text-sm leading-6 text-neutral-500">Pick the action that matches what you have. Cactus creates a review queue first, then approved facts become Vault rows and columns.</p></div>
+                    <button onClick={() => setSourceCenterOpen(true)} className="shrink-0 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">All integrations</button>
                   </div>
-                  <button onClick={runSelectedSource} className="mt-5 flex w-full items-center justify-between rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-5 text-left hover:bg-neutral-100">
-                    <span><span className="block text-sm font-medium text-neutral-950">{selectedSetup.key === "deal" ? "Drop deal documents or choose files" : selectedSetup.key === "portfolio" ? "Upload portfolio schedule or start address matching" : "Approve read-only email/drive scope"}</span><span className="mt-1 block text-xs text-neutral-500">{selectedSetup.chips.slice(0, 4).join(" · ")}</span></span>
-                    <span className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">{selectedSetup.primary}</span>
-                  </button>
-                  <div className="mt-4 flex items-center justify-between text-xs text-neutral-500">
-                    <span>Next: review queue → Vault rows/columns → Space</span>
-                    <button onClick={() => go(5)} className="text-[#2b0052]">Ask AI first</button>
+                  <div className="mt-5 grid grid-cols-3 gap-3">
+                    {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); runSelectedSource(); }} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-left hover:border-neutral-300 hover:bg-white"><span className="block text-sm font-medium text-neutral-950">{mode.title}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{mode.subtitle}</span><span className="mt-3 inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 text-xs font-medium text-white">{mode.primary}</span></button>)}
                   </div>
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-600"><span>Selected from onboarding: <strong>{sourceTitle}</strong></span><span>Source → review → Vault → Space/output</span></div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">{integrationCatalog.slice(0, 6).map((item) => <button key={item.name} onClick={() => { setSourceSetupStatus(`${item.name} selected`); setSourceCenterOpen(true); }} className="rounded-full border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">{item.name}</button>)}</div>
                 </div>
               </section>
             </div>
@@ -2111,13 +2086,13 @@ export default function Home() {
   return (
     <main className={`min-h-screen ${isDark ? "bg-neutral-950 text-white" : "bg-white text-neutral-950"}`}>
       <div className="flex h-screen overflow-hidden">
-        <aside className={`flex h-screen ${sidebarCollapsed ? "w-16" : "w-64"} shrink-0 flex-col border-r transition-all ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
-          <div className="flex items-center justify-between px-5 py-4">
-            <button onClick={() => setActive(5)} className="flex items-center gap-2 text-left">
+        <aside className={`flex h-screen ${sidebarCollapsed ? "w-14" : "w-64"} shrink-0 flex-col border-r transition-all ${isDark ? "border-white/10 bg-neutral-950" : "border-neutral-200 bg-neutral-50"}`}>
+          <div className={`flex items-center ${sidebarCollapsed ? "justify-center px-2" : "justify-between px-5"} py-4`}>
+            <button onClick={() => setActive(5)} title="Assistant" className="flex items-center gap-2 text-left">
               <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#2b0052] text-xs font-semibold text-white">C</span>
               {!sidebarCollapsed && <span className="font-serif text-2xl font-light tracking-[-0.04em]">Cactus</span>}
             </button>
-            <button onClick={() => setSidebarCollapsed((collapsed) => !collapsed)} className="rounded-md p-2 text-neutral-400 hover:bg-neutral-100">☰</button>
+            <button onClick={() => setSidebarCollapsed((collapsed) => !collapsed)} title={sidebarCollapsed ? "Expand menu" : "Collapse menu"} className={`grid h-7 w-7 place-items-center rounded-md text-neutral-400 hover:bg-neutral-100 ${sidebarCollapsed ? "mt-11 absolute" : ""}`}>{sidebarCollapsed ? "›" : "‹"}</button>
           </div>
 
           <nav className="px-2.5">
@@ -2129,10 +2104,11 @@ export default function Home() {
                   onClick={() => setActive(screenIndex)}
                   title={screen}
                   aria-label={screen}
-                  className={`mb-1 flex h-9 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition ${activeNav ? "bg-neutral-200/70 text-neutral-950" : isDark ? "text-neutral-300 hover:bg-white/10" : "text-neutral-700 hover:bg-neutral-100"}`}
+                  className={`group relative mb-1 flex h-9 w-full items-center gap-3 rounded-md ${sidebarCollapsed ? "justify-center px-0" : "px-3"} text-left text-sm transition ${activeNav ? "bg-neutral-200/70 text-neutral-950" : isDark ? "text-neutral-300 hover:bg-white/10" : "text-neutral-700 hover:bg-neutral-100"}`}
                 >
                   <span className="w-4 text-center text-base">{icon}</span>
                   {!sidebarCollapsed && <span className="font-medium">{screen}</span>}
+                  {sidebarCollapsed && <span className="pointer-events-none absolute left-12 z-50 hidden whitespace-nowrap rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-700 shadow-lg group-hover:block">{screen}</span>}
                 </button>
               );
             })}
@@ -2178,9 +2154,18 @@ export default function Home() {
                 <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="flex w-full items-center justify-between rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span><span className="block font-medium">Theme</span><span className="text-neutral-500">Switch between light and dark mode.</span></span><span className="rounded-md bg-neutral-100 px-2 py-1">{theme === "dark" ? "Dark" : "Light"}</span></button>
                 <button onClick={() => setSidebarCollapsed((collapsed) => !collapsed)} className="flex w-full items-center justify-between rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span><span className="block font-medium">Sidebar</span><span className="text-neutral-500">Collapse or expand the app menu.</span></span><span className="rounded-md bg-neutral-100 px-2 py-1">{sidebarCollapsed ? "Collapsed" : "Expanded"}</span></button>
               </div>
+            ) : accountPage === "Integrations" ? (
+              <div className="mt-4 space-y-3 text-xs">
+                <div className="grid grid-cols-3 gap-2">{[["Incoming", integrationCatalog.filter((item) => item.lane !== "Outgoing").length], ["Outgoing", integrationCatalog.filter((item) => item.lane !== "Incoming").length], ["Needs approval", integrationCatalog.filter((item) => item.status.includes("Approval") || item.status.includes("Scope") || item.status.includes("Design")).length]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 text-lg font-semibold text-neutral-900">{value}</p></div>)}</div>
+                <div className="max-h-72 overflow-auto rounded-xl border border-neutral-200 p-2">{integrationCatalog.map((item) => <button key={item.name} onClick={() => setAccountPage("Security + audit")} className="mb-1 flex w-full items-start justify-between gap-3 rounded-lg px-3 py-2 text-left hover:bg-neutral-50"><span><span className="block font-medium text-neutral-900">{item.name}</span><span className="mt-1 block text-neutral-500">{item.use}</span></span><span className="rounded-md bg-neutral-100 px-2 py-1 text-[10px] text-neutral-600">{item.lane}</span></button>)}</div>
+              </div>
+            ) : accountPage === "Security + audit" ? (
+              <div className="mt-4 space-y-3 text-xs">
+                {[ ["Model training", "Customer Vault data is not used to train public models in this prototype policy."], ["Where facts come from", "Every fact links to file/page/cell/email/API/source URL, timestamp, confidence, and reviewer."], ["Where data can go", "Outgoing API, MCP, webhooks, exports, emails, and reports require scoped destination approval."], ["Competitor / LLM access", "External users, competitors, and unapproved LLM tools cannot access org Vault context."], ["Write/send gates", "Human approval before trusted Vault writes, scheduled cost, emails, exports, or side effects."], ["Audit trail", "Connector scope, workflow run, approval, rejection, export, and model/tool access are logged." ]].map(([label, value]) => <div key={label} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"><p className="font-medium text-neutral-900">{label}</p><p className="mt-1 leading-5 text-neutral-600">{value}</p></div>)}
+              </div>
             ) : (
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                {(accountPage === "Account" ? [["Name", "Tyler Sellars"], ["Email", "tyler@company.com"], ["Role", "Owner"], ["Login", "Google + email link"]] : accountPage === "Organization" ? [["Org", "Cactus Capital Partners"], ["Workspace", "Multifamily Vault"], ["Asset classes", "Multifamily + Self storage"], ["Region", "US"]] : accountPage === "Members" ? [["Active", "3 members"], ["Pending", "1 invite"], ["Default access", "Deals + comps"], ["External", "View-only links"]] : accountPage === "Billing + trial" ? [["Plan", "Trial access"], ["Documents", "7 / 50 used"], ["Billing", "No payment before setup"], ["Upgrade", "Add card later"]] : accountPage === "Integrations" ? [["Gmail", "Needs scope"], ["Google Drive", "Pending"], ["Yardi", "Not connected"], ["Scrapers", "2 maintenance tasks"]] : accountPage === "Security + audit" ? [["Audit log", "Enabled"], ["Approvals", "Human review before writes"], ["SSO", "Later"], ["Scopes", "Least privilege"]] : [["Email", "Weekly digest"], ["Workflow tasks", "Immediate"], ["Source errors", "Immediate"], ["Billing", "Owner only"]]).map(([label, value]) => (
+                {(accountPage === "Account" ? [["Name", "Tyler Sellars"], ["Email", "tyler@company.com"], ["Role", "Owner"], ["Login", "Google + email link"]] : accountPage === "Organization" ? [["Org", "Cactus Capital Partners"], ["Workspace", "Multifamily Vault"], ["Asset classes", "Multifamily + Self storage"], ["Region", "US"]] : accountPage === "Members" ? [["Active", "3 members"], ["Pending", "1 invite"], ["Default access", "Deals + comps"], ["External", "View-only links"]] : accountPage === "Billing + trial" ? [["Plan", "Trial access"], ["Documents", "7 / 50 used"], ["Billing", "No payment before setup"], ["Upgrade", "Add card later"]] : [["Email", "Weekly digest"], ["Workflow tasks", "Immediate"], ["Source errors", "Immediate"], ["Billing", "Owner only"]]).map(([label, value]) => (
                   <div key={label} className="rounded-xl border border-neutral-200 p-3"><p className="text-neutral-400">{label}</p><p className="mt-1 font-medium text-neutral-800">{value}</p></div>
                 ))}
               </div>

@@ -492,3 +492,12 @@ Workflow outputs should therefore be treated as defensible artifacts, not final 
 - **Reports/dashboards**: assembled from reviewed artifacts rather than generated from scratch; each section should retain provenance and approval history.
 
 Underwriting workflows should default to “prepare, check, map, and explain the underwriting,” not “Cactus owns the model.” Users should choose whether Cactus maps into their Excel model, creates a Cactus template, or produces review-only assumptions. Generative UI should stay bounded: Cactus can fill known output blocks, not invent arbitrary interfaces before the workflow/artifact model is trusted.
+
+## Integrations, security, and data movement
+
+The Vault needs an integration center in both Vault and Account settings. It should organize connectors by user intent instead of a vendor list:
+
+- **Incoming to Vault**: Clay/enrichment, email, Drive/OneDrive, CRMs, property-management systems, accounting systems, banking/Plaid, scrapers/watchers, provider APIs, uploaded files, custom API, webhooks, and MCP tools that can add or query approved context.
+- **Outgoing from Vault**: exports to Excel/Sheets/CSV, CRM/task systems, email/report sending, webhooks, API reads, MCP tool calls, and downstream model/report destinations.
+- **Connection setup**: scope first, then map fields to Vault rows/endpoints, set refresh/cost rules, require review before trusted writes, and show what data can leave the Vault.
+- **Security posture**: clearly answer whether data trains models, where facts came from, where they are sent, who can access them, what scopes were granted, and what audit/approval gates protect side effects. Competitors or external LLMs must not have access to customer Vault data; model/provider usage should be explicit and governed by org policy.

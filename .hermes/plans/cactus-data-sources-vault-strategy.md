@@ -134,10 +134,11 @@ Recommended structure:
 The Vault source center should give every source type a clear creation path, not just a list of possible integrations. The default UI should be organized around the three jobs users understand first:
 
 1. **Deal documents** — T-12s, rent rolls, occupancy reports, management summaries, OMs, market reports, debt quotes, and Excel/CSV/PDF deal materials.
-2. **Portfolio data** — historical multi-property documents, files with missing addresses, property-management/accounting software, and potentially banking data.
+2. **Portfolio data** — historical multi-property documents, files with missing addresses, property-management/accounting software, accounting exports, banking feeds, CRM exports, and data providers.
 3. **Inbox + drive** — Gmail, Outlook, Google Drive, OneDrive, broker senders, and deal-room folders.
+4. **Integrations + APIs** — Clay, Salesforce/HubSpot/Affinity, Yardi/RealPage/AppFolio/Entrata, QuickBooks/NetSuite/Sage, Plaid/banking, provider APIs, custom API, webhooks, and MCP tools.
 
-Provider APIs, public data, and listing/records watchers should be available as secondary/advanced additions, not the first thing users have to parse.
+The Vault should distinguish **incoming connectors** that add/enrich Vault facts from **outgoing connectors** that export approved facts, tasks, reports, webhooks, API responses, or MCP tool calls. Provider APIs, public data, and listing/records watchers should be available as secondary/advanced additions, not the first thing users have to parse.
 
 Each source setup should answer five questions, but the default prototype should answer them inline and lightly rather than through a heavy modal/wizard:
 
