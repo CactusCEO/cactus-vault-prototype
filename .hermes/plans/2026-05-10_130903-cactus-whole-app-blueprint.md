@@ -230,6 +230,10 @@ For internal/product review, explain each primary page's job in chat or docs rat
 - Broker examples: BOV/listing pitch, owner outreach, comp package review, buyer-list personalization, OM/data-room refresh.
 - Market/internal examples: market pulse, trigger monitor, scraper/watch maintenance, unmatched Vault review queue.
 - Selecting an example should prefill the builder with trigger/source, cadence, fields/data endpoints, output target, follow-on skill, review gates, and likely task/Space outputs.
+- Workflow creation must present a multi-step stack for non-technical users: choose trigger/source → pull/extract data → review/approval step → analyze/enrich → output/write/send. The builder can change available step options by workflow type, but the sequence should remain visible. Put the primary `Create workflow` CTA in the preview rail and keep it visible on smaller desktop screens. After creation, show a concrete created workflow/run preview; avoid vague “draft for approval” dead ends.
+- Design for smaller desktop screens: modals/drawers must fit within viewport height, use responsive grids, sticky primary CTAs, horizontal scroll only for dense tables, and avoid hiding critical actions below the fold.
+- Remove noisy onboarding microcopy such as `Step 3.1`, `Step 3.2`, locked step explanations, and non-action buttons like `Ask AI` where the user should simply choose a source/job and move forward.
+- Workflow maintenance should be a quiet health summary plus Tasks routing, not a persistent busy bottom bar.
 
 **Global rules:**
 - Compact nav.

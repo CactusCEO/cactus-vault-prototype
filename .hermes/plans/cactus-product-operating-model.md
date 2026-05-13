@@ -476,7 +476,11 @@ After the scraper builder, the next workflow UX should expose example templates 
 - **Portfolio monitoring**: trigger from monthly/quarterly accounting or PM reports; pull NOI/occupancy/delinquency/budget variance; output variance tasks, investor update notes, and asset-management alerts.
 - **Market pulse / trigger monitor**: trigger from scheduled market/provider/news refresh; pull permits, deliveries, transactions, employer news, treasury/SOFR; output market rows, opportunity flags, and Space/task creation.
 
-Templates should load the builder with prefilled trigger/source, cadence, pull fields, output, and follow-on skill. The UI should keep the flow compact: pick example → inspect chain → edit fields → create draft for approval.
+Templates should load the builder with prefilled trigger/source, cadence, pull fields, output, and follow-on skill. The UI should keep the flow compact: pick example → inspect chain → edit fields → create workflow.
+
+Workflow creation must feel like a visible step stack, not one generic form that stays the same for every type. The right preview rail should show and own the ordered chain, with the primary create CTA always visible at the bottom. Each step can be edited or typed differently: trigger/source, pull/extract, review/approval, analyze, output/write/send. Avoid vague “draft for approval” copy; use clearer actions such as `Create workflow`, `Run once`, `Enable after review`, and show the created workflow/run state immediately.
+
+Maintenance should not live as a noisy persistent warning bar. Show a quiet health summary in Workflows and route issues into Tasks, where users can assign, retry, or review. Only urgent/blocking maintenance should interrupt the page.
 
 ## Defensibility for PE / family-office complexity
 

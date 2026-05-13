@@ -635,21 +635,14 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
-          <section className={`rounded-2xl border p-3 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-[#fbfaf7]"}`}>
-            <div className="flex items-center gap-2">
-              <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs ${cta}`}>AI</div>
-              <div className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-3 py-2 ${isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-white"}`}>
-                <span className={`min-w-0 flex-1 truncate text-sm ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>Ask which first source/job fits you, or ask how Cactus uses your Vault.</span>
-                <button className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>Ask AI</button>
-                <button className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>🎙</button>
-              </div>
-            </div>
-            <p className={`mt-3 text-sm ${muted}`}>Choose the first source to start your company Vault. During the trial, you can connect multiple sources, jobs, teammates, and workflows.</p>
+          <section className={`rounded-2xl border p-4 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-[#fbfaf7]"}`}>
+            <p className="text-sm font-semibold">Start with one source, then one job.</p>
+            <p className={`mt-1 text-sm ${muted}`}>You can add more sources and workflows later.</p>
           </section>
 
-          <div className="mt-5 grid grid-cols-2 gap-5">
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
             <div>
-              <p className="text-sm font-semibold">Step 3.1 · First source</p>
+              <p className="text-sm font-semibold">First source</p>
               <div className="mt-2 space-y-2">
                 {sourceCards.map((item, index) => {
                   const isSelected = selectedSource === index;
@@ -668,7 +661,7 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
 
             {selectedSource !== null ? (
             <div>
-              <p className="text-sm font-semibold">Step 3.2 · First job</p>
+              <p className="text-sm font-semibold">First job</p>
               <div className="mt-2 space-y-2">
                 {systemCards.map((item, index) => {
                   const isSelected = selectedSystem === index;
@@ -685,8 +678,8 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
               </div>
             </div>
             ) : (
-              <div className={`flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed p-6 text-center ${isDark ? "border-white/10 text-neutral-500" : "border-neutral-200 text-neutral-400"}`}>
-                <div><p className="text-sm font-medium">Step 3.2 unlocks after Step 3.1</p><p className="mt-1 text-xs">Pick the first source, then Cactus can suggest the first job.</p></div>
+              <div className={`flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed p-6 text-center ${isDark ? "border-white/10 text-neutral-500" : "border-neutral-200 text-neutral-400"}`}>
+                <p className="text-sm font-medium">Choose a source to continue.</p>
               </div>
             )}
           </div>
@@ -1193,7 +1186,8 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [outputFormat, setOutputFormat] = useState("Vault columns");
   const [outputTarget, setOutputTarget] = useState("Add/update Vault rows");
   const [analysisSkill, setAnalysisSkill] = useState("Financial analysis skill");
-  const [approvalState, setApprovalState] = useState("Draft — not scheduled");
+  const [approvalState, setApprovalState] = useState("Not enabled");
+  const [workflowCreated, setWorkflowCreated] = useState(false);
   const [selectedExample, setSelectedExample] = useState<(typeof workflowExamples)[number] | null>(null);
   const togglePullField = (field: string) => setPullFields((current) => current.includes(field) ? current.filter((item) => item !== field) : [...current, field]);
   const loadWorkflowExample = (example: (typeof workflowExamples)[number]) => {
@@ -1206,7 +1200,8 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
     setOutputFormat("Vault columns");
     setOutputTarget(example.output);
     setAnalysisSkill(example.skill);
-    setApprovalState(`${example.title} loaded · edit fields, then approve`);
+    setApprovalState(`${example.title} loaded · edit steps, then create workflow`);
+    setWorkflowCreated(false);
     setNewOpen(true);
   };
   const filtered = workflowLibrary
@@ -1220,6 +1215,42 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
     ["Crexi selector changed", "Listing scraper", "Retry"],
     ["Review queue overdue", "Extraction review", "Open"]
   ];
+  const workflowSteps = workflowType === "Scraper / source watcher"
+    ? [
+      ["Trigger", cadence, "When Cactus runs"],
+      ["Source", sourceUrl || "Add source", "URL, inbox, folder, API, or Vault rows"],
+      ["Extract", `${pullFields.length} fields`, outputFormat],
+      ["Review", "Human check", "approve facts before trusted writes"],
+      ["Output", outputTarget, analysisSkill]
+    ]
+    : workflowType === "Review / approval"
+      ? [
+        ["Trigger", cadence, "selected work needing review"],
+        ["Context", sourceUrl || "Vault rows / Space", "evidence and owner"],
+        ["Check", `${pullFields.length} fields`, "citations + confidence"],
+        ["Decision", "approve / edit / reject", "assigned reviewer"],
+        ["Output", outputTarget, "task + audit trail"]
+      ]
+      : workflowType === "Output drafter"
+        ? [
+          ["Trigger", cadence, "Space or selected Vault rows"],
+          ["Context", sourceUrl || "approved artifacts", "facts only"],
+          ["Assemble", outputTarget, "memo / BOV / email blocks"],
+          ["Review", "human edit", "no send until approved"],
+          ["Output", "Space + export", analysisSkill]
+        ]
+        : [
+          ["Trigger", cadence, "Assistant, Space, or Vault rows"],
+          ["Context", sourceUrl || "selected rows", "files + endpoints"],
+          ["Analyze", analysisSkill, `${pullFields.length} data points`],
+          ["Review", "assumptions", "confidence + citations"],
+          ["Output", outputTarget, "tasks / Space / Vault update"]
+        ];
+  const createWorkflow = () => {
+    setWorkflowCreated(true);
+    setApprovalState(`${workflowName} created · review before enabling background runs`);
+    setRunState(`${workflowName} created · ${workflowSteps.length} steps`);
+  };
   const updateSearch = (value: string) => {
     setSearch(value);
     setSelectedWorkflow(null);
@@ -1231,16 +1262,16 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-neutral-100 px-4 lg:px-8">
         <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Workflows</h1>
-        <div className="flex items-center gap-2">
-          <input value={search} onChange={(event) => updateSearch(event.target.value)} className="h-8 w-64 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300" placeholder="Search OM parser, BOV, submarket pulse…" />
-          <button onClick={() => setNewOpen(true)} className="grid h-8 w-8 place-items-center rounded-md text-lg text-neutral-500 hover:bg-neutral-100">+</button>
+        <div className="flex min-w-0 items-center gap-2">
+          <input value={search} onChange={(event) => updateSearch(event.target.value)} className="h-8 w-44 rounded-md border border-neutral-200 px-3 text-sm outline-none placeholder:text-neutral-300 lg:w-64" placeholder="Search workflows…" />
+          <button onClick={() => { setWorkflowCreated(false); setNewOpen(true); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">New</button>
         </div>
       </header>
 
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
-        <div className="flex items-center gap-5 text-sm">
+      <div className="flex h-11 shrink-0 items-center justify-between overflow-x-auto border-b border-neutral-100 px-4 lg:px-8">
+        <div className="flex shrink-0 items-center gap-5 text-sm">
           {[["all", "All"], ["ongoing", "Ongoing automations"], ["template", "One-off templates"]].map(([key, label]) => (
             <button key={key} onClick={() => updateTab(key as "all" | "ongoing" | "template")} className={`${activeTab === key ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{label}</button>
           ))}
@@ -1253,9 +1284,9 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         </div>
       </div>
 
-      <div className="border-b border-neutral-100 px-8 py-3">
-        <div className="mb-2 flex items-center justify-between text-xs"><span className="font-medium text-neutral-500">Workflow examples to build next</span><span className="text-neutral-400">Pick one → builder loads fields, trigger, output, and follow-on skill.</span></div>
-        <div className="grid grid-cols-5 gap-2">
+      <div className="border-b border-neutral-100 px-4 py-3 lg:px-8">
+        <div className="mb-2 flex items-center justify-between text-xs"><span className="font-medium text-neutral-500">Examples</span><span className="hidden text-neutral-400 lg:inline">Pick one → edit steps → create workflow.</span></div>
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
           {workflowExamples.map((example) => (
             <button key={example.title} onClick={() => loadWorkflowExample(example)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left hover:border-neutral-300 hover:bg-neutral-50">
               <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-400">{example.role}</span>
@@ -1267,7 +1298,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       </div>
 
       <main className="min-h-0 flex-1 overflow-auto">
-        <div className="min-w-[1080px]">
+        <div className="min-w-[900px]">
           <div className="flex h-9 items-center border-b border-neutral-200 pr-8 text-xs font-medium text-neutral-500">
             <div className="grid w-8 place-items-center"><input type="checkbox" checked={allSelected} onChange={() => setSelectedIds(allSelected ? [] : filtered.map((workflow) => workflow.name))} className="h-2.5 w-2.5 accent-black" /></div>
             <div className="w-[280px] px-2">Workflow</div>
@@ -1291,19 +1322,12 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         </div>
       </main>
 
-      <div className="border-t border-neutral-100 px-8 py-3 text-xs text-neutral-400">
-        {runState}. Workflows can be called from Assistant, attached to a Space, or run on top of selected Vault rows.
-        <button onClick={() => go(5)} className="ml-3 text-neutral-700">Open Assistant</button>
-        <button onClick={() => go(6)} className="ml-3 text-neutral-700">Choose Vault rows</button>
-      </div>
-      <div className="flex items-center gap-2 border-t border-amber-100 bg-amber-50 px-8 py-2 text-xs text-amber-800">
-        <span className="font-medium">Maintenance</span>
-        <button onClick={() => go(9)} className="rounded-full bg-amber-900 px-3 py-1 text-white">Open task inbox</button>
-        {maintenanceTasks.map(([title, source, action]) => (
-          <button key={title} onClick={() => setMaintenanceOpen(true)} className="rounded-full border border-amber-200 bg-white px-3 py-1 text-left text-amber-800 hover:bg-amber-100">
-            {title} <span className="text-amber-500">· {source} · {action}</span>
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3 text-xs text-neutral-500 lg:px-8">
+        <span>{runState}</span>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setMaintenanceOpen(true)} className="rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-amber-800">3 maintenance tasks</button>
+          <button onClick={() => go(9)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-neutral-700">Tasks</button>
+        </div>
       </div>
 
       {maintenanceOpen && (
@@ -1342,46 +1366,48 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       )}
 
       {newOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6">
-          <div className="flex max-h-[92vh] w-[980px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
-            <section className="w-[620px] overflow-auto p-5">
-              <div className="flex justify-between"><div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">{selectedExample ? `${selectedExample.title} · ${selectedExample.role}` : "Build a scraper that writes to Vault, then optionally runs analysis on every new deal row."}</p></div><button onClick={() => setNewOpen(false)}>×</button></div>
-              <input value={workflowName} onChange={(event) => setWorkflowName(event.target.value)} className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-3 lg:p-6">
+          <div className="grid max-h-[92vh] w-full max-w-[1060px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl lg:grid-cols-[minmax(0,1fr)_360px]">
+            <section className="min-h-0 overflow-auto p-4 lg:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">Build it as steps. Edit the chain on the right.</p></div>
+                <button onClick={() => setNewOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+              </div>
+              <input value={workflowName} onChange={(event) => { setWorkflowName(event.target.value); setWorkflowCreated(false); }} className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" />
 
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                <div><p className="font-medium text-neutral-500">Type of workflow</p><div className="mt-2 grid grid-cols-2 gap-2">{["Scraper / source watcher", "AI analysis", "Output drafter", "Review / approval"].map((type)=><button key={type} onClick={() => setWorkflowType(type)} className={`rounded-lg border px-3 py-2 text-left ${workflowType===type ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{type}</button>)}</div></div>
-                <div><p className="font-medium text-neutral-500">Cadence / trigger timing</p><div className="mt-2 grid grid-cols-2 gap-2">{["On new row", "On demand", "Daily", "Weekly", "Monthly", "Quarterly"].map((item)=><button key={item} onClick={() => setCadence(item)} className={`rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div></div>
+              <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
+                <div><p className="font-medium text-neutral-500">Workflow type</p><div className="mt-2 grid grid-cols-2 gap-2">{["Scraper / source watcher", "AI analysis", "Output drafter", "Review / approval"].map((type)=><button key={type} onClick={() => { setWorkflowType(type); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${workflowType===type ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{type}</button>)}</div></div>
+                <div><p className="font-medium text-neutral-500">Trigger</p><div className="mt-2 grid grid-cols-2 gap-2">{["On new row", "On demand", "Daily", "Weekly", "Monthly", "Quarterly"].map((item)=><button key={item} onClick={() => { setCadence(item); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div></div>
               </div>
 
-              <p className="mt-4 text-xs font-medium text-neutral-500">Source / trigger context</p>
-              <input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" placeholder="Paste URL or choose Vault rows, package, accounting export, market feed…" />
+              <p className="mt-4 text-xs font-medium text-neutral-500">Source / context</p>
+              <input value={sourceUrl} onChange={(event) => { setSourceUrl(event.target.value); setWorkflowCreated(false); }} className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" placeholder="URL, inbox, Drive folder, selected Vault rows, package…" />
 
-              <p className="mt-4 text-xs font-medium text-neutral-500">What should Cactus pull?</p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">{["Property name", "Address", "Units", "Asking price", "Broker", "Owner", "Cap rate", "NOI", "T12 NOI", "DSCR", "LTV", "Debt yield", "Sales comps", "Rent comps", "Demand growth", "Occupancy", "NOI variance", "Permits", "Deliveries", "SOFR", "Listing URL", "Source date"].map((field)=><button key={field} onClick={() => togglePullField(field)} className={`rounded-full border px-3 py-1.5 ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{field}</button>)}</div>
+              <p className="mt-4 text-xs font-medium text-neutral-500">Data to pull / check</p>
+              <div className="mt-2 flex max-h-28 flex-wrap gap-2 overflow-auto text-xs">{["Property name", "Address", "Units", "Asking price", "Broker", "Owner", "Cap rate", "NOI", "T12 NOI", "DSCR", "LTV", "Debt yield", "Sales comps", "Rent comps", "Demand growth", "Occupancy", "NOI variance", "Permits", "Deliveries", "SOFR", "Listing URL", "Source date"].map((field)=><button key={field} onClick={() => { togglePullField(field); setWorkflowCreated(false); }} className={`rounded-full border px-3 py-1.5 ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{field}</button>)}</div>
 
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                <div><p className="font-medium text-neutral-500">Format / schema</p><div className="mt-2 space-y-2">{["Vault columns", "CSV export", "JSON schema", "Micro-vault"].map((format)=><button key={format} onClick={() => setOutputFormat(format)} className={`block w-full rounded-lg border px-3 py-2 text-left ${outputFormat===format ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{format}</button>)}</div></div>
-                <div><p className="font-medium text-neutral-500">Output</p><div className="mt-2 space-y-2">{["Add/update Vault rows", "Create review task", "Create Space", "Draft output"].map((target)=><button key={target} onClick={() => setOutputTarget(target)} className={`block w-full rounded-lg border px-3 py-2 text-left ${outputTarget===target ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{target}</button>)}</div></div>
+              <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
+                <div><p className="font-medium text-neutral-500">Schema</p><div className="mt-2 grid grid-cols-2 gap-2">{["Vault columns", "CSV export", "JSON schema", "Micro-vault"].map((format)=><button key={format} onClick={() => { setOutputFormat(format); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${outputFormat===format ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{format}</button>)}</div></div>
+                <div><p className="font-medium text-neutral-500">Output</p><div className="mt-2 grid grid-cols-2 gap-2">{["Add/update Vault rows", "Create review task", "Create Space", "Draft output"].map((target)=><button key={target} onClick={() => { setOutputTarget(target); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${outputTarget===target ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{target}</button>)}</div></div>
               </div>
 
-              <p className="mt-4 text-xs font-medium text-neutral-500">Then analyze each new Vault deal with</p>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs">{["Financial analysis skill", "Market analysis skill", "Lender screen skill", "Broker BOV/listing skill", "No analysis — review only"].map((skill)=><button key={skill} onClick={() => setAnalysisSkill(skill)} className={`rounded-lg border px-3 py-2 text-left ${analysisSkill===skill ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{skill}</button>)}</div>
-
-              <button onClick={() => { setApprovalState(`${workflowName} ready for approval · ${cadence} · ${pullFields.length} fields · ${analysisSkill}`); setRunState(`${workflowName} draft: ${sourceUrl} → ${outputTarget} → ${analysisSkill}`); }} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create workflow draft for approval</button>
+              <p className="mt-4 text-xs font-medium text-neutral-500">Analysis / follow-on</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs lg:grid-cols-3">{["Financial analysis skill", "Market analysis skill", "Lender screen skill", "Broker BOV/listing skill", "No analysis — review only"].map((skill)=><button key={skill} onClick={() => { setAnalysisSkill(skill); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${analysisSkill===skill ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{skill}</button>)}</div>
             </section>
-            <aside className="w-[360px] border-l border-neutral-100 bg-neutral-50 p-5">
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workflow preview</p>
-              <div className="mt-4 space-y-2 text-sm">
-                {[
-                  ["1", "Scrape source", sourceUrl || "Source URL required"],
-                  ["2", "Normalize fields", `${pullFields.length} fields → ${outputFormat}`],
-                  ["3", "Write to Vault", `${outputTarget} with citations + timestamps`],
-                  ["4", "Analyze new rows", analysisSkill],
-                  ["5", "Create tasks / Spaces / outputs", "Human review before side effects"]
-                ].map(([num, title, note]) => <div key={num} className="rounded-xl border border-neutral-200 bg-white p-3"><div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{num}</span><span className="font-medium">{title}</span></div><p className="mt-2 text-xs leading-5 text-neutral-500">{note}</p></div>)}
+            <aside className="flex min-h-0 flex-col border-t border-neutral-100 bg-neutral-50 lg:border-l lg:border-t-0">
+              <div className="min-h-0 flex-1 overflow-auto p-4 lg:p-5">
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Step stack</p>
+                <div className="mt-4 space-y-2 text-sm">
+                  {workflowSteps.map(([title, value, note], index) => <div key={`${title}-${index}`} className="rounded-xl border border-neutral-200 bg-white p-3"><div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{index + 1}</span><span className="font-medium">{title}</span></div><p className="mt-2 truncate text-xs text-neutral-800">{value}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{note}</p></div>)}
+                </div>
+                {selectedExample && <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600"><p className="font-medium text-neutral-900">Expected result</p><p className="mt-1 leading-5">{selectedExample.result}</p></div>}
+                {workflowCreated && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800"><p className="font-medium">Workflow created</p><p className="mt-1 leading-5">Open it as a Space, run once, or enable after review.</p></div>}
               </div>
-              {selectedExample && <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600"><p className="font-medium text-neutral-900">Expected result</p><p className="mt-1 leading-5">{selectedExample.result}</p></div>}
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><p className="font-medium">Approval gate</p><p className="mt-1 leading-5">{approvalState}. Cactus will not run scheduled scrapers, spend money, send emails, or update trusted Vault facts until approved.</p></div>
+              <div className="sticky bottom-0 border-t border-neutral-200 bg-white p-4">
+                <button onClick={createWorkflow} className="w-full rounded-md bg-neutral-950 px-3 py-2.5 text-sm font-medium text-white">Create workflow</button>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><button onClick={() => setRunPanel({ title: workflowName, mode: "Run once", note: "Runs this step stack once and opens a review result." })} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Run once</button><button onClick={() => { setRunPanel({ title: workflowName, mode: "Enable", note: "Review cadence, scope, costs, and side effects before it runs in the background." }); setApprovalState("Needs review before enable"); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Enable</button><button onClick={() => { createWorkflow(); go(7); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Open Space</button></div>
+                <p className="mt-2 text-[11px] leading-4 text-neutral-400">{approvalState}</p>
+              </div>
             </aside>
           </div>
         </div>
