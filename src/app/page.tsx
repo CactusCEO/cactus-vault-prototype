@@ -424,6 +424,7 @@ function ThemeToggle({ theme, setTheme }: { theme: "light" | "dark"; setTheme: (
 function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex: number) => void; theme: "light" | "dark"; initialMode?: "signup" | "signin" }) {
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [emailSent, setEmailSent] = useState(false);
+  const [dataSourcePrompt, setDataSourcePrompt] = useState<"Gmail" | "Outlook" | null>(null);
   const isSignup = mode === "signup";
   const isDark = theme === "dark";
 
@@ -466,15 +467,24 @@ function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex:
 
         <div className="mx-auto mt-7 max-w-md">
           <div className="space-y-3">
-            <button onClick={() => isSignup ? go(2) : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => isSignup ? setDataSourcePrompt("Gmail") : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="text-base">G</span>{isSignup ? "Sign up with Google" : "Sign in with Google"}
             </button>
-            <button onClick={() => isSignup ? go(2) : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => isSignup ? setDataSourcePrompt("Outlook") : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="grid grid-cols-2 gap-0.5">
                 <span className="h-2 w-2 bg-[#f25022]" /><span className="h-2 w-2 bg-[#7fba00]" /><span className="h-2 w-2 bg-[#00a4ef]" /><span className="h-2 w-2 bg-[#ffb900]" />
               </span>{isSignup ? "Sign up with Microsoft" : "Sign in with Microsoft"}
             </button>
           </div>
+          {isSignup && dataSourcePrompt && (
+            <div className={`mt-3 rounded-xl border p-3 text-left ${isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-neutral-50"}`}>
+              <p className="text-sm font-medium">Use {dataSourcePrompt} to fill your Vault?</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => go(2)} className={`rounded-md px-3 py-2 text-xs font-medium ${primaryCta}`}>Choose folders</button>
+                <button onClick={() => go(2)} className={`rounded-md border px-3 py-2 text-xs ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>Not now</button>
+              </div>
+            </div>
+          )}
 
           <div className={`my-5 flex items-center gap-3 text-xs ${muted}`}><div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} />or use work email<div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} /></div>
           <label className={`text-xs font-medium ${muted}`}>Work email</label>
@@ -999,75 +1009,111 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
 }
 
 function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
-  const folders = ["Vault review", "Workflows", "Spaces", "Diligence", "Investor reporting", "Maintenance"];
-  const stages = ["Inbox", "Doing", "Review", "Done"];
-  const [folder, setFolder] = useState("Vault review");
-  const [selectedTask, setSelectedTask] = useState<(typeof taskRows)[number] | null>(taskRows[0]);
+  const defaultFolders = ["Inbox", "Today", "Assigned to me", "Acquisitions", "Portfolio cleanup", "Investor reporting"];
+  const [folders, setFolders] = useState(defaultFolders);
+  const [folder, setFolder] = useState("Inbox");
+  const [personFilter, setPersonFilter] = useState("All");
+  const [taskSearch, setTaskSearch] = useState("");
+  const [selectedTask, setSelectedTask] = useState<(typeof taskRows)[number] | null>(taskRows[1]);
+  const [createdTasks, setCreatedTasks] = useState<(typeof taskRows)[number][]>([]);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskOwner, setNewTaskOwner] = useState("AK");
+  const [newTaskFolder, setNewTaskFolder] = useState("Inbox");
   const [done, setDone] = useState<string[]>([]);
   const [taskOwners, setTaskOwners] = useState<Record<string, string>>({});
+  const [taskFolders, setTaskFolders] = useState<Record<string, string>>({});
   const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
   const [teamOpen, setTeamOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [notification, setNotification] = useState("Select a task, open the work, assign it, or move it forward.");
+  const [notification, setNotification] = useState("Ready");
+  const allTasks = [...taskRows, ...createdTasks];
   const ownerFor = (task: (typeof taskRows)[number]) => taskOwners[task.title] ?? task.owner;
   const openMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
-  const folderFor = (task: (typeof taskRows)[number]) => task.type === "Vault review" ? "Vault review" : task.type === "Maintenance" ? "Maintenance" : task.source.includes("workflow") || task.source.includes("Workflow") ? "Workflows" : task.space.includes("Space") ? "Spaces" : task.role === "Investor" ? "Investor reporting" : "Diligence";
-  const stageFor = (task: (typeof taskRows)[number]) => done.includes(task.title) || task.status === "Done" ? "Done" : task.status === "Blocked" || task.status === "Maintenance" ? "Review" : task.status === "Open" ? "Doing" : "Inbox";
-  const shownTasks = taskRows.filter((task) => folderFor(task) === folder);
+  const folderFor = (task: (typeof taskRows)[number]) => taskFolders[task.title] ?? (task.type === "Vault review" ? "Portfolio cleanup" : task.type === "Maintenance" ? "Inbox" : task.role === "Investor" ? "Investor reporting" : task.role === "Broker" ? "Acquisitions" : "Inbox");
+  const activeTasks = allTasks.filter((task) => !done.includes(task.title));
+  const filteredTasks = activeTasks
+    .filter((task) => personFilter === "All" || ownerFor(task) === personFilter)
+    .filter((task) => {
+      if (folder === "Inbox") return true;
+      if (folder === "Today") return task.due === "Today" || task.due === "Now";
+      if (folder === "Assigned to me") return ownerFor(task) === "TS";
+      return folderFor(task) === folder;
+    })
+    .filter((task) => !taskSearch || [task.title, task.source, task.space, task.context, task.role, ownerFor(task), folderFor(task)].join(" ").toLowerCase().includes(taskSearch.toLowerCase()));
   const addMember = () => {
     if (teamMembers.some((member) => member.initials === "NP")) return;
     setTeamMembers((current) => [...current, { initials: "NP", name: "New partner", email: "new.partner@cactus.local", role: "External collaborator", access: "View" }]);
-    setNotification("Invite email queued to new.partner@cactus.local.");
+    setNotification("Invite queued");
   };
   const removeMember = (initials: string) => {
     setTeamMembers((current) => current.filter((member) => member.initials !== initials));
-    setNotification(`${initials} removed. Reassign open tasks if needed.`);
+    setNotification(`${initials} removed`);
     setTeamOpen(false);
   };
   const assignTask = (task: (typeof taskRows)[number], initials: string) => {
     setTaskOwners((current) => ({ ...current, [task.title]: initials }));
-    const member = teamMembers.find((item) => item.initials === initials);
-    setNotification(`Email queued to ${member?.email ?? initials}: “${task.title}” was assigned.`);
+    setNotification(`Assigned to ${initials}`);
   };
   const completeTask = (task: (typeof taskRows)[number]) => {
     setDone((current) => current.includes(task.title) ? current : [...current, task.title]);
-    setNotification(`Completed: ${task.title}`);
+    setNotification(`Done: ${task.title}`);
   };
   const removeTask = (task: (typeof taskRows)[number]) => {
     setDone((current) => current.includes(task.title) ? current : [...current, task.title]);
-    setNotification(`Removed from active queue: ${task.title}`);
+    setNotification(`Removed: ${task.title}`);
   };
+  const createTask = () => {
+    const title = newTaskTitle.trim() || "Review new portfolio item";
+    const task = { title, owner: newTaskOwner, role: "Investor", source: "Manual task", space: newTaskFolder, status: "Open", priority: "Medium", due: "Today", action: "Open work", type: "My tasks", context: "Manual context", evidence: "Created by Tyler." };
+    setCreatedTasks((current) => [task, ...current]);
+    setTaskFolders((current) => ({ ...current, [title]: newTaskFolder }));
+    if (!folders.includes(newTaskFolder)) setFolders((current) => [...current, newTaskFolder]);
+    setSelectedTask(task);
+    setFolder(newTaskFolder);
+    setCreateOpen(false);
+    setNewTaskTitle("");
+    setNotification("Task created");
+  };
+  const addFolder = () => {
+    const next = "New folder";
+    if (!folders.includes(next)) setFolders((current) => [...current, next]);
+    setFolder(next);
+  };
+  const primaryAction = selectedTask?.status === "Blocked" || selectedTask?.status === "Maintenance" ? "Resolve" : selectedTask?.status === "Review" ? "Review" : "Open work";
   const statusClass = (status: string) => status === "Blocked" || status === "Maintenance" ? "bg-amber-50 text-amber-700" : status === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-600";
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-100 px-8">
-        <div>
-          <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">Tasks</h1>
-          <p className="mt-1 text-xs text-neutral-500">Open work, approve, assign, remove, or complete.</p>
-        </div>
-        <button onClick={() => { setSelectedTask(taskRows[1]); setNotification("New task created in Inbox."); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Task</button>
-      </header>
+      <TopBar title="Tasks" search={taskSearch} onSearch={setTaskSearch} searchPlaceholder="Search tasks…" cta="+ Task" onCta={() => setCreateOpen(true)} />
+      <main className="grid min-h-0 flex-1 grid-cols-[240px_minmax(520px,1fr)_360px] overflow-hidden">
+        <aside className="overflow-auto border-r border-neutral-100 bg-neutral-50 p-4 text-sm">
+          <button onClick={() => setCreateOpen(true)} className="mb-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Create task</button>
+          <p className="px-2 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">Folders</p>
+          <div className="mt-2 space-y-1">
+            {folders.map((item) => <button key={item} onClick={() => setFolder(item)} className={`flex w-full items-center justify-between rounded-md px-2 py-2 text-left text-xs ${folder === item ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-600 hover:bg-white"}`}><span>{item}</span><span className="text-neutral-400">{item === "Inbox" ? activeTasks.length : activeTasks.filter((task) => item === "Today" ? task.due === "Today" || task.due === "Now" : item === "Assigned to me" ? ownerFor(task) === "TS" : folderFor(task) === item).length}</span></button>)}
+            <button onClick={addFolder} className="w-full rounded-md px-2 py-2 text-left text-xs text-neutral-500 hover:bg-white">+ New folder</button>
+          </div>
+          <p className="mt-6 px-2 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">People</p>
+          <div className="mt-2 flex flex-wrap gap-2 px-2">
+            {["All", ...teamMembers.map((member) => member.initials)].map((initials) => <button key={initials} onClick={() => setPersonFilter(initials)} className={`rounded-full px-3 py-1 text-xs ${personFilter === initials ? "bg-neutral-950 text-white" : "bg-white text-neutral-600"}`}>{initials}</button>)}
+          </div>
+        </aside>
 
-      <div className="flex h-12 shrink-0 items-center gap-2 overflow-x-auto border-b border-neutral-100 px-8 text-xs">
-        {folders.map((item) => <button key={item} onClick={() => setFolder(item)} className={`rounded-md px-3 py-2 ${folder === item ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}>{item}</button>)}
-      </div>
-
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(720px,1fr)_380px] overflow-hidden">
-        <section className="overflow-auto p-6">
-          <div className="mb-4 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">{notification}</div>
-          <div className="grid grid-cols-4 gap-3">
-            {stages.map((stage) => (
-              <div key={stage} className="min-h-[520px] rounded-xl border border-neutral-200 bg-neutral-50 p-2">
-                <div className="flex items-center justify-between px-2 py-2 text-xs"><span className="font-medium text-neutral-700">{stage}</span><span className="text-neutral-400">{shownTasks.filter((task) => stageFor(task) === stage).length}</span></div>
-                <div className="space-y-2">
-                  {shownTasks.filter((task) => stageFor(task) === stage).map((task) => {
-                    const taskStatus = done.includes(task.title) ? "Done" : task.status;
-                    return <button key={task.title} onClick={() => setSelectedTask(task)} className={`w-full rounded-lg border bg-white p-3 text-left text-xs hover:border-neutral-300 ${selectedTask?.title === task.title ? "border-neutral-950" : "border-neutral-200"}`}><span className="block text-sm font-medium text-neutral-950">{task.title}</span><span className="mt-1 block text-neutral-500">{task.space}</span><div className="mt-3 flex items-center justify-between"><button onClick={(event) => { event.stopPropagation(); openMember(ownerFor(task)); }} className="grid h-6 w-6 place-items-center rounded-full bg-neutral-900 text-[10px] text-white">{ownerFor(task)}</button><span className={`rounded-md px-2 py-1 text-[10px] ${statusClass(taskStatus)}`}>{taskStatus}</span></div></button>;
-                  })}
-                </div>
-              </div>
-            ))}
+        <section className="overflow-auto p-5">
+          {notification !== "Ready" && <div className="mb-3 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">{notification}</div>}
+          <div className="mb-3 flex items-center justify-between text-xs text-neutral-500"><span>{folder}{personFilter !== "All" ? ` · ${personFilter}` : ""}</span><span>{filteredTasks.length} tasks</span></div>
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+            {filteredTasks.map((task) => {
+              const taskStatus = done.includes(task.title) ? "Done" : task.status;
+              return <button key={task.title} onClick={() => setSelectedTask(task)} className={`grid w-full grid-cols-[1fr_96px_76px_86px] items-center gap-3 border-b border-neutral-100 px-4 py-3 text-left text-xs last:border-b-0 hover:bg-neutral-50 ${selectedTask?.title === task.title ? "bg-neutral-50" : "bg-white"}`}>
+                <span className="min-w-0"><span className="block truncate text-sm font-medium text-neutral-950">{task.title}</span><span className="mt-1 block truncate text-neutral-500">{task.space} · {task.source}</span></span>
+                <span onClick={(event) => { event.stopPropagation(); openMember(ownerFor(task)); }} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-950 text-[10px] text-white">{ownerFor(task)}</span>
+                <span className="text-neutral-500">{task.due}</span>
+                <span className={`w-fit rounded-md px-2 py-1 text-[10px] ${statusClass(taskStatus)}`}>{taskStatus}</span>
+              </button>;
+            })}
+            {filteredTasks.length === 0 && <div className="p-8 text-center text-sm text-neutral-400">No matching tasks.</div>}
           </div>
         </section>
 
@@ -1076,17 +1122,15 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
             <div className="space-y-4">
               <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold">{selectedTask.title}</p><p className="mt-1 text-xs text-neutral-500">{selectedTask.source}</p></div><span className={`rounded-md px-2 py-1 text-[11px] ${statusClass(done.includes(selectedTask.title) ? "Done" : selectedTask.status)}`}>{done.includes(selectedTask.title) ? "Done" : selectedTask.status}</span></div>
-                <p className="mt-4 text-xs font-medium text-neutral-400">Why this exists</p>
-                <p className="mt-1 text-sm leading-6 text-neutral-600">{selectedTask.evidence}</p>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
                   {[["Owner", ownerFor(selectedTask)], ["Folder", folderFor(selectedTask)], ["Due", selectedTask.due], ["Priority", selectedTask.priority]].map(([label, value]) => <div key={label} className="rounded-lg bg-neutral-50 p-3"><p className="text-neutral-400">{label}</p>{label === "Owner" ? <button onClick={() => openMember(value)} className="mt-1 font-medium text-neutral-800 underline-offset-2 hover:underline">{value}</button> : <p className="mt-1 font-medium text-neutral-800">{value}</p>}</div>)}
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button onClick={() => go(7)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Open work</button>
-                  <button onClick={() => completeTask(selectedTask)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Approve / complete</button>
-                  <button onClick={() => removeTask(selectedTask)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Remove</button>
-                  <button onClick={() => go(6)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Vault</button>
-                  <button onClick={() => go(8)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open workflow</button>
+                <p className="mt-4 text-xs font-medium text-neutral-400">Why this exists</p>
+                <p className="mt-1 text-sm leading-6 text-neutral-600">{selectedTask.evidence}</p>
+                <div className="mt-4 flex items-center gap-2">
+                  <button onClick={() => go(7)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">{primaryAction}</button>
+                  <button onClick={() => completeTask(selectedTask)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Mark done</button>
+                  <details className="relative"><summary className="list-none rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">More</summary><div className="absolute right-0 z-10 mt-2 w-36 rounded-xl border border-neutral-200 bg-white p-1 text-xs shadow-xl"><button onClick={() => go(6)} className="block w-full rounded-md px-3 py-2 text-left hover:bg-neutral-50">Open Vault</button><button onClick={() => go(8)} className="block w-full rounded-md px-3 py-2 text-left hover:bg-neutral-50">Open workflow</button><button onClick={() => removeTask(selectedTask)} className="block w-full rounded-md px-3 py-2 text-left text-red-600 hover:bg-red-50">Remove</button></div></details>
                 </div>
               </div>
               <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -1095,13 +1139,14 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
               </div>
               <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                 <p className="text-xs font-medium text-neutral-500">Context</p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">{selectedTask.context.split(" + ").map((item) => <button key={item} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-neutral-700 hover:bg-neutral-50">{item}</button>)}</div>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">{selectedTask.context.split(" + ").map((item) => <button key={item} onClick={() => go(6)} className="rounded-md bg-neutral-50 px-2 py-1.5 text-neutral-700 hover:bg-neutral-100">{item}</button>)}</div>
               </div>
-              <details className="rounded-2xl border border-neutral-200 bg-white p-4 text-xs text-neutral-600 shadow-sm"><summary className="cursor-pointer font-medium text-neutral-900">Activity / history</summary><div className="mt-3 space-y-2">{["Task created", "Evidence linked", `Assigned to ${ownerFor(selectedTask)}`, "Awaiting human action"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div></details>
+              <details className="rounded-2xl border border-neutral-200 bg-white p-4 text-xs text-neutral-600 shadow-sm"><summary className="cursor-pointer font-medium text-neutral-900">Activity</summary><div className="mt-3 space-y-2">{["Task created", "Context linked", `Assigned to ${ownerFor(selectedTask)}`, "Waiting on owner"].map((item) => <div key={item} className="rounded-md bg-neutral-50 px-3 py-2">{item}</div>)}</div></details>
             </div>
           ) : <div className="text-sm text-neutral-400">Select a task.</div>}
         </aside>
       </main>
+      {createOpen && <div onClick={() => setCreateOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><p className="text-sm font-semibold">Create task</p><button onClick={() => setCreateOpen(false)} className="text-neutral-400">×</button></div><label className="mt-4 block text-xs text-neutral-500">What needs to happen?</label><textarea value={newTaskTitle} onChange={(event) => setNewTaskTitle(event.target.value)} className="mt-2 h-24 w-full resize-none rounded-xl border border-neutral-200 p-3 text-sm outline-none focus:border-neutral-950" placeholder="Have AK review missing addresses by Friday" /><div className="mt-3 grid grid-cols-2 gap-2 text-xs"><label className="block text-neutral-500">Assign<select value={newTaskOwner} onChange={(event) => setNewTaskOwner(event.target.value)} className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-950">{teamMembers.map((member)=><option key={member.initials}>{member.initials}</option>)}</select></label><label className="block text-neutral-500">Folder<input value={newTaskFolder} onChange={(event) => setNewTaskFolder(event.target.value)} className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2 text-neutral-950" /></label></div><button onClick={createTask} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-sm font-medium text-white">Create task</button></div></div>}
       {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={notification} onClose={() => setTeamOpen(false)} onAdd={addMember} onRemove={removeMember} />}
     </div>
   );
@@ -1384,7 +1429,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [auditFocus, setAuditFocus] = useState<{ row: string; field: string; value: string } | null>(null);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
   const [, setSourceSetupStatus] = useState("Not started");
-  const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected">(sourceSetupKeyByIndex[sourceIndex]);
+  const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected" | "api">(sourceSetupKeyByIndex[sourceIndex]);
   const [microVault, setMicroVault] = useState("Main Vault");
   const [aiSearch, setAiSearch] = useState("");
   const [columns, setColumns] = useState([
@@ -1420,35 +1465,46 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     {
       key: "deal" as const,
       title: "Deal documents",
-      subtitle: "Add a single deal package or diligence folder.",
-      examples: "T-12, rent roll, occupancy report, management summary, OM, market report, debt quote · PDF / Excel / CSV",
+      subtitle: "Upload the whole deal package.",
+      examples: "OM, T-12, rent roll, model, market report, debt quote, and extra broker attachments",
       primary: "Choose deal files",
-      scope: "One property or one deal room",
-      maps: "Property row, deal row, source documents, financial endpoints, market-report rows",
-      review: "Citations from PDF pages, Excel cells, CSV rows, and report sections before facts become trusted",
-      chips: ["T-12", "Rent roll", "Occupancy", "Management summary", "OM", "Market report", "Excel model"],
+      scope: "One deal package",
+      maps: "Deal row, property row, documents, financial data, market facts",
+      review: "Cactus flags useful, skipped, and uncertain files",
+      chips: ["OM", "T-12", "Rent roll", "Model", "Debt quote", "Market report", "Other files"],
     },
     {
       key: "portfolio" as const,
       title: "Portfolio data",
-      subtitle: "Build a multi-property Vault from historicals and systems.",
-      examples: "Property schedules, trailing financials over time, missing-address files, PM/accounting exports, banking feeds",
-      primary: "Start portfolio setup",
-      scope: "Multiple properties, historical periods, systems, and unresolved addresses",
-      maps: "Portfolio rows, property rows, time-series snapshots, missing-address review queue, KPI columns",
-      review: "Address matching, property dedupe, period/version history, and source-system confidence before writes",
-      chips: ["Portfolio schedule", "Historical T-12s", "Yardi", "RealPage", "AppFolio", "Accounting", "Banking"],
+      subtitle: "Import, connect, or watch portfolio reports.",
+      examples: "Portfolio schedules, API partners, PM/accounting exports, monthly reports, bank feeds",
+      primary: "Add portfolio data",
+      scope: "Multiple properties and periods",
+      maps: "Property rows, snapshots, KPI columns, missing-address queue",
+      review: "Cactus matches properties and calls out conflicts",
+      chips: ["Upload file", "API partner", "Monthly reports", "Yardi", "RealPage", "AppFolio", "Banking"],
     },
     {
       key: "connected" as const,
       title: "Inbox + drive",
-      subtitle: "Let Cactus watch approved folders and senders.",
+      subtitle: "Use approved folders and senders.",
       examples: "Gmail, Outlook, Google Drive, OneDrive, broker senders, shared folders, deal rooms",
-      primary: "Connect inbox or drive",
-      scope: "Specific labels, folders, senders, domains, date ranges, and file types only",
-      maps: "Incoming deal docs, broker contacts, deadlines, source folders, review queues, Space context",
-      review: "New items enter review first; recurring sync, freshness, and permissions stay visible",
+      primary: "Connect a Data Source",
+      scope: "Selected labels, folders, senders, and file types",
+      maps: "Incoming documents, broker contacts, deadlines, source folders, review queues",
+      review: "New files are organized before saving facts",
       chips: ["Gmail", "Outlook", "Google Drive", "OneDrive", "Deal rooms", "Broker senders"],
+    },
+    {
+      key: "api" as const,
+      title: "API partner feed",
+      subtitle: "Connect provider, export, or custom API data.",
+      examples: "Yardi, RealPage, AppFolio, Green Street, HelloData, custom API",
+      primary: "Set up partner feed",
+      scope: "Partner, endpoints, and properties",
+      maps: "Provider fields into Vault rows and data columns",
+      review: "Freshness, cost, and confidence stay visible",
+      chips: ["Yardi", "RealPage", "Green Street", "HelloData", "Custom API", "Exports"],
     },
   ];
   const selectedSetup = vaultSetupModes.find((mode) => mode.key === selectedSetupMode) ?? vaultSetupModes[0];
@@ -1483,7 +1539,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       <section onClick={(event) => event.stopPropagation()} className="flex h-full flex-col">
         <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6">
           <div>
-            <p className="text-sm font-semibold">Connect a source</p>
+            <p className="text-sm font-semibold">Add Data to Vault</p>
             <p className="mt-0.5 text-xs text-neutral-500">Selected from onboarding: {selectedSetup.title}</p>
           </div>
           <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
@@ -1504,7 +1560,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                 </button>
               ))}
             </div>
-            <button onClick={() => setSourceSetupStatus("Advanced integrations hidden until needed")} className="mt-4 text-xs text-neutral-500 underline-offset-2 hover:underline">Need API, exports, or provider feeds?</button>
+            <button onClick={() => { setSelectedSetupMode("api"); setSourceSetupStatus("Partner feed selected"); }} className="mt-4 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-left text-xs text-neutral-700 hover:border-neutral-950">API partner feed</button>
           </aside>
 
           <main className="overflow-auto p-8">
@@ -1512,9 +1568,9 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               <div className="mb-5 flex items-center justify-between gap-6">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">{selectedSetup.title}</p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">{selectedSetup.key === "connected" ? "Connect one account." : selectedSetup.key === "portfolio" ? "Import portfolio data." : "Add deal files."}</h2>
+                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">{selectedSetup.key === "connected" ? "Connect a Data Source." : selectedSetup.key === "portfolio" ? "Add portfolio data." : selectedSetup.key === "api" ? "Set up partner feed." : "Add deal files."}</h2>
                 </div>
-                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">Review before Vault</span>
+                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">Confirm before saving</span>
               </div>
 
               {selectedSetup.key === "connected" ? (
@@ -1536,11 +1592,19 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                     </button>
                   ))}
                 </div>
+              ) : selectedSetup.key === "portfolio" ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {[["Upload file", "Portfolio schedule"], ["Connect API partner", "Yardi / RealPage / AppFolio"], ["Watch monthly reports", "Email or Drive extractor"]].map(([action, note]) => <button key={action} onClick={runSelectedSource} className="rounded-2xl border border-neutral-200 bg-white p-5 text-left hover:border-neutral-950"><span className="block text-sm font-semibold text-neutral-950">{action}</span><span className="mt-2 block text-xs text-neutral-500">{note}</span></button>)}
+                </div>
+              ) : selectedSetup.key === "api" ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+                  <div className="grid grid-cols-3 gap-3">{["Yardi", "RealPage", "AppFolio", "Green Street", "HelloData", "Custom API"].map((partner) => <button key={partner} onClick={runSelectedSource} className="rounded-xl border border-neutral-200 px-4 py-3 text-left text-sm font-medium hover:border-neutral-950">{partner}</button>)}</div>
+                </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
-                  <p className="text-base font-semibold text-neutral-950">{selectedSetup.key === "portfolio" ? "Drop portfolio schedules or exports here" : "Drop deal files here"}</p>
-                  <p className="mt-1 text-sm text-neutral-500">{selectedSetup.examples}</p>
-                  <button onClick={runSelectedSource} className="mt-5 rounded-md bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{selectedSetup.key === "portfolio" ? "Import portfolio data" : "Choose files"}</button>
+                  <p className="text-base font-semibold text-neutral-950">Drop the full deal package here</p>
+                  <p className="mt-1 text-sm text-neutral-500">Useful files are extracted. Low-value files are skipped.</p>
+                  <button onClick={runSelectedSource} className="mt-5 rounded-md bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Choose files</button>
                 </div>
               )}
             </div>
@@ -1572,15 +1636,9 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                 </div>
               ))}
               <section className="absolute inset-0 flex items-center justify-center bg-white/85">
-                <div className="w-full max-w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
-                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">No sources connected</h2>
-                  <div className="mt-4 inline-flex rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-500">From onboarding · {selectedSetup.title}</div>
-
-                  <div className="mt-5 flex items-center gap-2">
-                    <button onClick={() => setSourceCenterOpen(true)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white hover:bg-neutral-800">{selectedSetup.primary}</button>
-                    <button onClick={() => setSourceCenterOpen(true)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">Change source</button>
-                  </div>
+                <div className="rounded-2xl border border-neutral-200 bg-white p-5 text-center shadow-sm">
+                  <h2 className="text-2xl font-semibold tracking-[-0.04em]">No data yet</h2>
+                  <button onClick={() => setSourceCenterOpen(true)} className="mt-5 rounded-md bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Add Data</button>
                 </div>
               </section>
             </div>
@@ -1596,7 +1654,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     <div className="relative min-h-[760px] bg-white p-0 pb-32 text-neutral-950">
       <div className="min-h-[760px] border-t border-neutral-200">
         <main className="min-w-0 overflow-hidden">
-          <TopBar title="Vault" search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault: owners, missing addresses, rent growth…" cta="Add source" onCta={() => setSourceCenterOpen(true)}>
+          <TopBar title="Vault" search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault: owners, missing addresses, rent growth…" cta="Add Data" onCta={() => setSourceCenterOpen(true)}>
             <select value={microVault} onChange={(event) => setMicroVault(event.target.value)} className="h-8 rounded-md border border-neutral-200 bg-white px-3 pr-8 text-xs text-neutral-600 outline-none">
               <option>Main Vault</option>
               <option>Selected rows folder</option>
