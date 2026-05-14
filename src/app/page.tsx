@@ -168,7 +168,7 @@ function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: s
   );
 }
 
-function TopBar({ title, search, onSearch, searchPlaceholder = "Search…", cta, onCta, children }: { title: string; search?: string; onSearch?: (value: string) => void; searchPlaceholder?: string; cta?: string; onCta?: () => void; children?: ReactNode }) {
+function TopBar({ title, search, onSearch, searchPlaceholder = "Search…", cta, onCta, children }: { title: ReactNode; search?: string; onSearch?: (value: string) => void; searchPlaceholder?: string; cta?: string; onCta?: () => void; children?: ReactNode }) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-neutral-100 bg-white px-4 lg:px-8">
       <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">{title}</h1>
@@ -184,7 +184,7 @@ function TopBar({ title, search, onSearch, searchPlaceholder = "Search…", cta,
 function SharedComposer({ placeholder, context = [], contextActions = {}, onSend, disabled = false, compact = false }: { placeholder: string; context?: string[]; contextActions?: Record<string, () => void>; onSend?: () => void; disabled?: boolean; compact?: boolean }) {
   const [listening, setListening] = useState(false);
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm transition ${listening ? "shadow-[0_18px_60px_rgba(180,101,39,0.18)]" : ""} ${disabled ? "opacity-60" : ""}`}>
+    <div className={`relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3 shadow-[0_18px_55px_rgba(15,23,42,0.16)] transition ${listening ? "shadow-[0_22px_70px_rgba(180,101,39,0.24)]" : ""} ${disabled ? "opacity-60" : ""}`}>
       <textarea disabled={disabled} className={`${compact ? "h-16" : "h-28"} w-full resize-none px-2 py-2 text-sm outline-none placeholder:text-neutral-400 disabled:bg-white`} placeholder={placeholder} />
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-1 pt-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -1535,6 +1535,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     setSourceCenterOpen(false);
     onCompleteIntake(selectedSetupSourceIndex);
   };
+  const selectedContextLabel = selectedCount > 1 ? "@ Selected Properties" : "@ Selected Property";
+  const vaultContextLabel = `# ${microVault}`;
   const sourceSetupModal = (
     <div className="fixed inset-0 z-50 bg-white text-neutral-950" onClick={() => setSourceCenterOpen(false)}>
       <section onClick={(event) => event.stopPropagation()} className="flex h-full flex-col">
@@ -1655,13 +1657,14 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     <div className="relative min-h-[760px] bg-white p-0 pb-32 text-neutral-950">
       <div className="min-h-[760px] border-t border-neutral-200">
         <main className="min-w-0 overflow-hidden">
-          <TopBar title="Vault" search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault: owners, missing addresses, rent growth…" cta="Add Data" onCta={() => setSourceCenterOpen(true)}>
-            <select value={microVault} onChange={(event) => setMicroVault(event.target.value)} className="h-8 rounded-md border border-neutral-200 bg-white px-3 pr-8 text-xs text-neutral-600 outline-none">
+          <TopBar title={(
+            <select value={microVault} onChange={(event) => setMicroVault(event.target.value)} className="-ml-1 bg-transparent py-1 pr-8 font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900 outline-none">
               <option>Main Vault</option>
               <option>Selected rows folder</option>
               <option>Drive-time micro Vault</option>
               <option>Unmatched portfolio queue</option>
             </select>
+          )} search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault: owners, missing addresses, rent growth…" cta="Add Data" onCta={() => setSourceCenterOpen(true)}>
             {microVault !== "Main Vault" && <button onClick={() => setMicroVault("Main Vault")} className="text-xs text-neutral-500">← Main</button>}
             <div className="flex rounded-md border border-neutral-200 bg-neutral-50 p-0.5">
               <button onClick={() => setVaultView("table")} className={`rounded px-3 py-1.5 text-xs font-medium ${vaultView === "table" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}>Table</button>
@@ -1863,8 +1866,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       ) : (
         <div className="fixed bottom-6 left-1/2 z-40 w-[760px] -translate-x-1/2">
           <SharedComposer
-            placeholder={`Ask about ${selectedCount} selected Vault row${selectedCount === 1 ? "" : "s"}…`}
-            context={["Vault", "Skills", "Web", "Create folder"]}
+            placeholder={`Ask about ${selectedCount === 1 ? "this selected property" : `${selectedCount} selected properties`}…`}
+            context={[selectedContextLabel, vaultContextLabel, "Skills", "Web", "Create folder"]}
             contextActions={{ "Create folder": () => setMicroVault("Selected rows folder") }}
             onSend={() => go(7)}
           />
