@@ -1432,6 +1432,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected" | "api">(sourceSetupKeyByIndex[sourceIndex]);
   const [microVault, setMicroVault] = useState("Main Vault");
   const [aiSearch, setAiSearch] = useState("");
+  const [activeFilterColumn, setActiveFilterColumn] = useState<string | null>(null);
   const [columns, setColumns] = useState([
     { key: "location", label: "Location\n(address)", prompt: "Identify the property, comp, market, or report geography.", format: "Text", width: 240 },
     { key: "yr1Noi", label: "YR 1 NOI", prompt: "Extract Year 1 NOI from the model, T-12, or Cactus base case.", format: "Currency", width: 150 },
@@ -1677,17 +1678,27 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
           <div className="relative overflow-auto">
             <table className="min-w-[1380px] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 bg-white">
+                <tr className="border-b border-neutral-200 bg-neutral-100/80">
                   {columns.map((column, index) => (
-                    <th key={column.key} style={{ minWidth: column.width }} className={`group relative h-[50px] border-r border-neutral-200 px-3 text-sm font-semibold leading-tight text-neutral-950 ${index === 0 ? "sticky left-0 z-20 bg-white" : ""}`}>
+                    <th key={column.key} style={{ minWidth: column.width }} className={`group relative h-[50px] border-r border-neutral-200 px-3 text-sm font-semibold leading-tight text-neutral-950 ${index === 0 ? "sticky left-0 z-20 bg-neutral-100" : "bg-neutral-100/80"}`}>
                       <div className="flex items-start gap-2">
                         <input type="checkbox" className="mt-1 h-3 w-3 accent-black" aria-label={`select ${column.label}`} />
                         <span className="whitespace-pre-line">{column.label}</span>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-[10px] font-normal text-neutral-400 opacity-0 transition group-hover:opacity-100">
-                        <button className="rounded border border-neutral-200 px-1.5 py-0.5 hover:bg-neutral-50">Filter</button>
-                        <button className="rounded border border-neutral-200 px-1.5 py-0.5 hover:bg-neutral-50">Sort</button>
+                      <div className="mt-2 flex items-center gap-1 text-[10px] font-normal text-neutral-500 opacity-0 transition group-hover:opacity-100">
+                        <button onClick={() => setActiveFilterColumn(activeFilterColumn === column.key ? null : column.key)} className="inline-flex h-6 w-6 items-center justify-center rounded border border-neutral-200 bg-white text-neutral-500 shadow-sm hover:border-neutral-950 hover:text-neutral-950" aria-label={`Filter ${column.label}`}>
+                          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 3.5h11" /><path d="M4.5 7.5h7" /><path d="M6.5 11.5h3" /></svg>
+                        </button>
                       </div>
+                      {activeFilterColumn === column.key && (
+                        <div className="absolute left-3 top-[48px] z-50 w-48 rounded-xl border border-neutral-200 bg-white p-2 text-xs font-normal text-neutral-700 shadow-xl">
+                          <button className="flex w-full items-center justify-between rounded-md px-2 py-2 hover:bg-neutral-50"><span>Has value</span><span className="text-neutral-300">✓</span></button>
+                          <button className="flex w-full items-center justify-between rounded-md px-2 py-2 hover:bg-neutral-50"><span>Needs extraction</span><span className="text-neutral-300">○</span></button>
+                          <button className="flex w-full items-center justify-between rounded-md px-2 py-2 hover:bg-neutral-50"><span>Low confidence</span><span className="text-neutral-300">○</span></button>
+                          <div className="my-1 border-t border-neutral-100" />
+                          <button className="w-full rounded-md px-2 py-2 text-left text-neutral-500 hover:bg-neutral-50">Sort A → Z</button>
+                        </div>
+                      )}
                       <button onClick={() => setShowColumnBuilder(true)} className="absolute -right-3 top-1/2 z-30 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-950 opacity-0 shadow-sm transition group-hover:opacity-100" aria-label={`Add data point after ${column.label}`}>+</button>
                       <div onMouseDown={(event) => startColumnResize(event, column.key)} className="absolute right-0 top-0 z-40 h-full w-2 cursor-col-resize touch-none bg-transparent transition hover:bg-neutral-950/20" aria-label={`Drag to resize ${column.label}`} />
                     </th>
@@ -1850,20 +1861,13 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
           Select at least one Vault row to chat or create a Space.
         </div>
       ) : (
-        <div className="fixed bottom-6 left-1/2 z-40 w-[760px] -translate-x-1/2 rounded-2xl border-4 border-neutral-950 bg-white p-5 shadow-2xl">
-          <textarea className="h-20 w-full resize-none bg-transparent text-xl font-medium text-neutral-950 outline-none placeholder:text-neutral-400" placeholder={`Ask about ${selectedCount} selected Vault row${selectedCount === 1 ? "" : "s"}…`} />
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex gap-2 text-sm">
-              <span className="rounded-full border border-neutral-200 px-3 py-2 text-neutral-950">▣ Vault</span>
-              <span className="rounded-full border border-neutral-200 px-3 py-2 text-neutral-950">⚡ Skills</span>
-              <span className="rounded-full border border-neutral-200 px-3 py-2 text-neutral-950">◎ Web</span>
-              <button onClick={() => setMicroVault("Selected rows folder")} className="rounded-full border border-neutral-200 px-3 py-2 text-neutral-950">Create folder</button>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500">⌕</button>
-              <button onClick={() => go(7)} className="grid h-10 w-10 place-items-center rounded-full bg-neutral-950 text-lg text-white">↑</button>
-            </div>
-          </div>
+        <div className="fixed bottom-6 left-1/2 z-40 w-[760px] -translate-x-1/2">
+          <SharedComposer
+            placeholder={`Ask about ${selectedCount} selected Vault row${selectedCount === 1 ? "" : "s"}…`}
+            context={["Vault", "Skills", "Web", "Create folder"]}
+            contextActions={{ "Create folder": () => setMicroVault("Selected rows folder") }}
+            onSend={() => go(7)}
+          />
         </div>
       )}
     </div>
