@@ -901,6 +901,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   const [newOpen, setNewOpen] = useState(false);
   const [divider, setDivider] = useState(52);
   const [spaceCreated, setSpaceCreated] = useState(false);
+  const [assistantSpaceTitle, setAssistantSpaceTitle] = useState("Assistant-created Space");
   const [artifact, setArtifact] = useState("Canvas empty");
   const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
   const [teamOpen, setTeamOpen] = useState(false);
@@ -919,9 +920,15 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   };
   const filteredSpaces = search ? workspaceLibrary.filter((workspace) => [workspace.title, workspace.market, workspace.type].join(" ").toLowerCase().includes(search.toLowerCase())) : [];
   const currentTeam = selectedWorkspace?.team ?? ["TS", "AK", "MR"];
+  const startAssistantSpace = (label = "Help me start a Space") => {
+    setAssistantSpaceTitle(label);
+    setArtifact(`Cactus is setting up: ${label}`);
+    setSpaceCreated(true);
+    setNewOpen(false);
+  };
 
   if (selectedWorkspace || spaceCreated) {
-    const title = selectedWorkspace?.title ?? "New Space";
+    const title = selectedWorkspace?.title ?? assistantSpaceTitle;
     return (
       <div className="relative flex h-screen flex-col bg-[#f8f7f4] text-neutral-950">
         <TopBar title={title} search={search} onSearch={setSearch} searchPlaceholder="Search this Space…" cta="Share" onCta={() => setTeamOpen(true)}>
@@ -959,10 +966,26 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
-      <TopBar title="Spaces" search={search} onSearch={setSearch} searchPlaceholder="Search Spaces…" cta="New Space" onCta={() => setNewOpen(true)} />
+      <TopBar title="Spaces" search={search} onSearch={setSearch} searchPlaceholder="Search Spaces…" cta="Ask Cactus" onCta={() => setNewOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col overflow-auto p-6">
         {filteredSpaces.length === 0 ? (
-          <div className="grid flex-1 place-items-center"><button onClick={() => setNewOpen(true)} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">New Space</button></div>
+          <div className="grid flex-1 place-items-center">
+            <div className="w-full max-w-2xl">
+              <div className="mb-4 text-center">
+                <p className="font-serif text-2xl tracking-[-0.04em] text-neutral-950">What are we working on?</p>
+                <p className="mt-2 text-sm text-neutral-500">Ask Cactus. It will create the Space.</p>
+              </div>
+              <SharedComposer placeholder="Review this deal, build comps, draft an IC memo, prepare a lender package…" context={["Vault", "Files", "People", "Outputs"]} onSend={() => startAssistantSpace("Assistant-created Space")} />
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                {[
+                  "Review a deal",
+                  "Build comps",
+                  "Draft IC memo",
+                  "Prepare lender package"
+                ].map((item) => <button key={item} onClick={() => startAssistantSpace(item)} className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-neutral-600 shadow-sm hover:border-neutral-300 hover:bg-neutral-50">{item}</button>)}
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
             <table className="w-full text-left text-sm">
@@ -973,7 +996,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
         )}
       </main>
       {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
-      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25"><div onClick={(event) => event.stopPropagation()} className="w-[420px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="flex justify-between"><p className="text-sm font-medium">New Space</p><button onClick={() => setNewOpen(false)}>×</button></div><input className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" defaultValue="Untitled Space" /><button onClick={() => { setSpaceCreated(true); setNewOpen(false); }} className="mt-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Create Space</button></div></div>}
+      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="What should this Space help with?" context={["Vault", "Files", "People", "Outputs"]} onSend={() => startAssistantSpace("Assistant-created Space")} /><div className="mt-3 grid grid-cols-2 gap-2 text-xs">{["Review a deal", "Build comps", "Draft IC memo", "Prepare lender package"].map((item) => <button key={item} onClick={() => startAssistantSpace(item)} className="rounded-lg border border-neutral-200 px-3 py-2 text-left text-neutral-600 hover:bg-neutral-50">{item}</button>)}</div></div></div>}
     </div>
   );
 }

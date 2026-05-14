@@ -106,9 +106,9 @@ The Spaces History should support three views:
 - **List** — dense history rows for operators who want to sort by work type, client, property, status, or last updated.
 - **Map** — geographic workspace history with map pins and a paired list so property/market work stays spatial.
 
-A clear **+ New Workspace** CTA belongs in Spaces History header. Past-work examples include finding rental/sales comps, building a BOV presentation, credit memo + underwriting builds, buyer identification + OM creation, sponsor/borrower diligence, operational efficiency audits, portfolio analysis, and IC memo creation.
+A clear **+ New Workspace** CTA belongs in Spaces History header, but it should not force a name-first modal. Empty Spaces/New Workspace should start with the Assistant: the user says what they want to work on, attaches or chooses context, and Cactus creates/names the Space from the request. Past-work examples include finding rental/sales comps, building a BOV presentation, credit memo + underwriting builds, buyer identification + OM creation, sponsor/borrower diligence, operational efficiency audits, portfolio analysis, and IC memo creation.
 
-Show collaborator/profile avatars directly in Spaces History and Space detail headers so users can see who shared or worked on each Space. New Space creation should be intentionally simple: choose a starting context, name it, pick frozen/latest/auto-updating context, and add collaborators/access. Do not turn this into a complex workflow builder.
+Show collaborator/profile avatars directly in Spaces History and Space detail headers so users can see who shared or worked on each Space. New Space creation should be intentionally simple and assistant-first: describe the work, choose or attach context if needed, then enter the workroom. Naming, frozen/latest/auto-updating context, and collaborators can be suggested by Cactus or edited after the Space exists; do not make naming the gate before the user understands the Space.
 
 Opening a history item can reveal the detailed Space workroom.
 
