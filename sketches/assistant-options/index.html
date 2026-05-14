@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cactus Assistant Options</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      color: #171717;
+      background: #f6f5f2;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page { min-height: 100vh; padding: 28px; }
+    .header { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 20px; }
+    .header h1 { margin: 0; font-family: Georgia, serif; font-size: 32px; letter-spacing: -0.05em; font-weight: 500; }
+    .header p { margin: 6px 0 0; color: #737373; font-size: 14px; }
+    .legend { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill { border: 1px solid #dedbd4; background: #fff; color: #525252; border-radius: 999px; padding: 8px 10px; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(320px, 1fr)); gap: 18px; align-items: stretch; }
+    .option { background: #fff; border: 1px solid #dedbd4; border-radius: 24px; box-shadow: 0 20px 70px rgba(23,23,23,.08); overflow: hidden; min-height: 760px; display: flex; flex-direction: column; }
+    .option-head { padding: 18px 20px; border-bottom: 1px solid #ece9e3; display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+    .option-head h2 { margin: 0; font-size: 18px; letter-spacing: -0.03em; }
+    .option-head p { margin: 5px 0 0; color: #737373; font-size: 12px; line-height: 1.35; }
+    .tag { background: #171717; color: white; border-radius: 999px; padding: 5px 8px; font-size: 11px; white-space: nowrap; }
+    .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; justify-content: center; }
+    .screen-inner { width: 100%; max-width: 740px; margin: 0 auto; }
+    .kicker { text-align: center; font-family: Georgia, serif; letter-spacing: -0.05em; font-size: 28px; margin: 0 0 18px; font-weight: 500; }
+    .composer { border: 1px solid #dedbd4; border-radius: 22px; background: #fff; box-shadow: 0 6px 24px rgba(23,23,23,.08); overflow: hidden; }
+    .textarea { min-height: 132px; padding: 22px; color: #a3a3a3; font-size: 15px; line-height: 1.45; }
+    .rule { height: 1px; background: #efede8; margin: 0 16px; }
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; }
+    .left-controls, .right-controls, .quick-row, .intent-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    button { font: inherit; cursor: pointer; }
+    .control { border: 1px solid #dedbd4; background: #fff; color: #525252; border-radius: 8px; padding: 9px 12px; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+    .icon { width: 38px; height: 38px; border-radius: 999px; border: 1px solid #dedbd4; background: #fff; display: grid; place-items: center; font-size: 16px; }
+    .send { background: #090909; color: white; border-color: #090909; }
+    .quick-row { margin-top: 14px; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .quick { border: 1px solid #dedbd4; background: #fff; color: #525252; border-radius: 10px; padding: 12px 10px; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .preview { margin-top: 13px; border: 1px solid #e6e1d7; background: #fbfaf7; border-radius: 14px; padding: 12px; display: grid; gap: 8px; }
+    .preview-row { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: center; font-size: 12px; }
+    .preview-row span:first-child { color: #8a8275; }
+    .preview-row span:last-child { color: #262626; font-weight: 500; }
+    .micro { display: flex; justify-content: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .micro .pill { padding: 6px 9px; }
+    .intent-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .intent { border: 1px solid #dedbd4; background: #fff; border-radius: 18px; padding: 18px; text-align: left; box-shadow: 0 8px 28px rgba(23,23,23,.06); min-height: 132px; }
+    .intent strong { display: block; font-size: 16px; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .intent p { margin: 0; color: #737373; font-size: 12px; line-height: 1.4; }
+    .intent .mini-action { display: inline-block; margin-top: 16px; font-size: 12px; color: #171717; border-bottom: 1px solid #171717; }
+    .c-followup { margin-top: 16px; border: 1px solid #dedbd4; border-radius: 18px; padding: 14px; background: #fbfaf7; }
+    .c-followup .composer { box-shadow: none; border-radius: 14px; }
+    .c-followup .textarea { min-height: 68px; padding: 14px; font-size: 13px; }
+    .notes { padding: 16px 20px; border-top: 1px solid #ece9e3; background: #fbfaf7; color: #666; font-size: 12px; line-height: 1.45; }
+    .notes strong { color: #171717; }
+    @media (max-width: 1180px) { .grid { grid-template-columns: 1fr; } .option { min-height: auto; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <h1>Assistant redesign options</h1>
+        <p>Three visual directions for Cactus Assistant as the front door to Spaces, Vault, and Workflows.</p>
+      </div>
+      <div class="legend">
+        <span class="pill">Text-light</span>
+        <span class="pill">Action-led</span>
+        <span class="pill">CRE-specific</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="option">
+        <div class="option-head">
+          <div><h2>Option A — Minimal Claude-style</h2><p>One clean composer. The product gets out of the way.</p></div>
+          <span class="tag">Simplest</span>
+        </div>
+        <div class="screen">
+          <div class="screen-inner">
+            <p class="kicker">What should Cactus work on?</p>
+            <div class="composer">
+              <div class="textarea">Review this deal, find comps, draft an IC memo...</div>
+              <div class="rule"></div>
+              <div class="controls">
+                <div class="left-controls">
+                  <button class="control">Add +</button>
+                  <button class="control">Context</button>
+                  <button class="control">Workflow</button>
+                  <button class="control">Enhance</button>
+                </div>
+                <div class="right-controls">
+                  <button class="icon">🎙</button>
+                  <button class="icon send">↗</button>
+                </div>
+              </div>
+            </div>
+            <div class="quick-row">
+              <button class="quick">Review a deal</button>
+              <button class="quick">Build comps</button>
+              <button class="quick">Draft IC memo</button>
+              <button class="quick">Watch market</button>
+            </div>
+          </div>
+        </div>
+        <div class="notes"><strong>Best when:</strong> you want the least UI and the most user freedom. <strong>Risk:</strong> new users may not understand what Cactus creates after send.</div>
+      </section>
+
+      <section class="option">
+        <div class="option-head">
+          <div><h2>Option B — Composer + creates preview</h2><p>Same simplicity, but Cactus previews the work container.</p></div>
+          <span class="tag">Recommended</span>
+        </div>
+        <div class="screen">
+          <div class="screen-inner">
+            <p class="kicker">What should Cactus work on?</p>
+            <div class="composer">
+              <div class="textarea">Build sales and rent comps for 123 Main...</div>
+              <div class="rule"></div>
+              <div class="controls">
+                <div class="left-controls">
+                  <button class="control">Add +</button>
+                  <button class="control">Context</button>
+                  <button class="control">Workflow</button>
+                  <button class="control">Enhance</button>
+                </div>
+                <div class="right-controls">
+                  <button class="icon">🎙</button>
+                  <button class="icon send">↗</button>
+                </div>
+              </div>
+            </div>
+            <div class="preview">
+              <div class="preview-row"><span>Creates</span><span>Comp Set Space</span></div>
+              <div class="preview-row"><span>Uses</span><span>Vault rows, market data, attached files</span></div>
+              <div class="preview-row"><span>Updates</span><span>Vault facts after review</span></div>
+            </div>
+            <div class="quick-row">
+              <button class="quick">Review a deal</button>
+              <button class="quick">Build comps</button>
+              <button class="quick">Draft IC memo</button>
+              <button class="quick">Watch market</button>
+            </div>
+          </div>
+        </div>
+        <div class="notes"><strong>Best when:</strong> Cactus needs to teach the Space/Vault/Workflow model without paragraphs. <strong>Tradeoff:</strong> a little more UI than A.</div>
+      </section>
+
+      <section class="option">
+        <div class="option-head">
+          <div><h2>Option C — Intent launcher</h2><p>User chooses the kind of work first; composer adapts after.</p></div>
+          <span class="tag">Guided</span>
+        </div>
+        <div class="screen">
+          <div class="screen-inner">
+            <p class="kicker">What do you want Cactus to do?</p>
+            <div class="intent-grid">
+              <button class="intent"><strong>Review deal</strong><p>OM, rent roll, T12, upside, risks, memo.</p><span class="mini-action">Start deal review</span></button>
+              <button class="intent"><strong>Build data</strong><p>Create Vault columns, extract facts, find market data.</p><span class="mini-action">Add Vault datapoint</span></button>
+              <button class="intent"><strong>Create output</strong><p>IC memo, lender package, BOV, investor update.</p><span class="mini-action">Draft output</span></button>
+              <button class="intent"><strong>Run workflow</strong><p>Watch listings, parse emails, comp new rows.</p><span class="mini-action">Use workflow</span></button>
+            </div>
+            <div class="c-followup">
+              <div class="composer">
+                <div class="textarea">Tell Cactus the property, market, file, or outcome...</div>
+                <div class="rule"></div>
+                <div class="controls">
+                  <div class="left-controls"><button class="control">Add +</button><button class="control">Context</button></div>
+                  <div class="right-controls"><button class="icon send">↗</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="micro"><span class="pill">Good for first-time users</span><span class="pill">More guided</span></div>
+          </div>
+        </div>
+        <div class="notes"><strong>Best when:</strong> onboarding or novice clarity matters most. <strong>Risk:</strong> feels less magical and more like a setup screen.</div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

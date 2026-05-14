@@ -181,20 +181,25 @@ function TopBar({ title, search, onSearch, searchPlaceholder = "Search…", cta,
   );
 }
 
-function SharedComposer({ placeholder, context = [], onSend, disabled = false, compact = false }: { placeholder: string; context?: string[]; onSend?: () => void; disabled?: boolean; compact?: boolean }) {
+function SharedComposer({ placeholder, context = [], contextActions = {}, onSend, disabled = false, compact = false }: { placeholder: string; context?: string[]; contextActions?: Record<string, () => void>; onSend?: () => void; disabled?: boolean; compact?: boolean }) {
   const [listening, setListening] = useState(false);
   return (
-    <div className={`rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm ${disabled ? "opacity-60" : ""}`}>
+    <div className={`relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm transition ${listening ? "shadow-[0_18px_60px_rgba(180,101,39,0.18)]" : ""} ${disabled ? "opacity-60" : ""}`}>
       <textarea disabled={disabled} className={`${compact ? "h-16" : "h-28"} w-full resize-none px-2 py-2 text-sm outline-none placeholder:text-neutral-400 disabled:bg-white`} placeholder={placeholder} />
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-1 pt-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {context.map((chip) => <span key={chip} className="rounded-md border border-neutral-200 px-2.5 py-1.5 text-neutral-600">{chip}</span>)}
+          {context.map((chip) => contextActions[chip]
+            ? <button key={chip} onClick={contextActions[chip]} className="rounded-md border border-neutral-200 px-2.5 py-1.5 text-neutral-600 hover:bg-neutral-50">{chip}</button>
+            : <span key={chip} className="rounded-md border border-neutral-200 px-2.5 py-1.5 text-neutral-600">{chip}</span>)}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setListening((value) => !value)} aria-label="Talk to Cactus" className={`relative grid h-9 w-9 place-items-center rounded-full border text-sm ${listening ? "border-neutral-950 bg-neutral-50 text-neutral-950 shadow-[0_0_0_4px_rgba(23,23,23,0.08)]" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>🎙{listening && <span className="absolute -bottom-1 h-1.5 w-8 rounded-full bg-neutral-950/40" />}</button>
-          <button disabled={disabled} onClick={onSend} aria-label="Send to Cactus" className="grid h-9 w-9 place-items-center rounded-full bg-neutral-950 text-sm font-medium text-white disabled:bg-neutral-200 disabled:text-neutral-400">↗</button>
+          <button onClick={() => setListening((value) => !value)} aria-label="Talk to Cactus" className={`relative z-10 grid h-9 w-9 place-items-center rounded-full border transition ${listening ? "border-amber-200 bg-amber-50 text-amber-900 shadow-[0_0_0_4px_rgba(251,191,36,0.14)]" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>
+            <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 3.5a2.5 2.5 0 0 0-2.5 2.5v4a2.5 2.5 0 0 0 5 0V6A2.5 2.5 0 0 0 10 3.5Z" /><path d="M5.75 9.5a4.25 4.25 0 0 0 8.5 0" /><path d="M10 14v2.5" /></svg>
+          </button>
+          <button disabled={disabled} onClick={onSend} aria-label="Send to Cactus" className="relative z-10 grid h-9 w-9 place-items-center rounded-full bg-neutral-950 text-sm font-medium text-white disabled:bg-neutral-200 disabled:text-neutral-400">↗</button>
         </div>
       </div>
+      {listening && <div aria-hidden="true" className="pointer-events-none absolute inset-x-10 bottom-0 h-10 rounded-t-full bg-[radial-gradient(ellipse_at_bottom,rgba(251,191,36,0.55),rgba(251,146,60,0.22)_45%,transparent_75%)] blur-xl" />}
     </div>
   );
 }
@@ -777,7 +782,6 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
 function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void }) {
   const [activeComposerTool, setActiveComposerTool] = useState<"context" | "workflow" | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
-  const [enhanced, setEnhanced] = useState(false);
   const [asked, setAsked] = useState(false);
   const [vaultCheckbox, setVaultCheckbox] = useState(true);
   const [filesAdded, setFilesAdded] = useState(false);
@@ -791,9 +795,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
   const contextChips = hasIntake || vaultAdded
     ? ["Subject Property", "City row", "MSA benchmark", "Green Street report", "HelloData rent set"]
     : ["Vault empty", "No rows selected"];
-  const promptText = enhanced
-    ? "Review the files/context I attach, create a Space if this is durable work, and call a workflow when the request repeats."
-    : "Ask Cactus to review a deal, create a Space, build a Vault datapoint, or run a saved CRE workflow…";
+  const promptText = "What should Cactus work on?";
   const openComposerTool = (tool: "context" | "workflow") => {
     setSourceOpen(false);
     setActiveComposerTool((current) => current === tool ? null : tool);
@@ -805,30 +807,25 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
-      <TopBar title="Assistant" searchPlaceholder="Search chats, Vault rows, workflows…" onSearch={() => {}} cta="Add +" onCta={openAdd}>
-        <button onClick={() => openComposerTool("context")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Context</button>
-        <button onClick={() => openComposerTool("workflow")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Workflow</button>
-      </TopBar>
+      <TopBar title="Assistant" searchPlaceholder="Search chats, Vault rows, workflows…" onSearch={() => {}} />
 
       <main className="flex flex-1 flex-col items-center justify-center px-8 pb-10">
         <div className="w-full max-w-4xl">
           <div className="mb-8 flex items-center justify-center gap-4">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-neutral-950 text-sm font-semibold text-white">C</div>
-            <h1 className="font-serif text-4xl font-light tracking-[-0.03em] text-neutral-900">Hi, Tyler</h1>
+            <h1 className="font-serif text-4xl font-light tracking-[-0.03em] text-neutral-900">What should Cactus work on?</h1>
           </div>
 
           <SharedComposer
             placeholder={promptText}
-            context={[filesAdded ? "7 files" : "Add +", hasIntake || vaultAdded ? "Vault context" : "Vault empty", "Workflow"]}
+            context={[filesAdded ? "7 files" : "Add +", "Vault", "Workflow"]}
+            contextActions={{
+              [filesAdded ? "7 files" : "Add +"]: openAdd,
+              Vault: () => openComposerTool("context"),
+              Workflow: () => openComposerTool("workflow"),
+            }}
             onSend={() => { setAsked(true); go(7); }}
           />
-          <div className="mt-3 flex justify-center gap-2 text-xs">
-            <button onClick={openAdd} className="rounded-md border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">Add +</button>
-            <button onClick={() => openComposerTool("context")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">Context</button>
-            <button onClick={() => openComposerTool("workflow")} className="rounded-md border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">Workflow</button>
-            <button onClick={() => setEnhanced(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">Enhance</button>
-          </div>
-
           {asked && (
             <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
               <div className="flex items-start justify-between gap-4">
