@@ -250,21 +250,6 @@ const workflowExamples = [
   { title: "Market pulse / trigger monitor", role: "Market", trigger: "Market/provider/news refresh", cadence: "Weekly", source: "Market feeds + news + permits", fields: ["Permits", "Deliveries", "Absorption", "Transactions", "SOFR", "Employer news"], output: "Market rows + opportunity flags", skill: "Market analysis skill", result: "Adds market context to Vault and opens Spaces for notable changes." },
 ] as const;
 
-const integrationCatalog = [
-  { name: "Gmail / Outlook", lane: "Incoming", direction: "Read to Vault", group: "Email", status: "Scope needed", use: "Broker packages, attachments, sender details, deadlines", guardrail: "Read-only labels/senders first" },
-  { name: "Google Drive / OneDrive", lane: "Incoming", direction: "Read to Vault", group: "Files", status: "Scope needed", use: "Folders, deal rooms, OMs, T12s, rent rolls", guardrail: "Approved folders only" },
-  { name: "Clay", lane: "Incoming", direction: "Read to Vault", group: "Enrichment", status: "Not connected", use: "Owner/company enrichment and contact signals", guardrail: "Review before trusted contact writes" },
-  { name: "Salesforce / HubSpot / Affinity", lane: "Both", direction: "Read + write", group: "CRM", status: "Map fields", use: "Pipeline, contacts, owner outreach, broker relationships", guardrail: "Approved fields only" },
-  { name: "Yardi / RealPage / AppFolio / Entrata", lane: "Incoming", direction: "Read to Vault", group: "PM", status: "Not connected", use: "Rent rolls, occupancy, delinquency, property IDs", guardrail: "Read-only reports first" },
-  { name: "QuickBooks / NetSuite / Sage", lane: "Incoming", direction: "Read to Vault", group: "Accounting", status: "Not connected", use: "T12, GL, budget variance, cash reports", guardrail: "Period + entity scoped" },
-  { name: "Plaid / banking", lane: "Incoming", direction: "Read to Vault", group: "Banking", status: "Approval required", use: "Cash history, debt payments, reserves", guardrail: "Read-only accounts" },
-  { name: "Provider APIs", lane: "Incoming", direction: "Read to Vault", group: "Data", status: "Cost approval", use: "Green Street, ATTOM, HelloData, Census, FRED", guardrail: "Cost + license visible" },
-  { name: "Watchers / scrapers", lane: "Incoming", direction: "Read to Vault", group: "Sourcing", status: "Needs review", use: "Crexi, LoopNet, county records, saved searches", guardrail: "Approval before recurring runs" },
-  { name: "Vault API", lane: "Both", direction: "Read + write", group: "API", status: "Design", use: "Programmatic read/write with scoped tokens", guardrail: "Least-privilege tokens" },
-  { name: "Vault MCP", lane: "Both", direction: "Read + write", group: "MCP", status: "Design", use: "Approved tool access to Vault context/actions", guardrail: "Tool scopes + audit" },
-  { name: "Exports / webhooks", lane: "Outgoing", direction: "Write from Vault", group: "Outbound", status: "Approval required", use: "Sheets, Excel, CRM updates, emails, reports, webhooks", guardrail: "No send/write without approval" },
-];
-
 const taskRows = [
   { title: "Approve Riverside IC memo sections", owner: "TS", role: "Investor", source: "IC memo workflow", space: "Riverside Flats Deal Review", status: "Review", priority: "High", due: "Today", action: "Review output", type: "My tasks", context: "Verified T12, rent comps, debt quote", evidence: "3 draft sections need approval before investor memo export." },
   { title: "Resolve missing addresses in portfolio import", owner: "AK", role: "Investor", source: "Unmatched portfolio queue", space: "Portfolio cleanup", status: "Open", priority: "High", due: "Today", action: "Match rows", type: "Vault review", context: "12 rows · owner/entity hints", evidence: "Rows have property names, PM IDs, city/state, and bank/account references but no trusted address." },
@@ -1363,8 +1348,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [auditOpen, setAuditOpen] = useState(false);
   const [auditFocus, setAuditFocus] = useState<{ row: string; field: string; value: string } | null>(null);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
-  const [sourceSetupStatus, setSourceSetupStatus] = useState("Not started");
-  const [auditAction, setAuditAction] = useState("3 unmatched documents need location confirmation");
+  const [, setSourceSetupStatus] = useState("Not started");
   const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected">(sourceSetupKeyByIndex[sourceIndex]);
   const [microVault, setMicroVault] = useState("Main Vault");
   const [aiSearch, setAiSearch] = useState("");
@@ -1425,7 +1409,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       title: "Inbox + drive",
       subtitle: "Let Cactus watch approved folders and senders.",
       examples: "Gmail, Outlook, Google Drive, OneDrive, broker senders, shared folders, deal rooms",
-      primary: "Approve read-only scope",
+      primary: "Connect inbox or drive",
       scope: "Specific labels, folders, senders, domains, date ranges, and file types only",
       maps: "Incoming deal docs, broker contacts, deadlines, source folders, review queues, Space context",
       review: "New items enter review first; recurring sync, freshness, and permissions stay visible",
@@ -1445,45 +1429,92 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     onCompleteIntake(selectedSetupSourceIndex);
   };
   const sourceSetupModal = (
-    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-neutral-950/20" onClick={() => setSourceCenterOpen(false)}>
-      <aside onClick={(event) => event.stopPropagation()} className="flex h-full w-[640px] max-w-[96vw] flex-col border-l border-neutral-200 bg-white text-neutral-950 shadow-2xl">
-        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4">
-          <div><p className="text-sm font-semibold">Add to Vault</p><p className="mt-1 text-xs text-neutral-500">Drop files, import documents, or connect an app.</p></div>
+    <div className="fixed inset-0 z-50 bg-white text-neutral-950" onClick={() => setSourceCenterOpen(false)}>
+      <section onClick={(event) => event.stopPropagation()} className="flex h-full flex-col">
+        <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6">
+          <div>
+            <p className="text-sm font-semibold">Connect a source</p>
+            <p className="mt-0.5 text-xs text-neutral-500">Selected from onboarding: {selectedSetup.title}</p>
+          </div>
           <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
         </div>
-        <div className="flex-1 overflow-auto p-5">
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center">
-            <p className="text-sm font-semibold text-neutral-950">Drag files here</p>
-            <p className="mt-1 text-xs text-neutral-500">PDF · Excel · CSV · email exports · models</p>
-            <div className="mt-4 flex justify-center gap-2">
-              <button onClick={runSelectedSource} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white">Import documents</button>
-              <button onClick={() => setAuditOpen(true)} className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-xs text-neutral-600">Open audit</button>
+
+        <div className="grid min-h-0 flex-1 grid-cols-[260px_minmax(0,1fr)_360px] gap-0 overflow-hidden">
+          <aside className="border-r border-neutral-200 bg-neutral-50 p-5">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Source type</p>
+            <div className="mt-3 space-y-2">
+              {vaultSetupModes.map((mode) => (
+                <button
+                  key={mode.key}
+                  onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }}
+                  className={`w-full rounded-xl border p-3 text-left text-sm transition ${selectedSetupMode === mode.key ? "border-neutral-950 bg-white shadow-sm" : "border-transparent text-neutral-500 hover:border-neutral-200 hover:bg-white"}`}
+                >
+                  <span className="block font-medium text-neutral-950">{mode.title}</span>
+                  <span className="mt-1 block text-xs leading-5 text-neutral-500">{mode.subtitle}</span>
+                </button>
+              ))}
             </div>
-          </div>
+            <button onClick={() => setSourceSetupStatus("Advanced integrations hidden until needed")} className="mt-4 text-xs text-neutral-500 underline-offset-2 hover:underline">Need API, exports, or provider feeds?</button>
+          </aside>
 
-          <div className="mt-5 grid grid-cols-4 gap-2 text-xs">
-            {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceSetupStatus("Not started"); }} className={`rounded-xl border p-3 text-left ${selectedSetupMode === mode.key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 hover:bg-neutral-50"}`}><span className="block font-medium">{mode.title}</span></button>)}
-            <button onClick={() => setSourceSetupStatus("Browse integrations")} className="rounded-xl border border-neutral-200 p-3 text-left hover:bg-neutral-50"><span className="block font-medium">Apps + API</span></button>
-          </div>
+          <main className="overflow-auto p-8">
+            <div className="mx-auto max-w-4xl">
+              <div className="mb-6 flex items-start justify-between gap-6">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">{selectedSetup.title}</p>
+                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">{selectedSetup.key === "connected" ? "Choose the account or folder to connect." : selectedSetup.key === "portfolio" ? "Import portfolio data into the Vault." : "Add deal files to the Vault."}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">{selectedSetup.key === "connected" ? "Pick one provider first. Cactus will only read the folders, labels, or senders you choose." : selectedSetup.key === "portfolio" ? "Start with the schedule, export, or system file you already use. Unmatched rows go to review before they become trusted Vault records." : "Choose the OM, T-12, rent roll, model, or diligence folder. Cactus creates review items with source evidence before filling Vault rows."}</p>
+                </div>
+                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{selectedSetup.key === "connected" ? "Choose one provider" : selectedSetup.key === "portfolio" ? "Choose import" : "Choose files"}</span>
+              </div>
 
-          <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-            <div className="flex items-center justify-between"><p className="text-sm font-semibold">{selectedSetup.title}</p><span className="rounded-md bg-white px-2 py-1 text-[11px] text-neutral-500">{sourceSetupStatus}</span></div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-              {[["Scope", selectedSetup.scope], ["Map", selectedSetup.maps], ["Review", selectedSetup.review]].map(([title, note]) => <button key={title} onClick={() => setSourceSetupStatus(`${title} ready`)} className="rounded-xl border border-neutral-200 bg-white p-3 text-left hover:bg-neutral-50"><span className="font-medium text-neutral-950">{title}</span><span className="mt-1 block truncate text-neutral-500">{note}</span></button>)}
+              {selectedSetup.key === "connected" ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    ["G", "Google Drive", "Choose approved folders or deal rooms", "Connect Google Drive"],
+                    ["M", "Gmail", "Choose labels, senders, domains, and date range", "Connect Gmail"],
+                    ["O", "Outlook", "Choose folders, senders, and attachments", "Connect Outlook"],
+                    ["1", "OneDrive", "Choose approved folders or shared rooms", "Connect OneDrive"],
+                  ].map(([logo, name, note, action]) => (
+                    <button key={name} onClick={() => setSourceSetupStatus(`${name} selected`)} className="group rounded-2xl border border-neutral-200 bg-white p-5 text-left hover:border-neutral-950">
+                      <div className="flex items-start gap-4">
+                        <span className="grid h-10 w-10 place-items-center rounded-xl border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-950">{logo}</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-semibold text-neutral-950">{name}</span>
+                          <span className="mt-1 block text-xs leading-5 text-neutral-500">{note}</span>
+                          <span className="mt-4 inline-flex rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">{action}</span>
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
+                  <p className="text-base font-semibold text-neutral-950">{selectedSetup.key === "portfolio" ? "Drop portfolio schedules or exports here" : "Drop deal files here"}</p>
+                  <p className="mt-1 text-sm text-neutral-500">{selectedSetup.examples}</p>
+                  <button onClick={runSelectedSource} className="mt-5 rounded-md bg-neutral-950 px-4 py-2 text-sm font-medium text-white">{selectedSetup.key === "portfolio" ? "Import portfolio data" : "Choose files"}</button>
+                </div>
+              )}
             </div>
-          </div>
+          </main>
 
-          <div className="mt-5 flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Apps</p><p className="text-xs text-neutral-500">Read to Vault · write from Vault</p></div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {integrationCatalog.map((connector) => <button key={connector.name} onClick={() => setSourceSetupStatus(`${connector.name} · ${connector.direction}`)} className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs hover:bg-neutral-50"><span className="font-medium text-neutral-950">{connector.name}</span><span className={`rounded-md px-2 py-1 text-[10px] ${connector.lane === "Outgoing" ? "bg-blue-50 text-blue-700" : connector.lane === "Both" ? "bg-purple-50 text-purple-700" : "bg-emerald-50 text-emerald-700"}`}>{connector.direction}</span></button>)}
-          </div>
+          <aside className="border-l border-neutral-200 bg-white p-6">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Next action</p>
+            <h3 className="mt-2 text-xl font-semibold tracking-[-0.04em]">{selectedSetup.key === "connected" ? "Choose a provider" : selectedSetup.primary}</h3>
+            <p className="mt-2 text-sm leading-6 text-neutral-500">{selectedSetup.key === "connected" ? "Start with the account where deal files already arrive. After sign-in, choose the exact folders, labels, or senders Cactus can read." : "Choose files, then review extracted facts against the original source before trusting them in Vault."}</p>
 
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
-            <div className="flex items-center justify-between gap-3"><p className="font-medium">Unmatched document audit</p><span>{auditAction}</span></div>
-            <div className="mt-3 flex gap-2"><button onClick={() => setAuditAction("Uploader approved 3 locations")} className="rounded-md bg-amber-900 px-3 py-1.5 text-white">Approve</button><button onClick={() => setAuditAction("Unclear documents removed") } className="rounded-md border border-amber-200 bg-white px-3 py-1.5">Remove</button><button onClick={() => { setAuditAction("Assigned to AK"); go(9); }} className="rounded-md border border-amber-200 bg-white px-3 py-1.5">Assign</button></div>
-          </div>
+            <div className="mt-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-sm font-semibold text-neutral-950">After connection</p>
+              <ul className="mt-3 space-y-2 text-xs leading-5 text-neutral-500">
+                <li>• New files become review items, not trusted rows.</li>
+                <li>• Unclear files open in a detail view with source evidence.</li>
+                <li>• Approval, removal, or assignment happens after review.</li>
+                <li>• Recurring sync is optional and can be paused.</li>
+              </ul>
+            </div>
+          </aside>
         </div>
-      </aside>
+      </section>
     </div>
   );
 
@@ -1491,13 +1522,10 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   if (!hasIntake) {
     return (
       <div className="flex h-screen flex-col bg-white text-neutral-950">
-        <TopBar title="Vault" search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault…" cta={selectedSetup.primary} onCta={() => setSourceCenterOpen(true)}>
-          <button onClick={() => setSourceCenterOpen(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Change path</button>
-        </TopBar>
+        <TopBar title="Vault" search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault…" />
 
-        <div className="flex h-10 items-center justify-between border-b border-neutral-100 px-6 text-xs text-neutral-500">
+        <div className="flex h-10 items-center border-b border-neutral-100 px-6 text-xs text-neutral-500">
           <span>Selected in onboarding: <strong className="font-medium text-neutral-800">{sourceTitle}</strong></span>
-          <span>Source → Review queue → Vault rows/columns → Spaces/outputs</span>
         </div>
 
         <main className="flex min-h-0 flex-1 flex-col p-6">
@@ -1512,16 +1540,25 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                 </div>
               ))}
               <section className="absolute inset-0 flex items-center justify-center bg-white/85">
-                <div className="w-full max-w-[760px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
-                  <div className="flex items-start justify-between gap-4">
-                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Add documents or connect an app.</h2></div>
-                    <button onClick={() => setSourceCenterOpen(true)} className="shrink-0 rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">Apps</button>
+                <div className="w-full max-w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Your Vault is ready. Add the first source.</h2>
+                  <p className="mt-2 max-w-[440px] text-sm leading-6 text-neutral-500">
+                    No rows exist yet. Start with the source you chose in onboarding. Nothing is connected until you choose the source and review what it can access.
+                  </p>
+
+                  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-neutral-950">{selectedSetup.title}</span>
+                      <span className="text-xs text-neutral-500">Review first</span>
+                    </div>
+                    <p className="mt-1 text-xs text-neutral-500">{selectedSetup.subtitle}</p>
                   </div>
-                  <div className="mt-5 grid grid-cols-3 gap-3">
-                    {vaultSetupModes.map((mode) => <button key={mode.key} onClick={() => { setSelectedSetupMode(mode.key); setSourceCenterOpen(true); }} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-left hover:border-neutral-300 hover:bg-white"><span className="block text-sm font-medium text-neutral-950">{mode.title}</span><span className="mt-3 inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 text-xs font-medium text-white">{mode.primary}</span></button>)}
+
+                  <div className="mt-5 flex items-center gap-2">
+                    <button onClick={() => setSourceCenterOpen(true)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white hover:bg-neutral-800">{selectedSetup.primary}</button>
+                    <button onClick={() => setSourceCenterOpen(true)} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50">Change source</button>
                   </div>
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-600"><span>{sourceTitle}</span><span>Review queue first</span></div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs">{integrationCatalog.slice(0, 6).map((item) => <button key={item.name} onClick={() => { setSourceSetupStatus(`${item.name} selected`); setSourceCenterOpen(true); }} className="rounded-full border border-neutral-200 px-3 py-1.5 text-neutral-600 hover:bg-neutral-50">{item.name}</button>)}</div>
                 </div>
               </section>
             </div>

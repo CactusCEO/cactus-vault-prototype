@@ -150,7 +150,7 @@ Each source setup should answer five questions, but the default prototype should
 4. **Set refresh/cost rules** — one-time extraction, manual refresh, daily watcher, weekly pulse, monthly provider refresh, premium call approval, cache/freshness labels.
 5. **Review before activation** — facts enter the Vault with source link, citation/cell/page/URL, confidence, freshness, cost state, and approve/edit/reject review state.
 
-The first-run empty Vault should carry the onboarding choice directly into the Vault surface. Use a Mike-like empty table/workspace: quiet toolbar, no connected sources, a centered source-specific first action, and a compact preview of the rows/columns Cactus will create. `Add to Vault` should open a narrow focused sheet/drawer for the selected path, not a large left-nav modal. Let users switch paths only as a small secondary control.
+The first-run empty Vault should carry the onboarding choice directly into the Vault surface. Use a Mike-like empty table/workspace: quiet toolbar, no connected sources, and one centered source-specific first action. The empty-state card must not become a button buffet: do not show setup paths, source action buttons, app/provider chips, a top-bar duplicate CTA, or generic value-path text all at once. Show one primary source-specific CTA and one small secondary path-switch control only. If the user opens `Add to Vault` / source setup, use a clean full-page setup surface because connectors are important enough to deserve screen space; do not cram apps, drag/drop, setup taxonomy, scope/map/review cards, and audit actions into one side drawer. For B2C-style integrations, actions should read like `Connect Google Drive`, `Connect Gmail`, or `Choose files`, not abstract approval language like `Approve read-only scope`.
 
 Source-specific setup examples:
 
@@ -162,7 +162,7 @@ Source-specific setup examples:
 - **County records / foreclosure filings / CMBS watchlists:** choose jurisdictions/assets, signal types, cadence, and which events create ownership/distress/debt rows.
 - **Provider/public APIs:** choose provider bundle, endpoint/fact categories, geography/property scope, refresh cadence, cache policy, and premium-call approval threshold.
 
-The setup UI should keep the left side as a compact source library and the right side as the selected source's creation steps. Avoid a heavy multi-page wizard; make each source feel actionable and reviewable in one surface.
+The setup UI should start with the selected path and one obvious next action. Connector setup can use a full-page source surface with a small source-type rail, focused provider/file controls, and a review queue preview. Avoid a side-menu drawer that exposes every source type, app, drag target, setup step, and audit action at once. Unmatched documents should open a details/audit view with source evidence before `Approve`, `Remove`, or `Assign`; assignment without detail review is not valuable.
 
 ## Product/UI implications
 
