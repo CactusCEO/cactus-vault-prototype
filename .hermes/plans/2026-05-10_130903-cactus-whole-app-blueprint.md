@@ -614,3 +614,13 @@ Before showing Tyler the next full prototype:
 - Spaces need texture/depth and clearer hierarchy: quieter history, cleaner split workroom, left chat/workstream, right output canvas. Avoid busy undifferentiated boxes.
 - Global theme belongs inside the bottom-left account menu, not as a floating button. The app hamburger must collapse/expand the sidebar. The bottom-left account menu should be action-only, not a static showcase for Account/Organization/Members/Billing/Integrations. Route integrations to Vault/source setup, team/member work to team surfaces, billing/privacy/security to external or dedicated pages until they have real in-app actions. Clicking outside any popup, modal, or side drawer should close it.
 - Assistant Vault Context should be a simple context picker: current context chips, search/select Vault rows/datasets, and a clear apply/open Vault action. Assistant send uses an icon; mic uses a small voice/talk affordance with a subtle glow. Sending opens/creates a Mike-like chat/Space page instead of just showing a small result card.
+
+## 2026-05 unified action-led cleanup
+
+- Standardize every main app surface around the same top bar: page title on the left, search in the same position, one primary CTA on the right. Assistant, Spaces, Vault, Workflows, and Tasks should not invent different toolbar patterns.
+- The onboarding handoff should go directly to the chosen Vault action. If the user selected Upload documents, land in Vault with choose/drop files prominent; if email/drive, land on scope approval; if import/list, land on import setup. Do not route to a prefilled Space or imply work already exists.
+- Spaces should be empty until the user creates/opens work. Remove fake-full states, `Space workroom`, tabs like Work/Playground/Output, context/automate buttons, and chat/canvas size buttons. A Space is a simple split: chat on the left, canvas on the right, with a draggable divider.
+- Use one composer pattern across Assistant, Vault, and Spaces: same rounded input, same send icon, same mic/voice affordance, same compact context chips. Context changes should appear as chips, not different designs.
+- Vault should use the shared top bar, one obvious search, one `Add source` CTA, neutral colors, and column-level filters like Excel/Airtable. Remove global template/filter chip UX unless it becomes a saved view.
+- Workflows should remove persona/example cards from the top of the page. Use standard views: All, Running, Needs review, Templates, Archived. Workflow rows should focus on trigger/status/owner/last output/action.
+- Keep colors consistent: neutral primary CTAs, neutral text, status colors only for states, purple only as light brand accent when selected/contextual.

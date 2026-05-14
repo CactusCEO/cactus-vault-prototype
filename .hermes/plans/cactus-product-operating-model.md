@@ -507,3 +507,14 @@ The Vault needs the primary integration/source center. Account should not become
 - **Connector permissions**: show read/write direction plainly: `Read to Vault`, `Write from Vault`, or `Read + write`. Incoming connectors feed or enrich Vault facts; outgoing connectors export approved Vault facts/artifacts. Writes/sends require explicit approval.
 - **Security posture**: clearly answer whether data trains models, where facts came from, where they are sent, who can access them, what scopes were granted, and what audit/approval gates protect side effects. Competitors or external LLMs must not have access to customer Vault data; model/provider usage should be explicit and governed by org policy.
 - **Account security page**: the account menu should expose actionable settings only. If the surface is mostly policy/explanation, open a privacy/security page in a new tab instead of pretending it is an in-app workspace.
+
+## Unified action-led app shell cleanup
+
+- Every main workspace should share the same rhythm: compact title, same-position search, one primary CTA, then the work surface. Search bars and CTAs should not jump between corners or change styling by page.
+- Onboarding should hand the user to a concrete Vault action selected in onboarding. Avoid a generic app arrival or already-full Spaces state; the Vault exists, but nothing should look populated until upload/connect/import/demo runs.
+- Assistant, Vault row chat, and Space chat should share one composer component language: rounded input, compact context chips, mic affordance, send icon, neutral primary styling.
+- Spaces are not a dashboard by default. The Spaces landing starts empty/quiet with `New Space`; an opened Space is just chat plus output canvas with a draggable divider. Remove extra workroom labels, context setup fields, work/playground/output tabs, automation buttons, and view-size buttons.
+- Vault should feel like Airtable/Excel for CRE data endpoints: one top search, `Add source`, table/map toggle, audit, column-level filter/sort controls, and column-header data endpoint creation. Remove default template buttons and global filter chip drawers.
+- Workflows should not be grouped by investor/lender/broker/market personas in the primary UI. Treat workflows as rows with trigger/status/owner/output/action, with top tabs for operational state.
+- Skills are reusable capabilities Cactus can call; workflows are ordered jobs that combine triggers, sources, skills, approvals, and outputs. Show skills inside workflow steps, not as confusing top-level persona buckets.
+- Colors stay consistent across app surfaces: neutral CTAs, neutral text, restrained brand accent for selected/context states, and status colors only for status.
