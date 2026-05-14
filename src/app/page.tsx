@@ -247,6 +247,12 @@ const workflowLibrary = [
   { name: "CRE macro snapshot", group: "Market Intel", mode: "Ongoing", trigger: "Daily schedule", output: "Treasury, SOFR, CMBS, cap trends", context: "Macro feeds" },
 ];
 
+const workflowStatusFor = (name: string) => {
+  if (["Crexi multifamily scraper → Vault", "LoopNet / Crexi watcher", "Market rent surveyor", "Review BOV comp package"].includes(name)) return "Needs review";
+  if (["Tour scheduler", "K-1 status tracker", "Capital call coordinator"].includes(name)) return "Archived";
+  return "Active";
+};
+
 const workflowExamples = [
   { title: "Investor acquisition screen", role: "Investor", trigger: "New deal row added to Vault", cadence: "On new row", source: "Vault · new sourced deals", fields: ["Asking price", "Units", "T12 NOI", "Rent growth", "Debt terms", "Market score"], output: "Score + IC memo starter", skill: "Financial analysis skill", result: "Creates Space, assigns review tasks, drafts why-this-deal / risks / what-must-change." },
   { title: "Lender package / credit screen", role: "Lender", trigger: "Borrower package or selected deal rows", cadence: "On demand", source: "Vault · borrower + deal package", fields: ["DSCR", "LTV", "Debt yield", "Sponsor", "Missing diligence", "Rent roll exceptions"], output: "Credit checklist + borrower follow-up", skill: "Lender screen skill", result: "Creates diligence tasks, drafts lender memo section, highlights missing items." },
@@ -805,7 +811,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
   const contextChips = hasIntake || vaultAdded
     ? ["Subject Property", "City row", "MSA benchmark", "Green Street report", "HelloData rent set"]
     : ["Vault empty", "No rows selected"];
-  const promptText = "What should Cactus work on?";
+  const promptText = "How can I help? Use @ to add context…";
   const openComposerTool = (tool: "context" | "workflow") => {
     setSourceOpen(false);
     setActiveComposerTool((current) => current === tool ? null : tool);
@@ -828,10 +834,11 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
 
           <SharedComposer
             placeholder={promptText}
-            context={[filesAdded ? "7 files" : "Add +", "Vault", "Workflow"]}
+            context={[filesAdded ? "7 files" : "Add +", "Sources", "Create", "Workflow"]}
             contextActions={{
               [filesAdded ? "7 files" : "Add +"]: openAdd,
-              Vault: () => openComposerTool("context"),
+              Sources: () => openComposerTool("context"),
+              Create: () => go(7),
               Workflow: () => openComposerTool("workflow"),
             }}
             onSend={() => { setAsked(true); go(7); }}
@@ -982,15 +989,8 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
                 <p className="font-serif text-2xl tracking-[-0.04em] text-neutral-950">What are we working on?</p>
                 <p className="mt-2 text-sm text-neutral-500">Ask Cactus. It will create the Space.</p>
               </div>
-              <SharedComposer placeholder="Review this deal, build comps, draft an IC memo, prepare a lender package…" context={["Vault", "Files", "People", "Outputs"]} onSend={() => startAssistantSpace("Assistant-created Space")} />
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                {[
-                  "Review a deal",
-                  "Build comps",
-                  "Draft IC memo",
-                  "Prepare lender package"
-                ].map((item) => <button key={item} onClick={() => startAssistantSpace(item)} className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-neutral-600 shadow-sm hover:border-neutral-300 hover:bg-neutral-50">{item}</button>)}
-              </div>
+              <SharedComposer placeholder="How can I help? Use @ to add context…" context={["Sources", "Create", "Workflow"]} contextActions={{ Create: () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8) }} onSend={() => startAssistantSpace("Assistant-created Space")} />
+
             </div>
           </div>
         ) : (
@@ -1003,7 +1003,7 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
         )}
       </main>
       {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
-      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="What should this Space help with?" context={["Vault", "Files", "People", "Outputs"]} onSend={() => startAssistantSpace("Assistant-created Space")} /><div className="mt-3 grid grid-cols-2 gap-2 text-xs">{["Review a deal", "Build comps", "Draft IC memo", "Prepare lender package"].map((item) => <button key={item} onClick={() => startAssistantSpace(item)} className="rounded-lg border border-neutral-200 px-3 py-2 text-left text-neutral-600 hover:bg-neutral-50">{item}</button>)}</div></div></div>}
+      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="How can I help? Use @ to add context…" context={["Sources", "Create", "Workflow"]} contextActions={{ Create: () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8) }} onSend={() => startAssistantSpace("Assistant-created Space")} /></div></div>}
     </div>
   );
 }
@@ -1153,7 +1153,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
 }
 
 function Workflows({ go }: { go: (screenIndex: number) => void }) {
-  const [activeTab, setActiveTab] = useState<"all" | "ongoing" | "template">("all");
+  const [workflowView, setWorkflowView] = useState<"all" | "ongoing" | "template" | "review" | "archived">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
@@ -1188,8 +1188,15 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
     setNewOpen(true);
   };
   const filtered = workflowLibrary
-    .filter((workflow) => activeTab === "all" || (activeTab === "ongoing" ? workflow.mode === "Ongoing" : workflow.mode === "Template"))
-    .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output].join(" ").toLowerCase().includes(search.toLowerCase()));
+    .filter((workflow) => {
+      const status = workflowStatusFor(workflow.name);
+      if (workflowView === "all") return status !== "Archived";
+      if (workflowView === "ongoing") return workflow.mode === "Ongoing" && status !== "Archived";
+      if (workflowView === "template") return workflow.mode === "Template" && status !== "Archived";
+      if (workflowView === "review") return status === "Needs review";
+      return status === "Archived";
+    })
+    .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output, workflowStatusFor(workflow.name)].join(" ").toLowerCase().includes(search.toLowerCase()));
   const toggle = (name: string) => setSelectedIds((current) => current.includes(name) ? current.filter((id) => id !== name) : [...current, name]);
   const allSelected = filtered.length > 0 && filtered.every((workflow) => selectedIds.includes(workflow.name));
   const detail = workflowLibrary.find((workflow) => workflow.name === selectedWorkflow);
@@ -1239,8 +1246,9 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
     setSearch(value);
     setSelectedWorkflow(null);
   };
-  const updateTab = (value: "all" | "ongoing" | "template") => {
-    setActiveTab(value);
+  const updateView = (value: "all" | "ongoing" | "template" | "review" | "archived") => {
+    setWorkflowView(value);
+    setSearch("");
     setSelectedWorkflow(null);
   };
 
@@ -1250,11 +1258,9 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
 
       <div className="flex h-11 shrink-0 items-center justify-between overflow-x-auto border-b border-neutral-100 px-4 lg:px-8">
         <div className="flex shrink-0 items-center gap-5 text-sm">
-          {[["all", "All"], ["ongoing", "Running"], ["template", "Templates"]].map(([key, label]) => (
-            <button key={key} onClick={() => updateTab(key as "all" | "ongoing" | "template")} className={`${activeTab === key ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{label}</button>
+          {[["all", "All"], ["ongoing", "Running"], ["template", "Templates"], ["review", "Needs review"], ["archived", "Archived"]].map(([key, label]) => (
+            <button key={key} onClick={() => updateView(key as "all" | "ongoing" | "template" | "review" | "archived")} className={`${workflowView === key ? "text-neutral-950" : "text-neutral-400 hover:text-neutral-700"}`}>{label}</button>
           ))}
-          <button onClick={() => updateSearch("Review")} className="text-neutral-400 hover:text-neutral-700">Needs review</button>
-          <button onClick={() => updateSearch("Archived")} className="text-neutral-400 hover:text-neutral-700">Archived</button>
         </div>
         {selectedIds.length > 0 && <button onClick={() => setRunState(`${selectedIds.length} selected · batch action ready`)} className="text-xs text-neutral-700">Actions</button>}
       </div>
@@ -1267,20 +1273,25 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
             <div className="w-36">Group</div>
             <div className="w-28">Mode</div>
             <div className="w-[300px]">Trigger</div>
-            <div className="w-[260px]">Output</div>
+            <div className="w-[220px]">Output</div>
+            <div className="w-28">Status</div>
             <div className="w-8" />
           </div>
-          {filtered.map((workflow) => (
+          {filtered.map((workflow) => {
+            const status = workflowStatusFor(workflow.name);
+            return (
             <div key={workflow.name} className="group flex h-12 items-center border-b border-neutral-50 pr-8 text-sm hover:bg-neutral-50">
               <div className="grid w-8 place-items-center"><input type="checkbox" checked={selectedIds.includes(workflow.name)} onChange={() => toggle(workflow.name)} className="h-2.5 w-2.5 accent-black" /></div>
               <button onClick={() => setSelectedWorkflow(workflow.name)} className="w-[280px] truncate px-2 text-left font-medium text-neutral-800">{workflow.name}</button>
               <div className="w-36 text-xs text-neutral-600">{workflow.group}</div>
               <div className="w-28"><span className={`rounded-md px-2 py-1 text-[11px] ${workflow.mode === "Ongoing" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-600"}`}>{workflow.mode}</span></div>
               <div className="w-[300px] truncate text-xs text-neutral-500">{workflow.trigger}</div>
-              <div className="w-[260px] truncate text-xs text-neutral-400">{workflow.output}</div>
+              <div className="w-[220px] truncate text-xs text-neutral-400">{workflow.output}</div>
+              <div className="w-28"><span className={`rounded-md px-2 py-1 text-[11px] ${status === "Needs review" ? "bg-amber-50 text-amber-700" : status === "Archived" ? "bg-neutral-100 text-neutral-400" : "bg-emerald-50 text-emerald-700"}`}>{status}</span></div>
               <button onClick={() => setSelectedWorkflow(workflow.name)} className="w-8 text-right text-neutral-300">⋯</button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </main>
 
