@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type VaultGridRow } from "@/lib/cactus-extraction";
 
 const sourceCards = [
   {
@@ -37,6 +38,23 @@ const sourceRunLabels = [
 ];
 
 const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as const;
+const CACTUS_WORKING_STATE_KEY = "cactus-working-app-state-v1";
+
+function loadWorkingState(): { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[] } {
+  if (typeof window === "undefined") return { hasIntake: false, sourceIndex: 0, extractedRows: [] };
+  try {
+    const saved = window.localStorage.getItem(CACTUS_WORKING_STATE_KEY);
+    if (!saved) return { hasIntake: false, sourceIndex: 0, extractedRows: [] };
+    const parsed = JSON.parse(saved) as { hasIntake?: boolean; sourceIndex?: number; extractedRows?: VaultGridRow[] };
+    return {
+      hasIntake: Boolean(parsed.hasIntake),
+      sourceIndex: typeof parsed.sourceIndex === "number" ? parsed.sourceIndex : 0,
+      extractedRows: Array.isArray(parsed.extractedRows) ? parsed.extractedRows : [],
+    };
+  } catch {
+    return { hasIntake: false, sourceIndex: 0, extractedRows: [] };
+  }
+}
 
 const systemCards = [
   {
@@ -795,7 +813,7 @@ function LiveExtraction({ go, theme }: { go: (screenIndex: number) => void; them
   );
 }
 
-function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void }) {
+function Opportunities({ go, onSubmit, hasIntake, initialSource, onExtractDeal }: { go: (screenIndex: number) => void; onSubmit: (sourceIndex: number) => void; hasIntake: boolean; initialSource: number; onSourceSelect: (sourceIndex: number) => void; onExtractDeal: (row: VaultGridRow) => void }) {
   const [activeComposerTool, setActiveComposerTool] = useState<"context" | "workflow" | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
   const [asked, setAsked] = useState(false);
@@ -805,6 +823,7 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource }: { go: (screen
   const runFirstWin = () => {
     setFilesAdded(true);
     setVaultAdded(true);
+    onExtractDeal(extractDealDocumentToVaultRow(sampleDealDocument, "assistant-upload"));
     onSubmit(initialSource);
     go(6);
   };
@@ -1432,7 +1451,7 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onExtractDeal }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onExtractDeal: (row: VaultGridRow) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
@@ -1455,13 +1474,14 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
     { key: "noiGrowth", label: "NOI Growth", prompt: "Extract or calculate NOI growth for the relevant period.", format: "Percent", width: 145 },
     { key: "owner", label: "Owner", prompt: "Extract owner/sponsor from OM, county record, CRM, or broker email.", format: "Text", width: 160 },
   ]);
-  const vaultRows = [
+  const baseVaultRows: VaultGridRow[] = [
     { id: "subject", kind: "Property", location: "16 Enviro Dr\nMoncton, NB", yr1Noi: "$1.42M", entryCap: "5.2%", marketCap: "5.5%", oneBedEffectiveRent: "$1,485", oneBedMarketRent: "$1,560", noiGrowth: "3.4%", owner: "Cactus Capital" },
     { id: "comp-1", kind: "Comp", location: "Riverside Flats\nNashville, TN", yr1Noi: "$2.18M", entryCap: "5.0%", marketCap: "5.3%", oneBedEffectiveRent: "$1,610", oneBedMarketRent: "$1,675", noiGrowth: "3.1%", owner: "Banyan RE" },
     { id: "city", kind: "Market", location: "Nashville\nUrban core", yr1Noi: "", entryCap: "", marketCap: "5.4%", oneBedEffectiveRent: "$1,570", oneBedMarketRent: "$1,640", noiGrowth: "2.9%", owner: "" },
     { id: "msa", kind: "Market", location: "Nashville MSA", yr1Noi: "", entryCap: "", marketCap: "5.6%", oneBedEffectiveRent: "$1,505", oneBedMarketRent: "$1,590", noiGrowth: "2.6%", owner: "" },
     { id: "provider-report", kind: "Report", location: "Green Street\nSoutheast MF", yr1Noi: "", entryCap: "", marketCap: "5.7%", oneBedEffectiveRent: "", oneBedMarketRent: "$1,620", noiGrowth: "2.8%", owner: "" },
   ];
+  const vaultRows = [...extractedRows, ...baseVaultRows];
   const normalizedSearch = aiSearch.trim().toLowerCase();
   const filteredVaultRows = normalizedSearch
     ? vaultRows.filter((row) => Object.values(row).join(" ").toLowerCase().includes(normalizedSearch))
@@ -1543,7 +1563,9 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   };
   const selectedSetupSourceIndex = selectedSetup.key === "deal" ? 0 : selectedSetup.key === "connected" ? 1 : 2;
   const runSelectedSource = () => {
-    setSourceSetupStatus(`${selectedSetup.title} submitted`);
+    const extractedRow = extractDealDocumentToVaultRow(sampleDealDocument, `extracted-${selectedSetup.key}`);
+    onExtractDeal(extractedRow);
+    setSourceSetupStatus(`${selectedSetup.title} submitted · ${extractedRow.location.split("\n")[0]} extracted`);
     setSourceCenterOpen(false);
     onCompleteIntake(selectedSetupSourceIndex);
   };
@@ -2152,14 +2174,20 @@ export default function Home() {
   const [active, setActive] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
-  const [hasIntake, setHasIntake] = useState(false);
-  const [sourceIndex, setSourceIndex] = useState(0);
+  const initialWorkingState = loadWorkingState();
+  const [hasIntake, setHasIntake] = useState(initialWorkingState.hasIntake);
+  const [sourceIndex, setSourceIndex] = useState(initialWorkingState.sourceIndex);
+  const [extractedRows, setExtractedRows] = useState<VaultGridRow[]>(initialWorkingState.extractedRows);
   const [accountOpen, setAccountOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
+  useEffect(() => {
+    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows }));
+  }, [hasIntake, sourceIndex, extractedRows]);
+  const addExtractedRow = (row: VaultGridRow) => setExtractedRows((current) => mergeVaultRows(current, row));
   const renderAppScreen = () => {
-    if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} />;
+    if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} />;
     if (active === 7) return <Spaces go={setActive} />;
     if (active === 8) return <Workflows go={setActive} />;
     if (active === 9) return <TasksActivity go={setActive} />;
