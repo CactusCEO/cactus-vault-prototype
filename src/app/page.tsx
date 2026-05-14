@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 
 const sourceCards = [
   {
@@ -174,7 +174,7 @@ function TopBar({ title, search, onSearch, searchPlaceholder = "Search…", cta,
       <h1 className="font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900">{title}</h1>
       <div className="flex min-w-0 items-center gap-2">
         {children}
-        {onSearch && <input value={search ?? ""} onChange={(event) => onSearch(event.target.value)} className="h-8 w-52 rounded-md border border-neutral-200 bg-white px-3 text-sm outline-none placeholder:text-neutral-300 lg:w-72" placeholder={searchPlaceholder} />}
+        {onSearch && <input value={search ?? ""} onChange={(event) => onSearch(event.target.value)} className="h-9 w-64 rounded-lg border border-neutral-300 bg-white px-3 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-500 focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10 lg:w-96" placeholder={searchPlaceholder} />}
         {cta && <button onClick={onCta} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800">{cta}</button>}
       </div>
     </header>
@@ -1100,13 +1100,13 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
   const [workflowType, setWorkflowType] = useState("Scraper / source watcher");
   const [sourceUrl, setSourceUrl] = useState("https://www.crexi.com/properties?place=Nashville&types=multifamily");
   const [cadence, setCadence] = useState("Weekly");
-  const [pullFields, setPullFields] = useState<string[]>(["Property name", "Address", "Units", "Asking price", "Broker", "Listing URL"]);
+  const [pullFields, setPullFields] = useState<string[]>(["Extract deal facts", "Normalize rent roll", "Find sales comps", "Find rent comps", "Run financial screen", "Draft IC memo"]);
   const [outputFormat, setOutputFormat] = useState("Vault columns");
   const [outputTarget, setOutputTarget] = useState("Add/update Vault rows");
-  const [analysisSkill, setAnalysisSkill] = useState("Financial analysis skill");
+  const [analysisSkill, setAnalysisSkill] = useState("Financial analysis");
   const [approvalState, setApprovalState] = useState("Not enabled");
   const [workflowCreated, setWorkflowCreated] = useState(false);
-  const [selectedExample, setSelectedExample] = useState<(typeof workflowExamples)[number] | null>(null);
+  const [, setSelectedExample] = useState<(typeof workflowExamples)[number] | null>(null);
   const togglePullField = (field: string) => setPullFields((current) => current.includes(field) ? current.filter((item) => item !== field) : [...current, field]);
   const loadWorkflowExample = (example: (typeof workflowExamples)[number]) => {
     setSelectedExample(example);
@@ -1133,11 +1133,12 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
     ["Crexi selector changed", "Listing scraper", "Retry"],
     ["Review queue overdue", "Extraction review", "Open"]
   ];
+  const selectedSkillsSummary = pullFields.length > 2 ? `${pullFields.slice(0, 2).join(", ")} +${pullFields.length - 2}` : pullFields.join(", ") || "Choose skills";
   const workflowSteps = workflowType === "Scraper / source watcher"
     ? [
       ["Trigger", cadence, "When Cactus runs"],
       ["Source", sourceUrl || "Add source", "URL, inbox, folder, API, or Vault rows"],
-      ["Extract", `${pullFields.length} fields`, outputFormat],
+      ["Skills", selectedSkillsSummary, outputFormat],
       ["Review", "Human check", "approve facts before trusted writes"],
       ["Output", outputTarget, analysisSkill]
     ]
@@ -1145,7 +1146,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
       ? [
         ["Trigger", cadence, "selected work needing review"],
         ["Context", sourceUrl || "Vault rows / Space", "evidence and owner"],
-        ["Check", `${pullFields.length} fields`, "citations + confidence"],
+        ["Check", selectedSkillsSummary, "citations + confidence"],
         ["Decision", "approve / edit / reject", "assigned reviewer"],
         ["Output", outputTarget, "task + audit trail"]
       ]
@@ -1160,7 +1161,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         : [
           ["Trigger", cadence, "Assistant, Space, or Vault rows"],
           ["Context", sourceUrl || "selected rows", "files + endpoints"],
-          ["Analyze", analysisSkill, `${pullFields.length} data points`],
+          ["Analyze", analysisSkill, selectedSkillsSummary],
           ["Review", "assumptions", "confidence + citations"],
           ["Output", outputTarget, "tasks / Space / Vault update"]
         ];
@@ -1263,45 +1264,59 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
 
       {newOpen && (
         <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-3 lg:p-6">
-          <div onClick={(event) => event.stopPropagation()} className="grid max-h-[92vh] w-full max-w-[1060px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl lg:grid-cols-[minmax(0,1fr)_360px]">
-            <section className="min-h-0 overflow-auto p-4 lg:p-5">
+          <div onClick={(event) => event.stopPropagation()} className="grid max-h-[92vh] w-full max-w-[1120px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl lg:grid-cols-[280px_minmax(0,1fr)_340px]">
+            <section className="min-h-0 overflow-auto border-r border-neutral-100 p-5">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-sm font-medium">New workflow</p><p className="mt-1 text-xs text-neutral-500">Build it as steps. Edit the chain on the right.</p></div>
+                <div><p className="text-sm font-medium">Create workflow</p><p className="mt-1 text-xs text-neutral-500">Pick start → type → source → skills → output.</p></div>
                 <button onClick={() => setNewOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
               </div>
-              <input value={workflowName} onChange={(event) => { setWorkflowName(event.target.value); setWorkflowCreated(false); }} className="mt-4 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" />
+              <input value={workflowName} onChange={(event) => { setWorkflowName(event.target.value); setWorkflowCreated(false); }} className="mt-5 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-950" />
 
-              <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
-                <div><p className="font-medium text-neutral-500">Workflow type</p><div className="mt-2 grid grid-cols-2 gap-2">{["Scraper / source watcher", "AI analysis", "Output drafter", "Review / approval"].map((type)=><button key={type} onClick={() => { setWorkflowType(type); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${workflowType===type ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{type}</button>)}</div></div>
-                <div><p className="font-medium text-neutral-500">Trigger</p><div className="mt-2 grid grid-cols-2 gap-2">{["On new row", "On demand", "Daily", "Weekly", "Monthly", "Quarterly"].map((item)=><button key={item} onClick={() => { setCadence(item); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{item}</button>)}</div></div>
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">1 · Start</p>
+              <div className="mt-2 space-y-2 text-sm">
+                {["On demand", "On new Vault row", "Weekly", "When source updates"].map((item)=><button key={item} onClick={() => { setCadence(item); setWorkflowCreated(false); }} className={`w-full rounded-lg border px-3 py-2 text-left ${cadence===item ? "border-neutral-950 bg-neutral-50" : "border-neutral-200 hover:bg-neutral-50"}`}>{item}</button>)}
               </div>
 
-              <p className="mt-4 text-xs font-medium text-neutral-500">Source / context</p>
-              <input value={sourceUrl} onChange={(event) => { setSourceUrl(event.target.value); setWorkflowCreated(false); }} className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm" placeholder="URL, inbox, Drive folder, selected Vault rows, package…" />
-
-              <p className="mt-4 text-xs font-medium text-neutral-500">Data to pull / check</p>
-              <div className="mt-2 flex max-h-28 flex-wrap gap-2 overflow-auto text-xs">{["Property name", "Address", "Units", "Asking price", "Broker", "Owner", "Cap rate", "NOI", "T12 NOI", "DSCR", "LTV", "Debt yield", "Sales comps", "Rent comps", "Demand growth", "Occupancy", "NOI variance", "Permits", "Deliveries", "SOFR", "Listing URL", "Source date"].map((field)=><button key={field} onClick={() => { togglePullField(field); setWorkflowCreated(false); }} className={`rounded-full border px-3 py-1.5 ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600"}`}>{field}</button>)}</div>
-
-              <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
-                <div><p className="font-medium text-neutral-500">Schema</p><div className="mt-2 grid grid-cols-2 gap-2">{["Vault columns", "CSV export", "JSON schema", "Micro-vault"].map((format)=><button key={format} onClick={() => { setOutputFormat(format); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${outputFormat===format ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{format}</button>)}</div></div>
-                <div><p className="font-medium text-neutral-500">Output</p><div className="mt-2 grid grid-cols-2 gap-2">{["Add/update Vault rows", "Create review task", "Create Space", "Draft output"].map((target)=><button key={target} onClick={() => { setOutputTarget(target); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${outputTarget===target ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{target}</button>)}</div></div>
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">2 · Workflow type</p>
+              <div className="mt-2 space-y-2 text-sm">
+                {["Source watcher", "Analyze selected rows", "Draft output", "Review facts"].map((type)=>{
+                  const mapped = type === "Source watcher" ? "Scraper / source watcher" : type === "Analyze selected rows" ? "AI analysis" : type === "Draft output" ? "Output drafter" : "Review / approval";
+                  return <button key={type} onClick={() => { setWorkflowType(mapped); setWorkflowCreated(false); }} className={`w-full rounded-lg border px-3 py-2 text-left ${workflowType===mapped ? "border-neutral-950 bg-neutral-50" : "border-neutral-200 hover:bg-neutral-50"}`}>{type}</button>;
+                })}
               </div>
-
-              <p className="mt-4 text-xs font-medium text-neutral-500">Analysis / follow-on</p>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs lg:grid-cols-3">{["Financial analysis skill", "Market analysis skill", "Lender screen skill", "Broker BOV/listing skill", "No analysis — review only"].map((skill)=><button key={skill} onClick={() => { setAnalysisSkill(skill); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${analysisSkill===skill ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>{skill}</button>)}</div>
             </section>
+
+            <section className="min-h-0 overflow-auto p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">3 · Source / context</p>
+              <input value={sourceUrl} onChange={(event) => { setSourceUrl(event.target.value); setWorkflowCreated(false); }} className="mt-2 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-950" placeholder="Crexi URL, Gmail label, Drive folder, selected Vault rows…" />
+
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">4 · Skills</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                {["Extract deal facts", "Normalize rent roll", "Find sales comps", "Find rent comps", "Run financial screen", "Draft IC memo"].map((field)=><button key={field} onClick={() => { togglePullField(field); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${pullFields.includes(field) ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 hover:bg-neutral-50"}`}>{field}</button>)}
+              </div>
+
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">5 · Output</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                {["Add/update Vault rows", "Create review task", "Open Space", "Draft output"].map((target)=><button key={target} onClick={() => { setOutputTarget(target); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${outputTarget===target ? "border-neutral-950 bg-neutral-50" : "border-neutral-200 hover:bg-neutral-50"}`}>{target}</button>)}
+              </div>
+
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Follow-on analysis</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                {["Financial analysis", "Market analysis", "Lender screen", "Broker BOV", "Review only"].map((skill)=><button key={skill} onClick={() => { setAnalysisSkill(skill); setWorkflowCreated(false); }} className={`rounded-lg border px-3 py-2 text-left ${analysisSkill===skill ? "border-neutral-950 bg-neutral-50" : "border-neutral-200 hover:bg-neutral-50"}`}>{skill}</button>)}
+              </div>
+            </section>
+
             <aside className="flex min-h-0 flex-col border-t border-neutral-100 bg-neutral-50 lg:border-l lg:border-t-0">
-              <div className="min-h-0 flex-1 overflow-auto p-4 lg:p-5">
+              <div className="min-h-0 flex-1 overflow-auto p-5">
                 <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Step stack</p>
                 <div className="mt-4 space-y-2 text-sm">
-                  {workflowSteps.map(([title, value, note], index) => <div key={`${title}-${index}`} className="rounded-xl border border-neutral-200 bg-white p-3"><div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{index + 1}</span><span className="font-medium">{title}</span></div><p className="mt-2 truncate text-xs text-neutral-800">{value}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{note}</p></div>)}
+                  {workflowSteps.map(([title, value], index) => <div key={`${title}-${index}`} className="rounded-xl border border-neutral-200 bg-white p-3"><div className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] text-white">{index + 1}</span><span className="font-medium">{title}</span></div><p className="mt-2 truncate text-xs text-neutral-700">{value}</p></div>)}
                 </div>
-                {selectedExample && <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600"><p className="font-medium text-neutral-900">Expected result</p><p className="mt-1 leading-5">{selectedExample.result}</p></div>}
-                {workflowCreated && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800"><p className="font-medium">Workflow created</p><p className="mt-1 leading-5">Open it as a Space, run once, or enable after review.</p></div>}
+                {workflowCreated && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800"><p className="font-medium">Workflow created</p><p className="mt-1">Run once, enable, or open a Space.</p></div>}
               </div>
               <div className="sticky bottom-0 border-t border-neutral-200 bg-white p-4">
                 <button onClick={createWorkflow} className="w-full rounded-md bg-neutral-950 px-3 py-2.5 text-sm font-medium text-white">Create workflow</button>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><button onClick={() => setRunPanel({ title: workflowName, mode: "Run once", note: "Runs this step stack once and opens a review result." })} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Run once</button><button onClick={() => { setRunPanel({ title: workflowName, mode: "Enable", note: "Review cadence, scope, costs, and side effects before it runs in the background." }); setApprovalState("Needs review before enable"); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Enable</button><button onClick={() => { createWorkflow(); go(7); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Open Space</button></div>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><button onClick={() => setRunPanel({ title: workflowName, mode: "Run once", note: "Runs this stack once and opens a review result." })} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Run once</button><button onClick={() => { setRunPanel({ title: workflowName, mode: "Enable", note: "Review cadence, scope, cost, and side effects before background runs." }); setApprovalState("Needs review before enable"); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Enable</button><button onClick={() => { createWorkflow(); go(7); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Open Space</button></div>
                 <p className="mt-2 text-[11px] leading-4 text-neutral-400">{approvalState}</p>
               </div>
             </aside>
@@ -1353,21 +1368,21 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [microVault, setMicroVault] = useState("Main Vault");
   const [aiSearch, setAiSearch] = useState("");
   const [columns, setColumns] = useState([
-    { key: "location", label: "Location", prompt: "Identify the property or market geography.", format: "Text", width: 210 },
-    { key: "client", label: "Client Name", prompt: "Extract the client or source relationship if available.", format: "Text", width: 165 },
-    { key: "irr", label: "IRR Risk Adjusted", prompt: "Return risk-adjusted IRR from the model or Cactus base case.", format: "Percent", width: 165 },
-    { key: "cap", label: "Cap Rate Nominal", prompt: "Extract or benchmark the nominal cap rate.", format: "Percent", width: 165 },
-    { key: "noi", label: "NOI Growth\n(Asset-class filtered)", prompt: "Extract NOI growth for the matching geography and asset class.", format: "Percent", width: 185 },
-    { key: "demand", label: "Demand Growth\n(Asset-class filtered)", prompt: "Extract demand growth for the matching geography and asset class.", format: "Percent", width: 185 },
-    { key: "climate", label: "Climate Risk", prompt: "Summarize flood, disaster, and insurance risk from approved sources.", format: "Score", width: 165 },
-    { key: "rent", label: "Avg 1BR Rent\n(Class A)", prompt: "Extract average monthly 1BR rent for Class A multifamily properties in the subject ZIP code. Return $X,XXX (±Y% · n=Z).", format: "Number", width: 185 },
+    { key: "location", label: "Location\n(address)", prompt: "Identify the property, comp, market, or report geography.", format: "Text", width: 240 },
+    { key: "yr1Noi", label: "YR 1 NOI", prompt: "Extract Year 1 NOI from the model, T-12, or Cactus base case.", format: "Currency", width: 150 },
+    { key: "entryCap", label: "Entry Cap\nRate", prompt: "Calculate entry cap rate from purchase price and Year 1 NOI.", format: "Percent", width: 150 },
+    { key: "marketCap", label: "Market Cap\nRate", prompt: "Benchmark market cap rate from approved comps/provider data.", format: "Percent", width: 160 },
+    { key: "oneBedEffectiveRent", label: "1 Bed Effective\nRent", prompt: "Extract current effective 1BR rent from rent roll or concessions-adjusted source.", format: "Currency", width: 170 },
+    { key: "oneBedMarketRent", label: "1 Bed Market\nRent", prompt: "Benchmark market 1BR rent from comps/provider rows for the same asset class.", format: "Currency", width: 170 },
+    { key: "noiGrowth", label: "NOI Growth", prompt: "Extract or calculate NOI growth for the relevant period.", format: "Percent", width: 145 },
+    { key: "owner", label: "Owner", prompt: "Extract owner/sponsor from OM, county record, CRM, or broker email.", format: "Text", width: 160 },
   ]);
   const vaultRows = [
-    { id: "subject", kind: "Property", location: "Subject Property\n(geo-mapped)", client: "Fidelity\nInvestments", irr: "8.6%", cap: "5.1%", noi: "3.4%", demand: "2.8%", climate: "Low", rent: "$1,510 (±4% · n=22)" },
-    { id: "city", kind: "Market", location: "City", client: "", irr: "", cap: "", noi: "3.1%", demand: "2.5%", climate: "Medium", rent: "$1,460 (±4% · n=22)" },
-    { id: "msa", kind: "Market", location: "MSA", client: "", irr: "", cap: "", noi: "2.8%", demand: "2.2%", climate: "Medium", rent: "$1,420 (±4% · n=22)" },
-    { id: "national", kind: "Benchmark", location: "U.S. National\n(same asset class)", client: "", irr: "", cap: "", noi: "2.2%", demand: "1.8%", climate: "Varies", rent: "$1,310 (±4% · n=22)" },
-    { id: "provider-report", kind: "Report", location: "Green Street report\n(Southeast MF)", client: "", irr: "", cap: "5.4%", noi: "2.9%", demand: "2.1%", climate: "Source", rent: "" },
+    { id: "subject", kind: "Property", location: "16 Enviro Dr\nMoncton, NB", yr1Noi: "$1.42M", entryCap: "5.2%", marketCap: "5.5%", oneBedEffectiveRent: "$1,485", oneBedMarketRent: "$1,560", noiGrowth: "3.4%", owner: "Cactus Capital" },
+    { id: "comp-1", kind: "Comp", location: "Riverside Flats\nNashville, TN", yr1Noi: "$2.18M", entryCap: "5.0%", marketCap: "5.3%", oneBedEffectiveRent: "$1,610", oneBedMarketRent: "$1,675", noiGrowth: "3.1%", owner: "Banyan RE" },
+    { id: "city", kind: "Market", location: "Nashville\nUrban core", yr1Noi: "", entryCap: "", marketCap: "5.4%", oneBedEffectiveRent: "$1,570", oneBedMarketRent: "$1,640", noiGrowth: "2.9%", owner: "" },
+    { id: "msa", kind: "Market", location: "Nashville MSA", yr1Noi: "", entryCap: "", marketCap: "5.6%", oneBedEffectiveRent: "$1,505", oneBedMarketRent: "$1,590", noiGrowth: "2.6%", owner: "" },
+    { id: "provider-report", kind: "Report", location: "Green Street\nSoutheast MF", yr1Noi: "", entryCap: "", marketCap: "5.7%", oneBedEffectiveRent: "", oneBedMarketRent: "$1,620", noiGrowth: "2.8%", owner: "" },
   ];
   const normalizedSearch = aiSearch.trim().toLowerCase();
   const filteredVaultRows = normalizedSearch
@@ -1418,10 +1433,25 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   ];
   const selectedSetup = vaultSetupModes.find((mode) => mode.key === selectedSetupMode) ?? vaultSetupModes[0];
   const addColumn = () => {
-    setColumns((current) => [...current, { key: `custom-${current.length}`, label: "YR 1 NOI", prompt: "Extract Year 1 NOI from the selected documents or model and cite the source line.", format: "Currency", width: 170 }]);
+    setColumns((current) => [...current, { key: `custom-${current.length}`, label: "YR 2 NOI", prompt: "Extract Year 2 NOI from the selected documents or model and cite the source line.", format: "Currency", width: 150 }]);
     setShowColumnBuilder(false);
   };
-  const resizeColumn = (key: string) => setColumns((current) => current.map((column) => column.key === key ? { ...column, width: column.width >= 240 ? 140 : column.width + 30 } : column));
+  const startColumnResize = (event: ReactMouseEvent, key: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const startX = event.clientX;
+    const startWidth = columns.find((column) => column.key === key)?.width ?? 160;
+    const onMove = (moveEvent: MouseEvent) => {
+      const nextWidth = Math.max(110, Math.min(360, startWidth + moveEvent.clientX - startX));
+      setColumns((current) => current.map((column) => column.key === key ? { ...column, width: nextWidth } : column));
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
   const selectedSetupSourceIndex = selectedSetup.key === "deal" ? 0 : selectedSetup.key === "connected" ? 1 : 2;
   const runSelectedSource = () => {
     setSourceSetupStatus(`${selectedSetup.title} submitted`);
@@ -1512,13 +1542,13 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
 
         <main className="flex min-h-0 flex-1 flex-col p-6">
           <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-            <div className="grid h-9 grid-cols-[220px_160px_160px_160px_1fr] border-b border-neutral-200 bg-neutral-50 px-3 text-xs font-medium text-neutral-400">
-              {['Entity / source', 'Address / market', 'Owner', 'NOI', 'Source status'].map((heading) => <div key={heading} className="flex items-center border-r border-neutral-200 last:border-r-0">{heading}</div>)}
+            <div className="grid h-10 min-w-[1050px] grid-cols-[240px_150px_150px_160px_175px_175px] border-b border-neutral-200 bg-neutral-50 px-3 text-xs font-semibold text-neutral-500">
+              {['Location (address)', 'YR 1 NOI', 'Entry Cap Rate', 'Market Cap Rate', '1 Bed Effective Rent', '1 Bed Market Rent'].map((heading) => <div key={heading} className="flex items-center border-r border-neutral-200 pr-3 last:border-r-0">{heading}</div>)}
             </div>
-            <div className="relative min-h-[430px] bg-white">
+            <div className="relative min-h-[430px] min-w-[1050px] bg-white">
               {Array.from({ length: 8 }).map((_, row) => (
-                <div key={row} className="grid h-12 grid-cols-[220px_160px_160px_160px_1fr] border-b border-neutral-50 px-3">
-                  {Array.from({ length: 5 }).map((__, col) => <div key={col} className="flex items-center border-r border-neutral-50 last:border-r-0"><span className="h-4 w-24 rounded bg-neutral-100" /></div>)}
+                <div key={row} className="grid h-12 grid-cols-[240px_150px_150px_160px_175px_175px] border-b border-neutral-50 px-3">
+                  {Array.from({ length: 6 }).map((__, col) => <div key={col} className="flex items-center border-r border-neutral-50 pr-3 last:border-r-0"><span className="h-4 w-24 rounded bg-neutral-100" /></div>)}
                 </div>
               ))}
               <section className="absolute inset-0 flex items-center justify-center bg-white/85">
@@ -1581,7 +1611,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                         <button className="rounded border border-neutral-200 px-1.5 py-0.5 hover:bg-neutral-50">Sort</button>
                       </div>
                       <button onClick={() => setShowColumnBuilder(true)} className="absolute -right-3 top-1/2 z-30 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-950 opacity-0 shadow-sm transition group-hover:opacity-100" aria-label={`Add data point after ${column.label}`}>+</button>
-                      <button onClick={() => resizeColumn(column.key)} className="absolute bottom-1 right-1 text-[10px] text-neutral-300 opacity-0 group-hover:opacity-100" aria-label={`Resize ${column.label}`}>⇔</button>
+                      <div onMouseDown={(event) => startColumnResize(event, column.key)} className="absolute right-0 top-0 z-40 h-full w-2 cursor-col-resize touch-none bg-transparent transition hover:bg-neutral-950/20" aria-label={`Drag to resize ${column.label}`} />
                     </th>
                   ))}
                   <th className="h-[50px] min-w-[210px] border-r border-neutral-200 bg-neutral-50 px-3 text-left text-xs font-medium text-neutral-500">
@@ -1635,7 +1665,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                 {filteredVaultRows.map((row, index) => (
                   <button key={`vault-pin-${row.id}`} onClick={() => toggleRow(row.id)} className={`absolute ${["left-[28%] top-[45%]", "left-[36%] top-[38%]", "left-[48%] top-[50%]", "left-[62%] top-[42%]", "left-[72%] top-[58%]"][index]} group`}>
                     <span className={`grid h-9 w-9 place-items-center rounded-full border-2 border-white text-xs font-semibold shadow-lg ${selectedRows.includes(row.id) ? "bg-pink-200 text-neutral-950" : "bg-neutral-950 text-white"}`}>{index + 1}</span>
-                    <span className="absolute left-7 top-8 hidden w-56 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{row.location.split("\n").join(" ")}</span><br /><span className="text-neutral-500">{row.kind} · {row.cap || row.noi || "source context"}</span></span>
+                    <span className="absolute left-7 top-8 hidden w-56 rounded-xl border border-neutral-200 bg-white p-3 text-left text-xs shadow-xl group-hover:block"><span className="font-semibold text-neutral-950">{row.location.split("\n").join(" ")}</span><br /><span className="text-neutral-500">{row.kind} · {row.marketCap || row.yr1Noi || "source context"}</span></span>
                   </button>
                 ))}
               </div>
@@ -1644,7 +1674,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
                 <div className="max-h-[500px] overflow-auto p-3">
                   {filteredVaultRows.map((row) => (
                     <button key={`vault-map-list-${row.id}`} onClick={() => toggleRow(row.id)} className={`mb-2 flex w-full items-start justify-between rounded-xl border p-3 text-left ${selectedRows.includes(row.id) ? "border-neutral-950 bg-neutral-50" : "border-neutral-200 hover:bg-neutral-50"}`}>
-                      <span><span className="block text-sm font-medium text-neutral-950">{row.location.split("\n").join(" ")}</span><span className="mt-1 block text-xs text-neutral-500">{row.kind} · Cap {row.cap || "—"} · NOI {row.noi || "—"}</span></span>
+                      <span><span className="block text-sm font-medium text-neutral-950">{row.location.split("\n").join(" ")}</span><span className="mt-1 block text-xs text-neutral-500">{row.kind} · Market cap {row.marketCap || "—"} · YR 1 NOI {row.yr1Noi || "—"}</span></span>
                       <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{selectedRows.includes(row.id) ? "Selected" : "Select"}</span>
                     </button>
                   ))}
