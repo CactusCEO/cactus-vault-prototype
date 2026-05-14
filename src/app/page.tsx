@@ -1431,6 +1431,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   const [, setSourceSetupStatus] = useState("Not started");
   const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected" | "api">(sourceSetupKeyByIndex[sourceIndex]);
   const [microVault, setMicroVault] = useState("Main Vault");
+  const [vaultMenuOpen, setVaultMenuOpen] = useState(false);
   const [aiSearch, setAiSearch] = useState("");
   const [activeFilterColumn, setActiveFilterColumn] = useState<string | null>(null);
   const [columns, setColumns] = useState([
@@ -1537,6 +1538,12 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
   };
   const selectedContextLabel = selectedCount > 1 ? "@ Selected Properties" : "@ Selected Property";
   const vaultContextLabel = `# ${microVault}`;
+  const vaultOptions = ["Main Vault", "Selected rows folder", "Drive-time micro Vault", "Unmatched portfolio queue"];
+  const activeFilterColumnDef = columns.find((column) => column.key === activeFilterColumn);
+  const activeFilterValues = activeFilterColumnDef
+    ? Array.from(new Set(vaultRows.map((row) => String(row[activeFilterColumnDef.key as keyof typeof row] || "Blank"))))
+      .map((value) => ({ value, count: vaultRows.filter((row) => String(row[activeFilterColumnDef.key as keyof typeof row] || "Blank") === value).length }))
+    : [];
   const sourceSetupModal = (
     <div className="fixed inset-0 z-50 bg-white text-neutral-950" onClick={() => setSourceCenterOpen(false)}>
       <section onClick={(event) => event.stopPropagation()} className="flex h-full flex-col">
@@ -1658,12 +1665,22 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
       <div className="min-h-[760px] border-t border-neutral-200">
         <main className="min-w-0 overflow-hidden">
           <TopBar title={(
-            <select value={microVault} onChange={(event) => setMicroVault(event.target.value)} className="-ml-1 bg-transparent py-1 pr-8 font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900 outline-none">
-              <option>Main Vault</option>
-              <option>Selected rows folder</option>
-              <option>Drive-time micro Vault</option>
-              <option>Unmatched portfolio queue</option>
-            </select>
+            <div className="relative -ml-1">
+              <button onClick={() => { setActiveFilterColumn(null); setVaultMenuOpen((open) => !open); }} className="inline-flex items-center gap-1.5 rounded-md px-1 py-1 font-serif text-2xl font-medium tracking-[-0.03em] text-neutral-900 hover:bg-neutral-50" aria-expanded={vaultMenuOpen}>
+                <span>{microVault}</span>
+                <svg viewBox="0 0 16 16" className="mt-1 h-4 w-4 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m4 6 4 4 4-4" /></svg>
+              </button>
+              {vaultMenuOpen && (
+                <div className="absolute left-0 top-11 z-50 w-64 rounded-xl border border-neutral-200 bg-white p-1.5 font-sans text-sm shadow-[0_18px_45px_rgba(15,23,42,0.16)]">
+                  {vaultOptions.map((option) => (
+                    <button key={option} onClick={() => { setMicroVault(option); setVaultMenuOpen(false); }} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-neutral-50 ${microVault === option ? "font-medium text-neutral-950" : "text-neutral-600"}`}>
+                      <span>{option}</span>
+                      {microVault === option && <span className="text-xs text-neutral-400">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )} search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault: owners, missing addresses, rent growth…" cta="Add Data" onCta={() => setSourceCenterOpen(true)}>
             {microVault !== "Main Vault" && <button onClick={() => setMicroVault("Main Vault")} className="text-xs text-neutral-500">← Main</button>}
             <div className="flex rounded-md border border-neutral-200 bg-neutral-50 p-0.5">
@@ -1683,23 +1700,38 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               <thead>
                 <tr className="border-b border-neutral-200 bg-neutral-100/80">
                   {columns.map((column, index) => (
-                    <th key={column.key} style={{ minWidth: column.width }} className={`group relative h-[50px] border-r border-neutral-200 px-3 text-sm font-semibold leading-tight text-neutral-950 ${index === 0 ? "sticky left-0 z-20 bg-neutral-100" : "bg-neutral-100/80"}`}>
-                      <div className="flex items-start gap-2">
-                        <input type="checkbox" className="mt-1 h-3 w-3 accent-black" aria-label={`select ${column.label}`} />
-                        <span className="whitespace-pre-line">{column.label}</span>
+                    <th key={column.key} style={{ width: column.width, minWidth: column.width, maxWidth: column.width }} className={`group relative h-[64px] border-r border-neutral-200 px-3 pr-10 text-sm font-semibold leading-tight text-neutral-950 ${index === 0 ? "sticky left-0 z-20 bg-neutral-100" : "bg-neutral-100/80"}`}>
+                      <div className="flex h-full min-w-0 items-center gap-2">
+                        <input type="checkbox" className="h-3 w-3 shrink-0 accent-black" aria-label={`select ${column.label}`} />
+                        <span className="min-w-0 whitespace-normal break-words leading-5">{column.label.split("\n").join(" ")}</span>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-[10px] font-normal text-neutral-500 opacity-0 transition group-hover:opacity-100">
-                        <button onClick={() => setActiveFilterColumn(activeFilterColumn === column.key ? null : column.key)} className="inline-flex h-6 w-6 items-center justify-center rounded border border-neutral-200 bg-white text-neutral-500 shadow-sm hover:border-neutral-950 hover:text-neutral-950" aria-label={`Filter ${column.label}`}>
-                          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 3.5h11" /><path d="M4.5 7.5h7" /><path d="M6.5 11.5h3" /></svg>
-                        </button>
-                      </div>
+                      <button onClick={() => { setVaultMenuOpen(false); setActiveFilterColumn(activeFilterColumn === column.key ? null : column.key); }} className="absolute right-3 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-500 opacity-0 shadow-sm transition hover:border-neutral-950 hover:text-neutral-950 group-hover:opacity-100" aria-label={`Filter ${column.label}`}>
+                        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 3.5h11" /><path d="M4.5 7.5h7" /><path d="M6.5 11.5h3" /></svg>
+                      </button>
                       {activeFilterColumn === column.key && (
-                        <div className="absolute left-3 top-[48px] z-50 w-48 rounded-xl border border-neutral-200 bg-white p-2 text-xs font-normal text-neutral-700 shadow-xl">
-                          <button className="flex w-full items-center justify-between rounded-md px-2 py-2 hover:bg-neutral-50"><span>Has value</span><span className="text-neutral-300">✓</span></button>
-                          <button className="flex w-full items-center justify-between rounded-md px-2 py-2 hover:bg-neutral-50"><span>Needs extraction</span><span className="text-neutral-300">○</span></button>
-                          <button className="flex w-full items-center justify-between rounded-md px-2 py-2 hover:bg-neutral-50"><span>Low confidence</span><span className="text-neutral-300">○</span></button>
-                          <div className="my-1 border-t border-neutral-100" />
-                          <button className="w-full rounded-md px-2 py-2 text-left text-neutral-500 hover:bg-neutral-50">Sort A → Z</button>
+                        <div className="absolute right-3 top-[56px] z-50 w-72 rounded-xl border border-neutral-200 bg-white p-3 text-xs font-normal text-neutral-700 shadow-[0_18px_45px_rgba(15,23,42,0.16)]">
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="font-medium text-neutral-950">Filter {column.label.split("\n").join(" ")}</span>
+                            <button onClick={() => setActiveFilterColumn(null)} className="text-neutral-400 hover:text-neutral-950">×</button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1 border-b border-neutral-100 pb-2">
+                            <button className="rounded-md px-2 py-1.5 text-left hover:bg-neutral-50">Sort ascending</button>
+                            <button className="rounded-md px-2 py-1.5 text-left hover:bg-neutral-50">Sort descending</button>
+                          </div>
+                          <input className="my-2 h-8 w-full rounded-md border border-neutral-200 px-2 text-xs outline-none placeholder:text-neutral-400 focus:border-neutral-950" placeholder="Search values…" />
+                          <div className="max-h-40 space-y-1 overflow-auto">
+                            {activeFilterValues.map(({ value, count }) => (
+                              <label key={value} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-50">
+                                <input type="checkbox" defaultChecked className="h-3.5 w-3.5 accent-black" />
+                                <span className="min-w-0 flex-1 truncate">{value}</span>
+                                <span className="text-[11px] text-neutral-400">{count}</span>
+                              </label>
+                            ))}
+                          </div>
+                          <div className="mt-2 flex items-center justify-between border-t border-neutral-100 pt-2">
+                            <button className="text-xs text-neutral-500 hover:text-neutral-950">Clear</button>
+                            <button onClick={() => setActiveFilterColumn(null)} className="rounded-md bg-neutral-950 px-3 py-1.5 text-xs font-medium text-white">Apply</button>
+                          </div>
                         </div>
                       )}
                       <button onClick={() => setShowColumnBuilder(true)} className="absolute -right-3 top-1/2 z-30 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-950 opacity-0 shadow-sm transition group-hover:opacity-100" aria-label={`Add data point after ${column.label}`}>+</button>
