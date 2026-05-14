@@ -1439,7 +1439,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
           <button onClick={() => setSourceCenterOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-[260px_minmax(0,1fr)_360px] gap-0 overflow-hidden">
+        <div className="grid min-h-0 flex-1 grid-cols-[240px_minmax(0,1fr)] gap-0 overflow-hidden">
           <aside className="border-r border-neutral-200 bg-neutral-50 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Source type</p>
             <div className="mt-3 space-y-2">
@@ -1458,31 +1458,29 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
           </aside>
 
           <main className="overflow-auto p-8">
-            <div className="mx-auto max-w-4xl">
-              <div className="mb-6 flex items-start justify-between gap-6">
+            <div className="mx-auto max-w-5xl">
+              <div className="mb-5 flex items-center justify-between gap-6">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">{selectedSetup.title}</p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">{selectedSetup.key === "connected" ? "Choose the account or folder to connect." : selectedSetup.key === "portfolio" ? "Import portfolio data into the Vault." : "Add deal files to the Vault."}</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">{selectedSetup.key === "connected" ? "Pick one provider first. Cactus will only read the folders, labels, or senders you choose." : selectedSetup.key === "portfolio" ? "Start with the schedule, export, or system file you already use. Unmatched rows go to review before they become trusted Vault records." : "Choose the OM, T-12, rent roll, model, or diligence folder. Cactus creates review items with source evidence before filling Vault rows."}</p>
+                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">{selectedSetup.key === "connected" ? "Connect one account." : selectedSetup.key === "portfolio" ? "Import portfolio data." : "Add deal files."}</h2>
                 </div>
-                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{selectedSetup.key === "connected" ? "Choose one provider" : selectedSetup.key === "portfolio" ? "Choose import" : "Choose files"}</span>
+                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">Review before Vault</span>
               </div>
 
               {selectedSetup.key === "connected" ? (
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    ["G", "Google Drive", "Choose approved folders or deal rooms", "Connect Google Drive"],
-                    ["M", "Gmail", "Choose labels, senders, domains, and date range", "Connect Gmail"],
-                    ["O", "Outlook", "Choose folders, senders, and attachments", "Connect Outlook"],
-                    ["1", "OneDrive", "Choose approved folders or shared rooms", "Connect OneDrive"],
-                  ].map(([logo, name, note, action]) => (
+                    ["G", "Google Drive", "Connect Google Drive"],
+                    ["M", "Gmail", "Connect Gmail"],
+                    ["O", "Outlook", "Connect Outlook"],
+                    ["1", "OneDrive", "Connect OneDrive"],
+                  ].map(([logo, name, action]) => (
                     <button key={name} onClick={() => setSourceSetupStatus(`${name} selected`)} className="group rounded-2xl border border-neutral-200 bg-white p-5 text-left hover:border-neutral-950">
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-center gap-4">
                         <span className="grid h-10 w-10 place-items-center rounded-xl border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-950">{logo}</span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-sm font-semibold text-neutral-950">{name}</span>
-                          <span className="mt-1 block text-xs leading-5 text-neutral-500">{note}</span>
-                          <span className="mt-4 inline-flex rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">{action}</span>
+                          <span className="mt-3 inline-flex rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">{action}</span>
                         </span>
                       </div>
                     </button>
@@ -1497,22 +1495,6 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               )}
             </div>
           </main>
-
-          <aside className="border-l border-neutral-200 bg-white p-6">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Next action</p>
-            <h3 className="mt-2 text-xl font-semibold tracking-[-0.04em]">{selectedSetup.key === "connected" ? "Choose a provider" : selectedSetup.primary}</h3>
-            <p className="mt-2 text-sm leading-6 text-neutral-500">{selectedSetup.key === "connected" ? "Start with the account where deal files already arrive. After sign-in, choose the exact folders, labels, or senders Cactus can read." : "Choose files, then review extracted facts against the original source before trusting them in Vault."}</p>
-
-            <div className="mt-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="text-sm font-semibold text-neutral-950">After connection</p>
-              <ul className="mt-3 space-y-2 text-xs leading-5 text-neutral-500">
-                <li>• New files become review items, not trusted rows.</li>
-                <li>• Unclear files open in a detail view with source evidence.</li>
-                <li>• Approval, removal, or assignment happens after review.</li>
-                <li>• Recurring sync is optional and can be paused.</li>
-              </ul>
-            </div>
-          </aside>
         </div>
       </section>
     </div>
@@ -1542,18 +1524,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake }: { hasIntak
               <section className="absolute inset-0 flex items-center justify-center bg-white/85">
                 <div className="w-full max-w-[560px] rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">Empty Vault</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Your Vault is ready. Add the first source.</h2>
-                  <p className="mt-2 max-w-[440px] text-sm leading-6 text-neutral-500">
-                    No rows exist yet. Start with the source you chose in onboarding. Nothing is connected until you choose the source and review what it can access.
-                  </p>
-
-                  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-medium text-neutral-950">{selectedSetup.title}</span>
-                      <span className="text-xs text-neutral-500">Review first</span>
-                    </div>
-                    <p className="mt-1 text-xs text-neutral-500">{selectedSetup.subtitle}</p>
-                  </div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">No sources connected</h2>
+                  <div className="mt-4 inline-flex rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-500">From onboarding · {selectedSetup.title}</div>
 
                   <div className="mt-5 flex items-center gap-2">
                     <button onClick={() => setSourceCenterOpen(true)} className="rounded-md bg-neutral-950 px-4 py-2 text-xs font-medium text-white hover:bg-neutral-800">{selectedSetup.primary}</button>
