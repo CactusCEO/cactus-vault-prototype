@@ -26,7 +26,7 @@ Find opportunities → Fill/enrich the Vault → Work in Spaces → Analyze/play
 
 Core concepts:
 
-- **Vault**: master CRE memory and system of record; source-linked facts, documents, market/provider data, portfolio historicals, assumptions, scenarios, outputs, decisions, learnings, and time-series changes.
+- **Vault / context engine**: proprietary company database and internal MCP-style context layer for CRE AI; stores source-linked facts, documents, market/provider data, portfolio historicals, assumptions, scenarios, outputs, decisions, learnings, and time-series changes so Cactus can produce better analysis with customer-specific context and citations.
 - **Spaces**: focused work areas where work happens with scoped Vault context, teammates/external collaborators, files, tasks, chat/voice, analysis, assumptions, and outputs.
 - **Playground**: sensitivity/scenario/what-needs-to-change capability inside Spaces, not a disconnected standalone product.
 - **Custom extraction**: Cactus should work inside customer environments by extracting into their own Excel models/templates.

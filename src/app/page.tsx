@@ -18,8 +18,8 @@ const sourceCards = [
   {
     title: "Connect email or drive later",
     badge: "Broker flow + folders",
-    note: "Approved senders and folders only.",
-    next: "Cactus watches only those senders/folders and queues new packages for review.",
+    note: "Gmail, Outlook, Drive, deal rooms later.",
+    next: "Cactus watches only approved folders and senders, then queues new packages for review.",
   },
   {
     title: "Import lists or comps",
@@ -477,7 +477,7 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
 
   const pageClass = isDark
     ? "grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#1f2a23,transparent_34%),linear-gradient(135deg,#050505,#111312_45%,#171a18)] p-6 text-white"
-    : "grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#f2f7f3,transparent_34%),linear-gradient(135deg,#f6f5f1,#eef0f3)] p-6 text-neutral-950";
+    : "grid min-h-screen place-items-center bg-[#f7f4ee] p-6 text-neutral-950";
   const panelClass = isDark
     ? "w-full max-w-4xl rounded-[1.5rem] border border-white/10 bg-[#0b0d0c]/92 p-6 shadow-[0_34px_110px_rgba(0,0,0,0.55)] backdrop-blur"
     : "w-full max-w-4xl rounded-[1.5rem] border border-white/80 bg-white/85 p-6 shadow-[0_28px_90px_rgba(15,23,42,0.10)] backdrop-blur";
@@ -566,7 +566,7 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
 function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
   const [setupStage, setSetupStage] = useState(1);
   const [companyName, setCompanyName] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("USD ($)");
   const [measurement, setMeasurement] = useState("sq.ft");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [newMemberEmail, setNewMemberEmail] = useState("");
@@ -577,7 +577,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const [assetClasses, setAssetClasses] = useState<string[]>(["Multifamily"]);
   const [otherAssetClass, setOtherAssetClass] = useState("");
   const isDark = theme === "dark";
-  const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
+  const page = isDark ? "bg-neutral-950 text-white" : "bg-[#f7f4ee] text-neutral-950";
   const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
   const surface = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white";
   const field = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100" : "border-neutral-300 bg-gradient-to-b from-white to-neutral-50 text-neutral-700";
@@ -588,7 +588,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const summary = isDark ? "border-white/10 bg-white/[0.03] text-neutral-300" : "border-neutral-200 bg-neutral-50 text-neutral-600";
   const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to data setup";
   const canContinue = setupStage !== 1 || companyName.trim().length > 1;
-  const currencies = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF", "JPY", "SGD", "HKD", "AED", "MXN", "BRL"];
+  const currencies = ["USD ($)", "EUR (€)", "GBP (£)", "CAD ($)", "AUD ($)", "CHF (CHF)", "JPY (¥)", "SGD ($)", "HKD ($)", "AED (د.إ)", "MXN ($)", "BRL (R$)"];
   const measurements = ["sq.ft & kilometers", "sq.ft & miles", "sq.m & kilometers", "sq.m & miles"];
   const roles = ["Owner", "Partner", "Acquisitions", "Asset Management", "Analyst", "External advisor", "Lender", "Broker", "Team member"];
   const accessOptions = [
@@ -804,8 +804,8 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <section className={`rounded-2xl border p-4 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-[#fbfaf7]"}`}>
-            <p className="text-sm font-semibold">Add documents for one property first.</p>
-            <p className={`mt-1 text-sm ${muted}`}>Cactus extracts facts into your company database, then combines them with Cactus market/source data with citations.</p>
+            <p className="text-sm font-semibold">Drag in documents for one property first.</p>
+            <p className={`mt-1 text-sm leading-6 ${muted}`}>Cactus extracts source-linked facts into your proprietary company database — the context engine your AI can query — then enriches analysis with market data, citations, and source links.</p>
           </section>
 
           <div className="mt-5">
