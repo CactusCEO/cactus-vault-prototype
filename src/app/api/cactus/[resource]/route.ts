@@ -9,6 +9,7 @@ import {
   runWorkflow,
 } from "@/lib/cactus-backend";
 import { bootstrapAuthSession } from "@/lib/cactus-auth";
+import { buildUploadedDocumentInput } from "@/lib/cactus-file-intake";
 import { loadCactusBackendState, updateCactusBackendState, activePersistenceProvider } from "@/lib/cactus-persistence";
 
 export const runtime = "nodejs";
@@ -16,6 +17,19 @@ export const runtime = "nodejs";
 type RouteContext = { params: Promise<{ resource: string }> };
 
 const jsonError = (message: string, status = 400) => NextResponse.json({ ok: false, error: message }, { status });
+
+async function parseUploadedDocumentBody(request: Request) {
+  const form = await request.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) throw new Error("file is required");
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  return buildUploadedDocumentInput({
+    name: file.name || String(form.get("name") || "Uploaded CRE source"),
+    type: file.type || String(form.get("type") || ""),
+    bytes,
+    source: String(form.get("source") || "direct file upload"),
+  });
+}
 
 export async function GET(_request: Request, context: RouteContext) {
   const { resource } = await context.params;
@@ -28,7 +42,8 @@ export async function GET(_request: Request, context: RouteContext) {
 
 export async function POST(request: Request, context: RouteContext) {
   const { resource } = await context.params;
-  const body = await request.json().catch(() => ({}));
+  const isMultipartUpload = resource === "documents" && request.headers.get("content-type")?.includes("multipart/form-data");
+  const body = isMultipartUpload ? await parseUploadedDocumentBody(request) : await request.json().catch(() => ({}));
 
   try {
     const { state, result } = await updateCactusBackendState((draft) => {

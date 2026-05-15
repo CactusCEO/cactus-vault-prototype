@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type VaultGridRow } from "@/lib/cactus-extraction";
 import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
 import { addAuditApproval, createAiConnectionFromKey, type CactusAiConnection, type VaultAuditApproval } from "@/lib/cactus-settings";
@@ -1514,13 +1514,15 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onExtractDeal, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onExtractDeal: (row: VaultGridRow) => void; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onUploadFile, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onUploadFile: (file: File, source?: string) => Promise<VaultGridRow | null>; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
   const [auditOpen, setAuditOpen] = useState(false);
   const [auditFocus, setAuditFocus] = useState<{ row: string; field: string; value: string } | null>(null);
   const [sourceCenterOpen, setSourceCenterOpen] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const sourceFileInputRef = useRef<HTMLInputElement | null>(null);
   const [, setSourceSetupStatus] = useState("Not started");
   const [selectedSetupMode, setSelectedSetupMode] = useState<"deal" | "portfolio" | "connected" | "api">(sourceSetupKeyByIndex[sourceIndex]);
   const [microVault, setMicroVault] = useState("Main Vault");
@@ -1627,9 +1629,18 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
   };
   const selectedSetupSourceIndex = selectedSetup.key === "deal" ? 0 : selectedSetup.key === "connected" ? 1 : 2;
   const runSelectedSource = () => {
-    const extractedRow = extractDealDocumentToVaultRow(sampleDealDocument, `extracted-${selectedSetup.key}`);
-    onExtractDeal(extractedRow);
-    setSourceSetupStatus(`${selectedSetup.title} submitted · ${extractedRow.location.split("\n")[0]} extracted`);
+    sourceFileInputRef.current?.click();
+  };
+  const ingestSelectedFile = async (file: File | undefined) => {
+    if (!file) return;
+    setUploadStatus(`Reading ${file.name}…`);
+    const uploadedRow = await onUploadFile(file, selectedSetup.title);
+    if (!uploadedRow) {
+      setUploadStatus("Could not extract readable CRE text from that file.");
+      return;
+    }
+    setSourceSetupStatus(`${selectedSetup.title} submitted · ${uploadedRow.location.split("\n")[0]} extracted`);
+    setUploadStatus(`${uploadedRow.location.split("\n")[0]} extracted into Vault review.`);
     setSourceCenterOpen(false);
     onCompleteIntake(selectedSetupSourceIndex);
   };
@@ -1711,7 +1722,9 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
                   <p className="text-base font-semibold text-neutral-950">Drop the full deal package here</p>
                   <p className="mt-1 text-sm text-neutral-500">Useful files are extracted. Low-value files are skipped.</p>
+                  <input ref={sourceFileInputRef} type="file" accept=".pdf,.txt,.csv,.tsv,.md,.markdown,.json,.html,.eml,.xls,.xlsx,text/*,application/pdf" className="hidden" onChange={(event) => void ingestSelectedFile(event.target.files?.[0])} />
                   <button onClick={runSelectedSource} className="mt-5 rounded-md bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Choose files</button>
+                  {uploadStatus && <p className="mt-3 text-xs text-neutral-500">{uploadStatus}</p>}
                 </div>
               )}
             </div>
@@ -2267,6 +2280,21 @@ export default function Home() {
     setExtractedRows((current) => mergeVaultRows(current, row));
     void postCactusResource("documents", { name: "Ocean Drive OM.pdf", kind: "pdf", source: "refined Vault source setup", text: sampleDealDocument, rowId: row.id });
   };
+  const uploadFileToVault = async (file: File, source = "direct file upload") => {
+    const form = new FormData();
+    form.set("file", file);
+    form.set("source", source);
+    try {
+      const response = await fetch("/api/cactus/documents", { method: "POST", body: form });
+      const payload = await response.json();
+      const row = payload?.result?.row as VaultGridRow | undefined;
+      if (!response.ok || !row?.id) return null;
+      setExtractedRows((current) => mergeVaultRows(current, row));
+      return row;
+    } catch {
+      return null;
+    }
+  };
   const approveAudit = (approval: Omit<VaultAuditApproval, "approvedAt">) => {
     setAuditApprovals((current) => addAuditApproval(current, approval));
     void postCactusResource("sources", { name: `Audit approval: ${approval.row} ${approval.field}`, direction: "Read to Vault" });
@@ -2297,7 +2325,7 @@ export default function Home() {
   };
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onUploadFile={uploadFileToVault} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
     if (active === 7) return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
     if (active === 8) return <Workflows go={setActive} workflowOutcomes={workflowOutcomes} onWorkflowOutcome={recordWorkflowOutcome} onCreateWorkflowSpace={createWorkflowSpace} />;
     if (active === 9) return <TasksActivity go={setActive} />;
