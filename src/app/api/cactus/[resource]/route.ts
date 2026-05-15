@@ -8,7 +8,7 @@ import {
   ingestDocument,
   runWorkflow,
 } from "@/lib/cactus-backend";
-import { loadBackendState, updateBackendState } from "@/lib/cactus-backend-store";
+import { loadCactusBackendState, updateCactusBackendState, activePersistenceProvider } from "@/lib/cactus-persistence";
 
 export const runtime = "nodejs";
 
@@ -18,8 +18,8 @@ const jsonError = (message: string, status = 400) => NextResponse.json({ ok: fal
 
 export async function GET(_request: Request, context: RouteContext) {
   const { resource } = await context.params;
-  const state = await loadBackendState();
-  if (resource === "state") return NextResponse.json({ ok: true, state });
+  const state = await loadCactusBackendState();
+  if (resource === "state") return NextResponse.json({ ok: true, provider: activePersistenceProvider(), state });
   const value = state[resource as keyof typeof state];
   if (!Array.isArray(value)) return jsonError(`Unknown Cactus resource: ${resource}`, 404);
   return NextResponse.json({ ok: true, [resource]: value });
@@ -30,7 +30,7 @@ export async function POST(request: Request, context: RouteContext) {
   const body = await request.json().catch(() => ({}));
 
   try {
-    const { state, result } = await updateBackendState((draft) => {
+    const { state, result } = await updateCactusBackendState((draft) => {
       switch (resource) {
         case "documents":
           return ingestDocument(draft, { name: body.name ?? "Uploaded CRE source", text: body.text ?? "", kind: body.kind, source: body.source, rowId: body.rowId });
@@ -51,7 +51,7 @@ export async function POST(request: Request, context: RouteContext) {
           throw new Error(`Unknown Cactus resource: ${resource}`);
       }
     });
-    return NextResponse.json({ ok: true, result, state });
+    return NextResponse.json({ ok: true, provider: activePersistenceProvider(), result, state });
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Cactus backend action failed");
   }
