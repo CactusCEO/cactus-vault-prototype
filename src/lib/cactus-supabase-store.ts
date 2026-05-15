@@ -1,10 +1,13 @@
-import { createEmptyBackendState, DEFAULT_ORG_ID, type CactusAnalyzerRun, type CactusAuditEvent, type CactusBackendState, type CactusDocument, type CactusExtractionJob, type CactusOrganization, type CactusSourceConnection, type CactusSpace, type CactusTask, type CactusVaultFact, type CactusWorkflowRun, type CactusWorkflowSchedule } from "./cactus-backend";
+import { createEmptyBackendState, DEFAULT_ORG_ID, type CactusAnalyzerRun, type CactusAuditEvent, type CactusAuthSession, type CactusBackendState, type CactusDocument, type CactusExtractionJob, type CactusOrganization, type CactusOrganizationMembership, type CactusSourceConnection, type CactusSpace, type CactusTask, type CactusUser, type CactusVaultFact, type CactusWorkflowRun, type CactusWorkflowSchedule } from "./cactus-backend";
 import type { VaultGridRow } from "./cactus-extraction";
 
 export type SupabaseEnv = Record<string, string | undefined>;
 
 export const cactusTableNames = [
   "organizations",
+  "user_profiles",
+  "organization_memberships",
+  "auth_sessions",
   "vault_rows",
   "documents",
   "extraction_jobs",
@@ -31,6 +34,9 @@ const created = (value: string | undefined) => value ?? new Date().toISOString()
 export function mapStateToSupabaseTables(state: CactusBackendState): TableRows {
   return {
     organizations: state.organizations.map((org) => ({ id: org.id, name: org.name, primary_vault_id: org.primaryVaultId, created_at: org.createdAt })),
+    user_profiles: state.users.map((user) => ({ id: user.id, email: user.email, display_name: user.displayName, auth_provider: user.authProvider, created_at: user.createdAt, last_seen_at: user.lastSeenAt })),
+    organization_memberships: state.organizationMemberships.map((membership) => ({ id: membership.id, organization_id: membership.organizationId, user_id: membership.userId, role: membership.role, created_at: membership.createdAt })),
+    auth_sessions: state.authSessions.map((session) => ({ id: session.id, user_id: session.userId, organization_id: session.organizationId, email: session.email, role: session.role, auth_provider: session.authProvider, created_at: session.createdAt, expires_at: session.expiresAt })),
     vault_rows: state.vaultRows.map((row) => ({ id: row.id, organization_id: DEFAULT_ORG_ID, vault_id: "vault_main", row, status: "active", created_at: created(undefined), updated_at: created(undefined) })),
     documents: state.documents.map((doc) => ({ id: doc.id, organization_id: doc.organizationId, name: doc.name, kind: doc.kind, source: doc.source, text_preview: doc.textPreview, status: doc.status, created_at: doc.createdAt })),
     extraction_jobs: state.extractionJobs.map((job) => ({ id: job.id, organization_id: job.organizationId, document_id: job.documentId, status: job.status, vault_row_id: job.vaultRowId ?? null, facts_created: job.factsCreated, error: job.error ?? null, created_at: job.createdAt, completed_at: job.completedAt ?? null })),
@@ -51,6 +57,9 @@ function stateFromSupabaseTables(tables: Partial<TableRows>): CactusBackendState
   return {
     version: 1,
     organizations: (tables.organizations ?? []).map((row) => ({ id: String(row.id), name: String(row.name), primaryVaultId: String(row.primary_vault_id), createdAt: String(row.created_at) })) as CactusOrganization[] || fallback.organizations,
+    users: (tables.user_profiles ?? []).map((row) => ({ id: String(row.id), email: String(row.email), displayName: String(row.display_name), authProvider: row.auth_provider as CactusUser["authProvider"], createdAt: String(row.created_at), lastSeenAt: String(row.last_seen_at) })) as CactusUser[],
+    organizationMemberships: (tables.organization_memberships ?? []).map((row) => ({ id: String(row.id), organizationId: String(row.organization_id), userId: String(row.user_id), role: row.role as CactusOrganizationMembership["role"], createdAt: String(row.created_at) })) as CactusOrganizationMembership[],
+    authSessions: (tables.auth_sessions ?? []).map((row) => ({ id: String(row.id), userId: String(row.user_id), organizationId: String(row.organization_id), email: String(row.email), role: row.role as CactusAuthSession["role"], authProvider: row.auth_provider as CactusAuthSession["authProvider"], createdAt: String(row.created_at), expiresAt: String(row.expires_at) })) as CactusAuthSession[],
     vaultRows: (tables.vault_rows ?? []).map((row) => row.row as VaultGridRow),
     documents: (tables.documents ?? []).map((row) => ({ id: String(row.id), organizationId: String(row.organization_id), name: String(row.name), kind: row.kind as CactusDocument["kind"], source: String(row.source), textPreview: String(row.text_preview ?? ""), status: row.status as CactusDocument["status"], createdAt: String(row.created_at) })),
     extractionJobs: (tables.extraction_jobs ?? []).map((row) => ({ id: String(row.id), organizationId: String(row.organization_id), documentId: String(row.document_id), status: row.status as CactusExtractionJob["status"], vaultRowId: row.vault_row_id ? String(row.vault_row_id) : undefined, factsCreated: Number(row.facts_created ?? 0), createdAt: String(row.created_at), completedAt: row.completed_at ? String(row.completed_at) : undefined, error: row.error ? String(row.error) : undefined })),

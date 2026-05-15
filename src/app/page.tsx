@@ -5,6 +5,7 @@ import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type
 import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
 import { addAuditApproval, createAiConnectionFromKey, type CactusAiConnection, type VaultAuditApproval } from "@/lib/cactus-settings";
 import { postCactusResource } from "@/lib/cactus-api";
+import type { CactusAuthSession } from "@/lib/cactus-backend";
 import { appendWorkflowOutcome, createWorkflowOutcome, createWorkflowSpaceDraft, type WorkflowActionMode, type WorkflowOutcome } from "@/lib/cactus-workflows";
 
 const sourceCards = [
@@ -45,8 +46,8 @@ const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as cons
 const CACTUS_WORKING_STATE_KEY = "cactus-working-app-state-v1";
 const emptyAiConnection: CactusAiConnection = { status: "not_connected", provider: "OpenAI", label: "Connect OpenAI", fingerprint: "" };
 
-type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[]; workflowOutcomes: WorkflowOutcome[] };
-const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [], workflowOutcomes: [] });
+type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[]; workflowOutcomes: WorkflowOutcome[]; authSession: CactusAuthSession | null };
+const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [], workflowOutcomes: [], authSession: null });
 
 function loadWorkingState(): CactusWorkingState {
   if (typeof window === "undefined") return emptyWorkingState();
@@ -61,6 +62,7 @@ function loadWorkingState(): CactusWorkingState {
       aiConnection: parsed.aiConnection?.status ? parsed.aiConnection : emptyAiConnection,
       auditApprovals: Array.isArray(parsed.auditApprovals) ? parsed.auditApprovals : [],
       workflowOutcomes: Array.isArray(parsed.workflowOutcomes) ? parsed.workflowOutcomes : [],
+      authSession: parsed.authSession?.email ? parsed.authSession as CactusAuthSession : null,
     };
   } catch {
     return emptyWorkingState();
@@ -456,10 +458,12 @@ function ThemeToggle({ theme, setTheme }: { theme: "light" | "dark"; setTheme: (
   );
 }
 
-function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex: number) => void; theme: "light" | "dark"; initialMode?: "signup" | "signin" }) {
+function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { go: (screenIndex: number) => void; theme: "light" | "dark"; initialMode?: "signup" | "signin"; onAuthenticate: (input: { email: string; provider: "email" | "google" | "microsoft"; displayName?: string }) => Promise<boolean> }) {
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [emailSent, setEmailSent] = useState(false);
   const [dataSourcePrompt, setDataSourcePrompt] = useState<"Gmail" | "Outlook" | null>(null);
+  const [workEmail, setWorkEmail] = useState("tyler@cactuscre.com");
+  const [authMessage, setAuthMessage] = useState("");
   const isSignup = mode === "signup";
   const isDark = theme === "dark";
 
@@ -475,6 +479,16 @@ function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex:
   const primaryCta = isDark
     ? "bg-[#f4f1ea] text-neutral-950 shadow-[0_16px_44px_rgba(244,241,234,0.16)] hover:bg-white"
     : "bg-neutral-950 text-white shadow-[0_16px_40px_rgba(0,0,0,0.14)] hover:bg-neutral-800";
+  const authenticate = async (provider: "email" | "google" | "microsoft", email = workEmail) => {
+    setAuthMessage("");
+    const ok = await onAuthenticate({ email, provider, displayName: email.split("@")[0] });
+    if (ok) {
+      if (isSignup) go(2);
+      else setEmailSent(true);
+    } else {
+      setAuthMessage("Use a valid work email to create your Cactus session.");
+    }
+  };
 
   return (
     <div className={pageClass}>
@@ -502,10 +516,10 @@ function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex:
 
         <div className="mx-auto mt-7 max-w-md">
           <div className="space-y-3">
-            <button onClick={() => isSignup ? setDataSourcePrompt("Gmail") : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => isSignup ? setDataSourcePrompt("Gmail") : void authenticate("google", "tyler@cactuscre.com")} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="text-base">G</span>{isSignup ? "Sign up with Google" : "Sign in with Google"}
             </button>
-            <button onClick={() => isSignup ? setDataSourcePrompt("Outlook") : go(5)} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => isSignup ? setDataSourcePrompt("Outlook") : void authenticate("microsoft", "tyler@cactuscre.com")} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="grid grid-cols-2 gap-0.5">
                 <span className="h-2 w-2 bg-[#f25022]" /><span className="h-2 w-2 bg-[#7fba00]" /><span className="h-2 w-2 bg-[#00a4ef]" /><span className="h-2 w-2 bg-[#ffb900]" />
               </span>{isSignup ? "Sign up with Microsoft" : "Sign in with Microsoft"}
@@ -515,16 +529,17 @@ function SignupScreen({ go, theme, initialMode = "signup" }: { go: (screenIndex:
             <div className={`mt-3 rounded-xl border p-3 text-left ${isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-neutral-50"}`}>
               <p className="text-sm font-medium">Use {dataSourcePrompt} to fill your Vault?</p>
               <div className="mt-3 flex gap-2">
-                <button onClick={() => go(2)} className={`rounded-md px-3 py-2 text-xs font-medium ${primaryCta}`}>Choose folders</button>
-                <button onClick={() => go(2)} className={`rounded-md border px-3 py-2 text-xs ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>Not now</button>
+                <button onClick={() => void authenticate(dataSourcePrompt === "Gmail" ? "google" : "microsoft", dataSourcePrompt === "Gmail" ? "tyler@cactuscre.com" : "tyler@cactuscre.com")} className={`rounded-md px-3 py-2 text-xs font-medium ${primaryCta}`}>Choose folders</button>
+                <button onClick={() => void authenticate(dataSourcePrompt === "Gmail" ? "google" : "microsoft", dataSourcePrompt === "Gmail" ? "tyler@cactuscre.com" : "tyler@cactuscre.com")} className={`rounded-md border px-3 py-2 text-xs ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>Not now</button>
               </div>
             </div>
           )}
 
           <div className={`my-5 flex items-center gap-3 text-xs ${muted}`}><div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} />or use work email<div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} /></div>
           <label className={`text-xs font-medium ${muted}`}>Work email</label>
-          <input className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] ${inputClass}`} placeholder="you@company.com" />
-          <button onClick={() => isSignup ? go(2) : setEmailSent(true)} className={`mt-3 w-full rounded-xl px-4 py-3 text-sm font-medium transition ${primaryCta}`}>{isSignup ? "Create account" : emailSent ? "Sign-in link sent" : "Email me a sign-in link"}</button>
+          <input value={workEmail} onChange={(event) => setWorkEmail(event.target.value)} className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none shadow-[inset_0_1px_2px_rgba(15,23,42,0.08)] ${inputClass}`} placeholder="you@company.com" />
+          <button onClick={() => void authenticate("email")} className={`mt-3 w-full rounded-xl px-4 py-3 text-sm font-medium transition ${primaryCta}`}>{isSignup ? "Create account" : emailSent ? "Sign-in link sent" : "Email me a sign-in link"}</button>
+          {authMessage && <div className={`mt-3 rounded-xl border px-3 py-2 text-left text-xs leading-5 ${isDark ? "border-amber-400/20 bg-amber-400/10 text-amber-100" : "border-amber-200 bg-amber-50 text-amber-700"}`}>{authMessage}</div>}
           {!isSignup && emailSent && (
             <div className={`mt-3 rounded-xl border px-3 py-2 text-left text-xs leading-5 ${isDark ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
               Check your email for a secure sign-in link. Prototype state only — backend auth will own this action.
@@ -2232,6 +2247,7 @@ export default function Home() {
   const [aiConnection, setAiConnection] = useState<CactusAiConnection>(initialWorkingState.aiConnection);
   const [auditApprovals, setAuditApprovals] = useState<VaultAuditApproval[]>(initialWorkingState.auditApprovals);
   const [workflowOutcomes, setWorkflowOutcomes] = useState<WorkflowOutcome[]>(initialWorkingState.workflowOutcomes);
+  const [authSession, setAuthSession] = useState<CactusAuthSession | null>(initialWorkingState.authSession);
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyMessage, setApiKeyMessage] = useState("");
@@ -2239,8 +2255,14 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
   useEffect(() => {
-    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes }));
-  }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes]);
+    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes, authSession }));
+  }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes, authSession]);
+  const authenticate = async (input: { email: string; provider: "email" | "google" | "microsoft"; displayName?: string }) => {
+    const response = await postCactusResource<CactusAuthSession>("auth", { ...input, companyName: "Cactus Capital Partners" });
+    if (!response?.email) return false;
+    setAuthSession(response);
+    return true;
+  };
   const addExtractedRow = (row: VaultGridRow) => {
     setExtractedRows((current) => mergeVaultRows(current, row));
     void postCactusResource("documents", { name: "Ocean Drive OM.pdf", kind: "pdf", source: "refined Vault source setup", text: sampleDealDocument, rowId: row.id });
@@ -2283,7 +2305,7 @@ export default function Home() {
   };
 
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage onSignup={() => { setAuthMode("signup"); setActive(1); }} onSignin={() => { setAuthMode("signin"); setActive(1); }} /></>;
-  if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} initialMode={authMode} /></>;
+  if (active === 1) return <><ThemeToggle theme={theme} setTheme={setTheme} /><SignupScreen go={setActive} theme={theme} initialMode={authMode} onAuthenticate={authenticate} /></>;
   if (active === 2) return <><ThemeToggle theme={theme} setTheme={setTheme} /><AccountSetup go={setActive} theme={theme} /></>;
   if (active === 3) return <><ThemeToggle theme={theme} setTheme={setTheme} /><VaultSetup go={setActive} theme={theme} onChooseSource={setSourceIndex} /></>;
   if (active === 4) return <><ThemeToggle theme={theme} setTheme={setTheme} /><LiveExtraction go={setActive} theme={theme} /></>;
@@ -2335,7 +2357,7 @@ export default function Home() {
           <div className="mt-auto border-t border-neutral-200 p-3">
             <button onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setAccountOpen((open) => !open); }} className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-neutral-100">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-neutral-950 text-xs font-semibold text-white">T</span>
-              {!sidebarCollapsed && <span><span className="block text-sm font-medium">Tyler</span><span className="block text-xs text-neutral-500">Multifamily Vault</span></span>}
+              {!sidebarCollapsed && <span><span className="block text-sm font-medium">{authSession?.email?.split("@")[0] ?? "Tyler"}</span><span className="block text-xs text-neutral-500">{authSession ? `${authSession.role} · Multifamily Vault` : "Multifamily Vault"}</span></span>}
             </button>
             {accountOpen && (
               <div className={`absolute bottom-16 ${sidebarCollapsed ? "left-2" : "left-3"} z-50 w-72 rounded-xl border border-neutral-200 bg-white p-2 text-sm text-neutral-950 shadow-2xl`}>

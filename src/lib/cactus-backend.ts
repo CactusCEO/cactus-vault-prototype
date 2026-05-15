@@ -23,6 +23,34 @@ export type CactusOrganization = {
   createdAt: string;
 };
 
+export type CactusUser = {
+  id: CactusId;
+  email: string;
+  displayName: string;
+  authProvider: "email" | "google" | "microsoft";
+  createdAt: string;
+  lastSeenAt: string;
+};
+
+export type CactusOrganizationMembership = {
+  id: CactusId;
+  organizationId: CactusId;
+  userId: CactusId;
+  role: "owner" | "admin" | "member" | "viewer";
+  createdAt: string;
+};
+
+export type CactusAuthSession = {
+  id: CactusId;
+  userId: CactusId;
+  organizationId: CactusId;
+  email: string;
+  role: CactusOrganizationMembership["role"];
+  authProvider: CactusUser["authProvider"];
+  createdAt: string;
+  expiresAt: string;
+};
+
 export type CactusDocument = {
   id: CactusId;
   organizationId: CactusId;
@@ -130,6 +158,9 @@ export type CactusTask = {
 export type CactusBackendState = {
   version: 1;
   organizations: CactusOrganization[];
+  users: CactusUser[];
+  organizationMemberships: CactusOrganizationMembership[];
+  authSessions: CactusAuthSession[];
   vaultRows: VaultGridRow[];
   vaultFacts: CactusVaultFact[];
   documents: CactusDocument[];
@@ -155,6 +186,9 @@ export function createEmptyBackendState(): CactusBackendState {
   return {
     version: 1,
     organizations: [{ id: DEFAULT_ORG_ID, name: "Cactus Capital Partners", primaryVaultId: DEFAULT_VAULT_ID, createdAt }],
+    users: [],
+    organizationMemberships: [],
+    authSessions: [],
     vaultRows: [],
     vaultFacts: [],
     documents: [],

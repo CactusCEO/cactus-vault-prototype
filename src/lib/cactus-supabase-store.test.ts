@@ -43,7 +43,7 @@ test("Supabase REST client uses service role on server requests and deterministi
   await client.select("vault_rows");
   await client.replaceTable("vault_rows", [{ id: "row_1", organization_id: "org_1", row: { location: "Test" } }]);
 
-  assert.deepEqual(cactusTableNames.slice(0, 3), ["organizations", "vault_rows", "documents"]);
+  assert.deepEqual(cactusTableNames.slice(0, 3), ["organizations", "user_profiles", "organization_memberships"]);
   assert.equal(calls[0].url, "https://project.supabase.co/rest/v1/vault_rows?select=*");
   assert.equal((calls[0].init.headers as Record<string, string>).apikey, "server-secret");
   assert.equal((calls[0].init.headers as Record<string, string>).Authorization, "Bearer server-secret");

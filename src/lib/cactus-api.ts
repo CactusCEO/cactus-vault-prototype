@@ -7,7 +7,8 @@ export async function postCactusResource<T = unknown>(resource: string, body: Re
       body: JSON.stringify(body),
     });
     if (!response.ok) return null;
-    return (await response.json()) as T;
+    const payload = await response.json();
+    return (payload?.result ?? payload) as T;
   } catch {
     return null;
   }

@@ -10,13 +10,34 @@ create table if not exists public.organizations (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.user_profiles (
+  id text primary key,
+  email text not null unique,
+  display_name text not null,
+  auth_provider text not null check (auth_provider in ('email','google','microsoft')),
+  external_auth_id uuid,
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+
 create table if not exists public.organization_memberships (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   organization_id text not null references public.organizations(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id text not null references public.user_profiles(id) on delete cascade,
   role text not null check (role in ('owner','admin','member','viewer')),
   created_at timestamptz not null default now(),
   unique (organization_id, user_id)
+);
+
+create table if not exists public.auth_sessions (
+  id text primary key,
+  user_id text not null references public.user_profiles(id) on delete cascade,
+  organization_id text not null references public.organizations(id) on delete cascade,
+  email text not null,
+  role text not null check (role in ('owner','admin','member','viewer')),
+  auth_provider text not null check (auth_provider in ('email','google','microsoft')),
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null
 );
 
 create table if not exists public.vault_rows (
@@ -169,12 +190,14 @@ as $$
     select 1
     from public.organization_memberships m
     where m.organization_id = org_id
-      and m.user_id = auth.uid()
+      and (m.user_id = auth.uid()::text or m.user_id = current_setting('app.current_user_id', true))
   );
 $$;
 
 alter table public.organizations enable row level security;
+alter table public.user_profiles enable row level security;
 alter table public.organization_memberships enable row level security;
+alter table public.auth_sessions enable row level security;
 alter table public.vault_rows enable row level security;
 alter table public.documents enable row level security;
 alter table public.extraction_jobs enable row level security;
@@ -189,7 +212,10 @@ alter table public.tasks enable row level security;
 alter table public.audit_events enable row level security;
 
 create policy "members can read organizations" on public.organizations for select using (public.user_can_access_org(id));
+create policy "users can read their own profile" on public.user_profiles for select using (id in (select user_id from public.organization_memberships where organization_id in (select organization_id from public.organization_memberships where user_id = public.user_profiles.id)));
 create policy "members can read memberships" on public.organization_memberships for select using (public.user_can_access_org(organization_id));
+create policy "members can read auth_sessions" on public.auth_sessions for select using (public.user_can_access_org(organization_id));
+create policy "members can write auth_sessions" on public.auth_sessions for all using (public.user_can_access_org(organization_id)) with check (public.user_can_access_org(organization_id));
 
 create policy "members can read vault_rows" on public.vault_rows for select using (public.user_can_access_org(organization_id));
 create policy "members can write vault_rows" on public.vault_rows for all using (public.user_can_access_org(organization_id)) with check (public.user_can_access_org(organization_id));

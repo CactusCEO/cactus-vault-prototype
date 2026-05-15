@@ -8,6 +8,7 @@ import {
   ingestDocument,
   runWorkflow,
 } from "@/lib/cactus-backend";
+import { bootstrapAuthSession } from "@/lib/cactus-auth";
 import { loadCactusBackendState, updateCactusBackendState, activePersistenceProvider } from "@/lib/cactus-persistence";
 
 export const runtime = "nodejs";
@@ -32,6 +33,8 @@ export async function POST(request: Request, context: RouteContext) {
   try {
     const { state, result } = await updateCactusBackendState((draft) => {
       switch (resource) {
+        case "auth":
+          return bootstrapAuthSession(draft, { email: body.email ?? "tyler@company.com", provider: body.provider ?? "email", displayName: body.displayName, companyName: body.companyName });
         case "documents":
           return ingestDocument(draft, { name: body.name ?? "Uploaded CRE source", text: body.text ?? "", kind: body.kind, source: body.source, rowId: body.rowId });
         case "vault-facts":

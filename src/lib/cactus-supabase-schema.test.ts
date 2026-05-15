@@ -7,7 +7,9 @@ const schema = readFileSync("supabase/migrations/0001_cactus_foundation.sql", "u
 test("Supabase schema creates Cactus foundation tables", () => {
   for (const table of [
     "organizations",
+    "user_profiles",
     "organization_memberships",
+    "auth_sessions",
     "vault_rows",
     "vault_facts",
     "documents",
