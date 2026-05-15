@@ -589,7 +589,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to data setup";
   const canContinue = setupStage !== 1 || companyName.trim().length > 1;
   const currencies = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF", "JPY", "SGD", "HKD", "AED", "MXN", "BRL"];
-  const measurements = ["sq.ft", "sq.m", "miles", "kilometers", "acres", "hectares", "units", "beds"];
+  const measurements = ["sq.ft & kilometers", "sq.ft & miles", "sq.m & kilometers", "sq.m & miles"];
   const roles = ["Owner", "Partner", "Acquisitions", "Asset Management", "Analyst", "External advisor", "Lender", "Broker", "Team member"];
   const accessOptions = [
     "Main Vault — all company data",

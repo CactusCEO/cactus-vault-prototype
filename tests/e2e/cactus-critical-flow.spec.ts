@@ -49,7 +49,7 @@ test("full user loop creates a source-linked Space output that can download and 
   await page.getByRole("button", { name: "Currency" }).click();
   await page.getByRole("button", { name: /EUR/ }).click();
   await page.getByRole("button", { name: "Measurement" }).click();
-  await page.getByRole("button", { name: /miles/ }).click();
+  await page.getByRole("button", { name: "sq.ft & miles" }).click();
   await page.getByRole("button", { name: "Continue to team access" }).click();
   await page.getByPlaceholder("teammate@company.com").fill("analyst@qacapital.com");
   await page.getByRole("button", { name: "+ Add member" }).click();
