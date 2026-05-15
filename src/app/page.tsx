@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState, type MouseEvent as ReactMouseEvent, type
 import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type VaultGridRow } from "@/lib/cactus-extraction";
 import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
 import { addAuditApproval, createAiConnectionFromKey, type CactusAiConnection, type VaultAuditApproval } from "@/lib/cactus-settings";
+import { appendWorkflowOutcome, createWorkflowOutcome, createWorkflowSpaceDraft, type WorkflowActionMode, type WorkflowOutcome } from "@/lib/cactus-workflows";
 
 const sourceCards = [
   {
@@ -43,8 +44,8 @@ const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as cons
 const CACTUS_WORKING_STATE_KEY = "cactus-working-app-state-v1";
 const emptyAiConnection: CactusAiConnection = { status: "not_connected", provider: "OpenAI", label: "Connect OpenAI", fingerprint: "" };
 
-type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[] };
-const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [] });
+type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[]; workflowOutcomes: WorkflowOutcome[] };
+const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [], workflowOutcomes: [] });
 
 function loadWorkingState(): CactusWorkingState {
   if (typeof window === "undefined") return emptyWorkingState();
@@ -58,6 +59,7 @@ function loadWorkingState(): CactusWorkingState {
       extractedRows: Array.isArray(parsed.extractedRows) ? parsed.extractedRows : [],
       aiConnection: parsed.aiConnection?.status ? parsed.aiConnection : emptyAiConnection,
       auditApprovals: Array.isArray(parsed.auditApprovals) ? parsed.auditApprovals : [],
+      workflowOutcomes: Array.isArray(parsed.workflowOutcomes) ? parsed.workflowOutcomes : [],
     };
   } catch {
     return emptyWorkingState();
@@ -1208,7 +1210,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
   );
 }
 
-function Workflows({ go }: { go: (screenIndex: number) => void }) {
+function Workflows({ go, workflowOutcomes, onWorkflowOutcome, onCreateWorkflowSpace }: { go: (screenIndex: number) => void; workflowOutcomes: WorkflowOutcome[]; onWorkflowOutcome: (outcome: WorkflowOutcome) => void; onCreateWorkflowSpace: (workflow: string) => void }) {
   const [workflowView, setWorkflowView] = useState<"all" | "ongoing" | "template" | "review" | "archived">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -1293,6 +1295,12 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
           ["Review", "assumptions", "confidence + citations"],
           ["Output", outputTarget, "tasks / Space / Vault update"]
         ];
+  const recordWorkflowAction = (title: string, mode: WorkflowActionMode) => {
+    const outcome = createWorkflowOutcome(title, mode);
+    onWorkflowOutcome(outcome);
+    setRunState(`${outcome.workflow} · ${outcome.status}`);
+    setRunPanel({ title: outcome.workflow, mode, note: outcome.note });
+  };
   const createWorkflow = () => {
     setWorkflowCreated(true);
     setApprovalState(`${workflowName} created · review before enabling background runs`);
@@ -1320,6 +1328,8 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
         </div>
         {selectedIds.length > 0 && <button onClick={() => setRunState(`${selectedIds.length} selected · batch action ready`)} className="text-xs text-neutral-700">Actions</button>}
       </div>
+
+      {workflowOutcomes.length > 0 && <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-neutral-100 px-4 py-2 text-xs lg:px-8"><span className="shrink-0 text-neutral-400">Recent runs</span>{workflowOutcomes.slice(0, 3).map((outcome) => <button key={`${outcome.workflow}-${outcome.mode}-${outcome.createdAt}`} onClick={() => setRunPanel({ title: outcome.workflow, mode: outcome.mode, note: outcome.note })} className="shrink-0 rounded-full border border-neutral-200 bg-white px-3 py-1 text-neutral-600 hover:bg-neutral-50">{outcome.workflow} · {outcome.status}</button>)}</div>}
 
       <main className="min-h-0 flex-1 overflow-auto">
         <div className="min-w-[900px]">
@@ -1382,7 +1392,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
             <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Context</p><p className="mt-1">{detail.context}</p></div>
             <div className="rounded-xl border border-neutral-200 p-3"><p className="text-xs text-neutral-400">Steps</p><ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-neutral-600"><li>Trigger from Assistant, Space, selected Vault rows, schedule, or watcher.</li><li>Extract source data, contacts, documents, and facts.</li><li>Run prompts/enrichment with citations and confidence.</li><li>Draft output/action and create review tasks before side effects.</li></ol></div><div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><p className="text-xs text-amber-700">Maintenance tasks</p><p className="mt-1 text-xs text-amber-800">Auth expired, scraper selector changed, stale source, low confidence, or human review overdue → assign to owner and show in Tasks.</p></div>
           </div>
-          <div className="mt-5 flex gap-2"><button onClick={() => { setRunState(`${detail.name} run preview created`); setRunPanel({ title: detail.name, mode: "Run once", note: "Preview extracts context, drafts artifacts, and creates review tasks without enabling a schedule." }); }} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Run once</button><button onClick={() => { setRunState(`${detail.name} approval gate opened`); setRunPanel({ title: detail.name, mode: "Enable", note: "Approve cadence, connector scope, cost, destinations, and side effects before this becomes always-on." }); }} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Enable</button><button onClick={() => { setRunState(`${detail.name} Space ready`); setRunPanel({ title: detail.name, mode: "Open Space", note: "Creates a workroom with Vault context, tasks, artifacts, and chat so the team can execute/review." }); go(7); }} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button></div>
+          <div className="mt-5 flex gap-2"><button onClick={() => recordWorkflowAction(detail.name, "Run once")} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Run once</button><button onClick={() => recordWorkflowAction(detail.name, "Enable")} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Enable</button><button onClick={() => { recordWorkflowAction(detail.name, "Open Space"); onCreateWorkflowSpace(detail.name); }} className="rounded-md border border-neutral-200 px-3 py-2 text-xs text-neutral-600">Open Space</button></div>
         </aside>
       )}
 
@@ -1448,7 +1458,7 @@ function Workflows({ go }: { go: (screenIndex: number) => void }) {
               </div>
               <div className="sticky bottom-0 border-t border-neutral-200 bg-white p-4">
                 <button onClick={createWorkflow} className="w-full rounded-md bg-neutral-950 px-3 py-2.5 text-sm font-medium text-white">Create workflow</button>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><button onClick={() => setRunPanel({ title: workflowName, mode: "Run once", note: "Runs this stack once and opens a review result." })} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Run once</button><button onClick={() => { setRunPanel({ title: workflowName, mode: "Enable", note: "Review cadence, scope, cost, and side effects before background runs." }); setApprovalState("Needs review before enable"); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Enable</button><button onClick={() => { createWorkflow(); go(7); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Open Space</button></div>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><button onClick={() => recordWorkflowAction(workflowName, "Run once")} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Run once</button><button onClick={() => { recordWorkflowAction(workflowName, "Enable"); setApprovalState("Needs review before enable"); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Enable</button><button onClick={() => { createWorkflow(); recordWorkflowAction(workflowName, "Open Space"); onCreateWorkflowSpace(workflowName); }} className="rounded-md border border-neutral-200 px-2 py-2 text-neutral-600">Open Space</button></div>
                 <p className="mt-2 text-[11px] leading-4 text-neutral-400">{approvalState}</p>
               </div>
             </aside>
@@ -2220,6 +2230,7 @@ export default function Home() {
   const [activeSpaceDraft, setActiveSpaceDraft] = useState<CactusSpaceDraft | null>(null);
   const [aiConnection, setAiConnection] = useState<CactusAiConnection>(initialWorkingState.aiConnection);
   const [auditApprovals, setAuditApprovals] = useState<VaultAuditApproval[]>(initialWorkingState.auditApprovals);
+  const [workflowOutcomes, setWorkflowOutcomes] = useState<WorkflowOutcome[]>(initialWorkingState.workflowOutcomes);
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyMessage, setApiKeyMessage] = useState("");
@@ -2227,8 +2238,8 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
   useEffect(() => {
-    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals }));
-  }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals]);
+    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes }));
+  }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes]);
   const addExtractedRow = (row: VaultGridRow) => setExtractedRows((current) => mergeVaultRows(current, row));
   const approveAudit = (approval: Omit<VaultAuditApproval, "approvedAt">) => setAuditApprovals((current) => addAuditApproval(current, approval));
   const connectOpenAi = () => {
@@ -2245,11 +2256,16 @@ export default function Home() {
     setActiveSpaceDraft(createSpaceDraftFromVaultRows(rows, request));
     setActive(7);
   };
+  const recordWorkflowOutcome = (outcome: WorkflowOutcome) => setWorkflowOutcomes((current) => appendWorkflowOutcome(current, outcome));
+  const createWorkflowSpace = (workflow: string) => {
+    setActiveSpaceDraft(createWorkflowSpaceDraft(workflow));
+    setActive(7);
+  };
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
     if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
     if (active === 7) return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
-    if (active === 8) return <Workflows go={setActive} />;
+    if (active === 8) return <Workflows go={setActive} workflowOutcomes={workflowOutcomes} onWorkflowOutcome={recordWorkflowOutcome} onCreateWorkflowSpace={createWorkflowSpace} />;
     if (active === 9) return <TasksActivity go={setActive} />;
     return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
   };
