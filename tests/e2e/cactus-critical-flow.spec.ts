@@ -32,6 +32,63 @@ test("work email signup reaches corporate account setup", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Create your corporate account" })).toBeVisible();
 });
 
+test("full user loop creates a source-linked Space output that can download and share", async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on("pageerror", (error) => consoleErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Build your engine" }).click();
+  await page.getByPlaceholder("you@company.com").fill(`qa-loop-${Date.now()}@cactuscre.com`);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Create your corporate account" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Continue to team access" }).click();
+  await page.getByRole("button", { name: "Continue to asset classes" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("heading", { name: "Brief your Cactus analyst" })).toBeVisible();
+
+  await page.getByRole("button", { name: /Upload documents/i }).click();
+  await expect(page.getByText("First job")).toBeVisible();
+  await page.getByRole("button", { name: /Opportunity Finder/i }).click();
+  await page.getByRole("button", { name: "Continue to Vault setup" }).click();
+
+  await expect(page.getByRole("heading", { name: "No data yet" })).toBeVisible();
+  await page.getByRole("button", { name: "Add Data" }).click();
+  await expect(page.getByRole("heading", { name: "Add deal files." })).toBeVisible();
+  await page.setInputFiles("input[type='file']", {
+    name: "full-loop-ocean-drive-om.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from(dealText),
+  });
+
+  await expect(page.getByText(/1450 Ocean Drive/i)).toBeVisible();
+  await page.locator("button").filter({ hasText: /^Audit/ }).first().click();
+  await expect(page.getByText("Original source on the left")).toBeVisible();
+  await expect(page.getByText(/full-loop-ocean-drive-om.txt/i)).toBeVisible();
+  await page.getByRole("button", { name: "Approve" }).first().click();
+  await expect(page.getByText(/approved/i).first()).toBeVisible();
+  await page.getByRole("button", { name: "×" }).click();
+
+  await page.getByLabel(/select 1450 Ocean Drive/i).check();
+  await expect(page.getByText("@ Selected Property")).toBeVisible();
+  await page.getByLabel("Send to Cactus").click();
+  await expect(page.getByRole("heading", { name: "1450 Ocean Drive Deal Review" })).toBeVisible();
+  await expect(page.getByText("Output Canvas", { exact: true })).toBeVisible();
+  await expect(page.getByText(/IC memo starter/i).first()).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toContain("1450-ocean-drive-deal-review");
+
+  await page.getByRole("button", { name: "Share" }).nth(1).click();
+  await expect(page.getByText(/1450 Ocean Drive Deal Review: 1450 Ocean Drive · IC memo starter ready for review/i)).toBeVisible();
+  expect(consoleErrors).toEqual([]);
+});
+
 test("file upload API creates reviewable facts and fact actions mutate status", async ({ page }) => {
   await page.goto("/");
   const before = await page.request.get("/api/cactus/state").then((response) => response.json());
