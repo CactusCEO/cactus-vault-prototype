@@ -49,6 +49,9 @@ test("full user loop creates a source-linked Space output that can download and 
   await page.getByRole("button", { name: "Currency" }).click();
   await page.getByRole("button", { name: /EUR/ }).click();
   await page.getByRole("button", { name: "Measurement" }).click();
+  await expect(page.getByRole("button", { name: "sq.ft & km" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "sq.m & km" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /kilometers/i })).toHaveCount(0);
   await page.getByRole("button", { name: "sq.ft & miles" }).click();
   await page.getByRole("button", { name: "Continue to team access" }).click();
   await page.getByPlaceholder("teammate@company.com").fill("analyst@qacapital.com");
@@ -92,6 +95,9 @@ test("full user loop creates a source-linked Space output that can download and 
   await expect(page.getByText(/approved/i).first()).toBeVisible();
   await page.getByRole("button", { name: "×" }).click();
 
+  await page.getByLabel("Select all locations").check();
+  await expect(page.getByText("@ Selected Properties")).toBeVisible();
+  await page.getByLabel("Select all locations").uncheck();
   await page.getByLabel(/select 1450 Ocean Drive/i).check();
   await expect(page.getByText("@ Selected Property")).toBeVisible();
   await page.getByLabel("Send to Cactus").click();

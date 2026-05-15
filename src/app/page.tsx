@@ -616,7 +616,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to data setup";
   const canContinue = setupStage !== 1 || companyName.trim().length > 1;
   const currencies = ["USD ($)", "EUR (€)", "GBP (£)", "CAD ($)", "AUD ($)", "CHF (CHF)", "JPY (¥)", "SGD ($)", "HKD ($)", "AED (د.إ)", "MXN ($)", "BRL (R$)"];
-  const measurements = ["sq.ft & kilometers", "sq.ft & miles", "sq.m & kilometers", "sq.m & miles"];
+  const measurements = ["sq.ft & km", "sq.ft & miles", "sq.m & km", "sq.m & miles"];
   const roles = ["Owner", "Partner", "Acquisitions", "Asset Management", "Analyst", "External advisor", "Lender", "Broker", "Team member"];
   const accessOptions = [
     "Main Vault — all company data",
@@ -1627,6 +1627,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
     setAuditOpen(true);
   };
   const selectedCount = selectedRows.length;
+  const allFilteredSelected = filteredVaultRows.length > 0 && filteredVaultRows.every((row) => selectedRows.includes(row.id));
+  const toggleAllLocations = () => setSelectedRows((current) => allFilteredSelected ? current.filter((id) => !filteredVaultRows.some((row) => row.id === id)) : Array.from(new Set([...current, ...filteredVaultRows.map((row) => row.id)])));
   const sourceRun = sourceRunLabels[sourceIndex];
   const auditApprovalCount = auditApprovals.length;
   const toggleRow = (id: string) => setSelectedRows((current) => current.includes(id) ? current.filter((row) => row !== id) : [...current, id]);
@@ -1888,7 +1890,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
                   {columns.map((column, index) => (
                     <th key={column.key} style={{ width: column.width, minWidth: column.width, maxWidth: column.width }} className={`group relative h-[64px] border-r border-neutral-200 px-3 pr-10 text-sm font-semibold leading-tight text-neutral-950 ${index === 0 ? "sticky left-0 z-20 bg-neutral-100" : "bg-neutral-100/80"}`}>
                       <div className="flex h-full min-w-0 items-center gap-2">
-                        <input type="checkbox" className="h-3 w-3 shrink-0 accent-black" aria-label={`select ${column.label}`} />
+                        {index === 0 && <input type="checkbox" checked={allFilteredSelected} onChange={toggleAllLocations} className="h-3 w-3 shrink-0 accent-black" aria-label="Select all locations" />}
                         <span className="min-w-0 whitespace-normal break-words leading-5">{column.label.split("\n").join(" ")}</span>
                       </div>
                       <button onClick={() => { setVaultMenuOpen(false); setActiveFilterColumn(activeFilterColumn === column.key ? null : column.key); }} className="absolute right-3 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-500 opacity-0 shadow-sm transition hover:border-neutral-950 hover:text-neutral-950 group-hover:opacity-100" aria-label={`Filter ${column.label}`}>
@@ -2071,8 +2073,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
         <div className="fixed bottom-6 left-1/2 z-40 w-[760px] -translate-x-1/2">
           <SharedComposer
             placeholder={`Ask about ${selectedCount === 1 ? "this selected property" : `${selectedCount} selected properties`}…`}
-            context={[selectedContextLabel, vaultContextLabel, "Skills", "Web", "Create folder"]}
-            contextActions={{ "Create folder": () => setMicroVault("Selected rows folder") }}
+            context={[selectedContextLabel, vaultContextLabel, "Skills", "Web", "Save folder"]}
+            contextActions={{ "Save folder": () => setMicroVault("Selected rows folder") }}
             onSend={() => onCreateSpaceFromRows(vaultRows.filter((row) => selectedRows.includes(row.id)), `Review ${selectedCount === 1 ? "this selected property" : `${selectedCount} selected properties`}`)}
           />
         </div>
