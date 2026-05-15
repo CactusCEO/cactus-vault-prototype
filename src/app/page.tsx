@@ -1039,142 +1039,109 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource, onExtractDeal }
     </div>
   );
 }
+type CactusTaskRow = (typeof taskRows)[number];
+type CactusSpaceListItem = { title: string; type: string; market: string; address: string; updated: string; status: string; team: string[]; summary: string; createdBy: string; artifactBody?: string; shareText?: string };
+type CactusWorkflowRow = { name: string; group: string; mode: string; trigger: string; output: string; context: string; status?: string };
+
 function Spaces({ go, spaceDraft, onClearSpaceDraft }: { go: (screenIndex: number) => void; spaceDraft?: CactusSpaceDraft | null; onClearSpaceDraft?: () => void }) {
   const [search, setSearch] = useState("");
-  const [selectedWorkspace, setSelectedWorkspace] = useState<(typeof workspaceLibrary)[number] | null>(null);
+  const [view, setView] = useState<"list" | "grid" | "map">("list");
+  const [selectedSpace, setSelectedSpace] = useState<CactusSpaceListItem | null>(null);
+  const [spaces, setSpaces] = useState<CactusSpaceListItem[]>([]);
   const [newOpen, setNewOpen] = useState(false);
-  const [divider, setDivider] = useState(52);
-  const [spaceCreated, setSpaceCreated] = useState(false);
-  const [assistantSpaceTitle, setAssistantSpaceTitle] = useState("Assistant-created Space");
   const [artifact, setArtifact] = useState(spaceDraft?.artifactBody ?? "Canvas empty");
   const [shareNotice, setShareNotice] = useState("");
-  const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
-  const [teamOpen, setTeamOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [teamNotice, setTeamNotice] = useState("Space team changes are prototype state; backend member invites will send email later.");
-  const openSpaceMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
-  const addSpaceMember = () => {
-    if (teamMembers.some((member) => member.initials === "NP")) return;
-    setTeamMembers((current) => [...current, { initials: "NP", name: "New partner", email: "new.partner@cactus.local", role: "External collaborator", access: "View" }]);
-    setTeamNotice("Invite email queued to new.partner@cactus.local for this Space.");
+  const [aiNotice, setAiNotice] = useState("");
+  const [workflowNotice, setWorkflowNotice] = useState("");
+  useEffect(() => {
+    if (!spaceDraft) return;
+    const next = { title: spaceDraft.title, type: "Deal review", market: "Vault context", address: spaceDraft.contextLabel, updated: "Now", status: "Draft", team: ["TS"], summary: spaceDraft.artifactTitle, createdBy: "Vault", artifactBody: spaceDraft.artifactBody, shareText: spaceDraft.shareText };
+    const id = window.setTimeout(() => {
+      setSpaces((current) => current.some((space) => space.title === spaceDraft.title) ? current : [next, ...current]);
+      setSelectedSpace(next);
+      setArtifact(spaceDraft.artifactBody);
+      onClearSpaceDraft?.();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [spaceDraft, onClearSpaceDraft]);
+  const filteredSpaces = spaces.filter((space) => !search || [space.title, space.type, space.market, space.address, space.summary].join(" ").toLowerCase().includes(search.toLowerCase()));
+  const createSpace = (label = "Assistant-created Space") => {
+    const next = { title: label, type: "Workroom", market: "Created by Assistant", address: "No property linked yet", updated: "Now", status: "Draft", team: ["TS"], summary: "Created by Assistant", createdBy: "Assistant" };
+    setSpaces((current) => current.some((space) => space.title === next.title) ? current : [next, ...current]);
+    setNewOpen(false);
+    setSearch("");
+    setView("list");
   };
-  const removeSpaceMember = (initials: string) => {
-    setTeamMembers((current) => current.filter((member) => member.initials !== initials));
-    setTeamNotice(`${initials} removed from this Space.`);
-    setTeamOpen(false);
-  };
-  const filteredSpaces = search ? workspaceLibrary.filter((workspace) => [workspace.title, workspace.market, workspace.type].join(" ").toLowerCase().includes(search.toLowerCase())) : [];
-  const currentTeam = selectedWorkspace?.team ?? ["TS", "AK", "MR"];
-  const activeDraft = spaceDraft ?? null;
   const downloadSpaceOutput = () => {
-    const text = activeDraft?.downloadText ?? `Cactus Space Output\n${assistantSpaceTitle}\n\n${artifact}`;
+    const title = selectedSpace?.title ?? "cactus-space-output";
+    const text = `Cactus Space Output
+${title}
+
+${artifact}`;
     const url = window.URL.createObjectURL(new Blob([text], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${(activeDraft?.title ?? assistantSpaceTitle).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "cactus-space-output"}.txt`;
+    link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.txt`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
   };
   const shareSpaceOutput = async () => {
-    const text = activeDraft?.shareText ?? `${assistantSpaceTitle} ready to share.`;
-    try {
-      await navigator.clipboard?.writeText(text);
-      setShareNotice("Share summary copied");
-    } catch {
-      setShareNotice(text);
-    }
-  };
-  const startAssistantSpace = (label = "Help me start a Space") => {
-    setAssistantSpaceTitle(label);
-    setArtifact(`Cactus is setting up: ${label}`);
-    setSpaceCreated(true);
-    setNewOpen(false);
+    const text = selectedSpace?.shareText ?? `${selectedSpace?.title ?? "Space"}: ${artifact}`;
+    try { await navigator.clipboard?.writeText(text); setShareNotice("Share summary copied"); } catch { setShareNotice(text); }
   };
 
-  if (selectedWorkspace || spaceCreated || activeDraft) {
-    const title = activeDraft?.title ?? selectedWorkspace?.title ?? assistantSpaceTitle;
+  if (selectedSpace) {
     return (
       <div className="relative flex h-screen flex-col bg-[#f8f7f4] text-neutral-950">
-        <TopBar title={title} search={search} onSearch={setSearch} searchPlaceholder="Search this Space…" cta="Share" onCta={() => setTeamOpen(true)}>
-          <button onClick={() => { setSelectedWorkspace(null); setSpaceCreated(false); onClearSpaceDraft?.(); }} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">← Spaces</button>
-          <AvatarStack team={currentTeam} onPersonClick={openSpaceMember} />
+        <TopBar title={selectedSpace.title} search={search} onSearch={setSearch} searchPlaceholder="Search this Space…" cta="Share" onCta={shareSpaceOutput}>
+          <button onClick={() => setSelectedSpace(null)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">← Spaces</button>
         </TopBar>
-        <main className="grid min-h-0 flex-1 overflow-hidden" style={{ gridTemplateColumns: `${divider}% 8px 1fr` }}>
+        <main className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_420px] overflow-hidden">
           <section className="flex min-h-0 flex-col bg-white">
             <div className="min-h-0 flex-1 overflow-auto p-6">
               <div className="mx-auto max-w-3xl space-y-3">
-                <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
-                  <span className="font-medium text-neutral-950">{title}</span>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs">{["Vault", "@person", "/task", "/draft", "/map", "/workflow"].map((chip) => <button key={chip} onClick={() => setArtifact(`${chip} ready`)} className="rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-neutral-600">{chip}</button>)}</div>
-                </div>
+                <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600"><span className="font-medium text-neutral-950">{selectedSpace.title}</span><div className="mt-3 flex flex-wrap gap-2 text-xs">{["Vault", "@person", "/task", "/draft", "/map", "/workflow"].map((chip) => <button key={chip} onClick={() => chip === "/workflow" ? setWorkflowNotice("Workflow brief ready from this Space. Choose trigger, source, skills, and output before enabling.") : setArtifact(`${chip} ready`)} className="rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-neutral-600">{chip}</button>)}</div>{workflowNotice && <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800"><p>{workflowNotice}</p><button onClick={() => { setWorkflowNotice("Space workflow created · review in Workflows before enabling."); }} className="mt-2 rounded-md bg-neutral-950 px-3 py-2 text-white">Create workflow from Space</button></div>}</div>
               </div>
             </div>
-            <div className="border-t border-neutral-200 bg-white p-4">
-              <SharedComposer compact placeholder="Ask Cactus, @mention someone, or type /task, /draft, /map, /workflow…" context={["Add +", "Workflow", "Enhance prompt"]} onSend={() => setArtifact("Draft artifact created from chat")} />
-            </div>
+            <div className="border-t border-neutral-200 bg-white p-4"><SharedComposer compact placeholder="Ask Cactus, @mention someone, or type /task, /draft, /map, /workflow…" context={["Add +", "Workflow", "Enhance prompt"]} onSend={() => setArtifact("Draft artifact created from chat")} /></div>
           </section>
-          <button aria-label="Drag divider" onClick={() => setDivider((value) => value === 52 ? 64 : value === 64 ? 42 : 52)} className="h-full cursor-col-resize border-x border-neutral-200 bg-neutral-100 hover:bg-neutral-200" />
-          <aside className="min-h-0 overflow-auto bg-[linear-gradient(180deg,#fbfaf7,#f3f0ea)] p-6">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between"><p className="text-sm font-medium">Output Canvas</p><span className="text-xs text-neutral-400">{Math.round(100 - divider)}%</span></div>
-              <div className="mt-8 min-h-[300px] rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
-                <p className="font-medium text-neutral-900">{activeDraft?.artifactTitle ?? artifact}</p>
-                <pre className="mt-4 whitespace-pre-wrap font-sans text-xs leading-6 text-neutral-600">{activeDraft?.artifactBody ?? artifact}</pre>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <button onClick={() => setArtifact("IC memo block started")} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Start artifact</button>
-                  <button onClick={downloadSpaceOutput} className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Download</button>
-                  <button onClick={shareSpaceOutput} className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Share</button>
-                </div>
-                {shareNotice && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{shareNotice}</p>}
-              </div>
-            </div>
-          </aside>
+          <aside className="min-h-0 overflow-auto bg-[linear-gradient(180deg,#fbfaf7,#f3f0ea)] p-6"><div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"><p className="text-sm font-medium">Output Canvas</p><div className="mt-8 min-h-[300px] rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600"><p className="font-medium text-neutral-900">{artifact}</p><pre className="mt-4 whitespace-pre-wrap font-sans text-xs leading-6 text-neutral-600">{artifact}</pre><div className="mt-5 flex flex-wrap gap-2"><button onClick={() => setArtifact("IC memo block started")} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Start artifact</button><button onClick={downloadSpaceOutput} className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Download</button><button onClick={shareSpaceOutput} className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Share</button></div>{shareNotice && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{shareNotice}</p>}</div></div></aside>
         </main>
-        {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
       </div>
     );
   }
 
   return (
     <div className="relative flex h-screen flex-col bg-white text-neutral-950">
-      <TopBar title="Spaces" search={search} onSearch={setSearch} searchPlaceholder="Search Spaces…" cta="Ask Cactus" onCta={() => setNewOpen(true)} />
+      <TopBar title="Spaces" search={search} onSearch={setSearch} searchPlaceholder="Search Spaces…" cta="Ask Cactus" onCta={() => setNewOpen(true)}>
+        {spaces.length > 0 && <div className="flex items-center gap-1 rounded-md border border-neutral-200 p-1 text-xs">{[["list", "List"], ["grid", "Grid"], ["map", "Map"]].map(([key, label]) => <button key={key} onClick={() => setView(key as "list" | "grid" | "map")} className={`rounded px-2 py-1 ${view === key ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-neutral-50"}`}>{label}</button>)}</div>}
+      </TopBar>
       <main className="flex min-h-0 flex-1 flex-col overflow-auto p-6">
-        {filteredSpaces.length === 0 ? (
-          <div className="grid flex-1 place-items-center">
-            <div className="w-full max-w-2xl">
-              <div className="mb-4 text-center">
-                <p className="font-serif text-2xl tracking-[-0.04em] text-neutral-950">What are we working on?</p>
-                <p className="mt-2 text-sm text-neutral-500">Ask Cactus. It will create the Space.</p>
-              </div>
-              <SharedComposer placeholder="How can I help? Use @ to add context…" context={["Add +", "Workflow", "Enhance prompt"]} contextActions={{ "Add +": () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8), "Enhance prompt": () => startAssistantSpace("Enhanced prompt Space") }} onSend={() => startAssistantSpace("Assistant-created Space")} />
-
-            </div>
-          </div>
+        {spaces.length === 0 ? (
+          <div className="grid flex-1 place-items-center"><div className="w-full max-w-2xl text-center"><h2 className="font-serif text-2xl tracking-[-0.04em] text-neutral-950">No Spaces yet</h2><p className="mt-2 text-sm text-neutral-500">Create a Space from Assistant, Vault rows, or a workflow output.</p><div className="mt-5 text-left"><SharedComposer placeholder="Ask Cactus to create a Space…" context={["Add +", "Workflow", "Enhance prompt"]} onSend={() => createSpace("Assistant-created Space")} /></div></div></div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-neutral-100 text-xs text-neutral-400"><tr>{["Name", "Type", "Location", "People", "Updated", "Status"].map((h) => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}</tr></thead>
-              <tbody>{filteredSpaces.map((workspace) => <tr key={workspace.title} onClick={() => setSelectedWorkspace(workspace)} className="cursor-pointer border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-3 font-medium text-neutral-950">{workspace.title}</td><td className="px-4 py-3 text-neutral-500">{workspace.type}</td><td className="px-4 py-3 text-neutral-500">{workspace.address}</td><td className="px-4 py-3"><AvatarStack team={workspace.team} onPersonClick={openSpaceMember} /></td><td className="px-4 py-3 text-neutral-500">{workspace.updated}</td><td className="px-4 py-3"><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{workspace.status}</span></td></tr>)}</tbody>
-            </table>
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"><SharedComposer compact placeholder="Filter Spaces with AI chat…" context={["Add +", "Workflow", "Enhance prompt"]} onSend={() => setAiNotice("AI filter applied: showing matching Spaces and suggested next actions.")} />{aiNotice && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{aiNotice}</p>}</div>
+            {view === "map" && <div className="rounded-2xl border border-neutral-200 bg-[#f7f4ee] p-8 text-sm text-neutral-600"><p className="font-medium text-neutral-950">Map view</p><p className="mt-2">Spaces with addresses appear as map pins. Spaces without a property stay in the list below.</p></div>}
+            {filteredSpaces.length === 0 ? <div className="rounded-xl border border-neutral-200 p-8 text-center text-sm text-neutral-400">No matching Spaces.</div> : view === "grid" ? <div className="grid grid-cols-2 gap-4">{filteredSpaces.map((space) => <button key={space.title} onClick={() => setSelectedSpace(space)} className="rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-sm hover:bg-neutral-50"><p className="font-medium text-neutral-950">{space.title}</p><p className="mt-2 text-xs text-neutral-500">{space.market}</p><p className="mt-4 text-xs text-neutral-400">{space.summary}</p></button>)}</div> : <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white"><table className="w-full text-left text-sm"><thead className="border-b border-neutral-100 text-xs text-neutral-400"><tr>{["Name", "Type", "Location", "Updated", "Status"].map((h) => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}</tr></thead><tbody>{filteredSpaces.map((space) => <tr key={space.title} onClick={() => setSelectedSpace(space)} className="cursor-pointer border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50"><td className="px-4 py-3 font-medium text-neutral-950">{space.title}</td><td className="px-4 py-3 text-neutral-500">{space.type}</td><td className="px-4 py-3 text-neutral-500">{space.address}</td><td className="px-4 py-3 text-neutral-500">{space.updated}</td><td className="px-4 py-3"><span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{space.status}</span></td></tr>)}</tbody></table></div>}
           </div>
         )}
       </main>
-      {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
-      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="How can I help? Use @ to add context…" context={["Add +", "Workflow", "Enhance prompt"]} contextActions={{ "Add +": () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8), "Enhance prompt": () => startAssistantSpace("Enhanced prompt Space") }} onSend={() => startAssistantSpace("Assistant-created Space")} /></div></div>}
+      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space and returns you to the library.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="How can I help? Use @ to add context…" context={["Add +", "Workflow", "Enhance prompt"]} onSend={() => createSpace("Assistant-created Space")} /></div></div>}
     </div>
   );
 }
 
 function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
-  const defaultFolders = ["Inbox", "Today", "Assigned to me", "Acquisitions", "Portfolio cleanup", "Investor reporting"];
+  const defaultFolders = ["Inbox", "Today", "Assigned to me"];
   const [folders, setFolders] = useState(defaultFolders);
   const [folder, setFolder] = useState("Inbox");
   const [personFilter, setPersonFilter] = useState("All");
   const [taskSearch, setTaskSearch] = useState("");
-  const [selectedTask, setSelectedTask] = useState<(typeof taskRows)[number] | null>(taskRows[1]);
-  const [createdTasks, setCreatedTasks] = useState<(typeof taskRows)[number][]>([]);
+  const [selectedTask, setSelectedTask] = useState<CactusTaskRow | null>(null);
+  const [createdTasks, setCreatedTasks] = useState<CactusTaskRow[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskOwner, setNewTaskOwner] = useState("AK");
@@ -1186,10 +1153,10 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
   const [teamOpen, setTeamOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [notification, setNotification] = useState("Ready");
-  const allTasks = [...taskRows, ...createdTasks];
-  const ownerFor = (task: (typeof taskRows)[number]) => taskOwners[task.title] ?? task.owner;
+  const allTasks = createdTasks;
+  const ownerFor = (task: CactusTaskRow) => taskOwners[task.title] ?? task.owner;
   const openMember = (initials: string) => { setSelectedMember(initials); setTeamOpen(true); };
-  const folderFor = (task: (typeof taskRows)[number]) => taskFolders[task.title] ?? (task.type === "Vault review" ? "Portfolio cleanup" : task.type === "Maintenance" ? "Inbox" : task.role === "Investor" ? "Investor reporting" : task.role === "Broker" ? "Acquisitions" : "Inbox");
+  const folderFor = (task: CactusTaskRow) => taskFolders[task.title] ?? "Inbox";
   const activeTasks = allTasks.filter((task) => !done.includes(task.title));
   const filteredTasks = activeTasks
     .filter((task) => personFilter === "All" || ownerFor(task) === personFilter)
@@ -1210,15 +1177,15 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
     setNotification(`${initials} removed`);
     setTeamOpen(false);
   };
-  const assignTask = (task: (typeof taskRows)[number], initials: string) => {
+  const assignTask = (task: CactusTaskRow, initials: string) => {
     setTaskOwners((current) => ({ ...current, [task.title]: initials }));
     setNotification(`Assigned to ${initials}`);
   };
-  const completeTask = (task: (typeof taskRows)[number]) => {
+  const completeTask = (task: CactusTaskRow) => {
     setDone((current) => current.includes(task.title) ? current : [...current, task.title]);
     setNotification(`Done: ${task.title}`);
   };
-  const removeTask = (task: (typeof taskRows)[number]) => {
+  const removeTask = (task: CactusTaskRow) => {
     setDone((current) => current.includes(task.title) ? current : [...current, task.title]);
     setNotification(`Removed: ${task.title}`);
   };
@@ -1235,9 +1202,19 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
     setNotification("Task created");
   };
   const addFolder = () => {
-    const next = "New folder";
-    if (!folders.includes(next)) setFolders((current) => [...current, next]);
+    const count = folders.filter((item) => item.startsWith("New folder")).length + 1;
+    const next = `New folder ${count}`;
+    setFolders((current) => [...current, next]);
     setFolder(next);
+    setNewTaskFolder(next);
+    setNotification(`${next} created`);
+  };
+  const deleteFolder = (name: string) => {
+    if (defaultFolders.includes(name)) return;
+    setFolders((current) => current.filter((item) => item !== name));
+    setCreatedTasks((current) => current.filter((task) => folderFor(task) !== name));
+    setFolder("Inbox");
+    setNotification(`${name} deleted`);
   };
   const primaryAction = selectedTask?.status === "Blocked" || selectedTask?.status === "Maintenance" ? "Resolve" : selectedTask?.status === "Review" ? "Review" : "Open work";
   const statusClass = (status: string) => status === "Blocked" || status === "Maintenance" ? "bg-amber-50 text-amber-700" : status === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-600";
@@ -1250,7 +1227,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
           <button onClick={() => setCreateOpen(true)} className="mb-4 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">+ Create task</button>
           <p className="px-2 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">Folders</p>
           <div className="mt-2 space-y-1">
-            {folders.map((item) => <button key={item} onClick={() => setFolder(item)} className={`flex w-full items-center justify-between rounded-md px-2 py-2 text-left text-xs ${folder === item ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-600 hover:bg-white"}`}><span>{item}</span><span className="text-neutral-400">{item === "Inbox" ? activeTasks.length : activeTasks.filter((task) => item === "Today" ? task.due === "Today" || task.due === "Now" : item === "Assigned to me" ? ownerFor(task) === "TS" : folderFor(task) === item).length}</span></button>)}
+            {folders.map((item) => <div key={item} className={`group flex w-full items-center justify-between rounded-md ${folder === item ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-600 hover:bg-white"}`}><button onClick={() => setFolder(item)} className="flex min-w-0 flex-1 items-center justify-between px-2 py-2 text-left text-xs"><span className="truncate">{item}</span><span className="ml-2 text-neutral-400">{item === "Inbox" ? activeTasks.length : activeTasks.filter((task) => item === "Today" ? task.due === "Today" || task.due === "Now" : item === "Assigned to me" ? ownerFor(task) === "TS" : folderFor(task) === item).length}</span></button>{!defaultFolders.includes(item) && <button aria-label={`Delete folder ${item}`} onClick={() => deleteFolder(item)} className="mr-1 hidden rounded px-1.5 py-1 text-red-500 hover:bg-red-50 group-hover:block">×</button>}</div>)}
             <button onClick={addFolder} className="w-full rounded-md px-2 py-2 text-left text-xs text-neutral-500 hover:bg-white">+ New folder</button>
           </div>
           <p className="mt-6 px-2 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">People</p>
@@ -1272,7 +1249,7 @@ function TasksActivity({ go }: { go: (screenIndex: number) => void }) {
                 <span className={`w-fit rounded-md px-2 py-1 text-[10px] ${statusClass(taskStatus)}`}>{taskStatus}</span>
               </button>;
             })}
-            {filteredTasks.length === 0 && <div className="p-8 text-center text-sm text-neutral-400">No matching tasks.</div>}
+            {filteredTasks.length === 0 && <div className="p-8 text-center text-sm text-neutral-400">No tasks yet. Create a task when Cactus finds work or when you add one manually.</div>}
           </div>
         </section>
 
@@ -1330,6 +1307,7 @@ function Workflows({ go, workflowOutcomes, onWorkflowOutcome, onCreateWorkflowSp
   const [analysisSkill, setAnalysisSkill] = useState("Financial analysis");
   const [approvalState, setApprovalState] = useState("Not enabled");
   const [workflowCreated, setWorkflowCreated] = useState(false);
+  const [createdWorkflows, setCreatedWorkflows] = useState<CactusWorkflowRow[]>([]);
   const [, setSelectedExample] = useState<(typeof workflowExamples)[number] | null>(null);
   const togglePullField = (field: string) => setPullFields((current) => current.includes(field) ? current.filter((item) => item !== field) : [...current, field]);
   const loadWorkflowExample = (example: (typeof workflowExamples)[number]) => {
@@ -1346,19 +1324,21 @@ function Workflows({ go, workflowOutcomes, onWorkflowOutcome, onCreateWorkflowSp
     setWorkflowCreated(false);
     setNewOpen(true);
   };
-  const filtered = workflowLibrary
+  const workflowTemplates: CactusWorkflowRow[] = workflowLibrary.map((workflow) => ({ ...workflow, status: workflowStatusFor(workflow.name) }));
+  const workflowRows = workflowView === "template" ? workflowTemplates : createdWorkflows;
+  const filtered = workflowRows
     .filter((workflow) => {
-      const status = workflowStatusFor(workflow.name);
+      const status = workflow.status ?? "Draft";
       if (workflowView === "all") return status !== "Archived";
       if (workflowView === "ongoing") return workflow.mode === "Ongoing" && status !== "Archived";
-      if (workflowView === "template") return workflow.mode === "Template" && status !== "Archived";
-      if (workflowView === "review") return status === "Needs review";
+      if (workflowView === "template") return true;
+      if (workflowView === "review") return status === "Needs review" || status === "Draft";
       return status === "Archived";
     })
-    .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output, workflowStatusFor(workflow.name)].join(" ").toLowerCase().includes(search.toLowerCase()));
+    .filter((workflow) => !search || [workflow.name, workflow.group, workflow.trigger, workflow.output, workflow.status ?? "Draft"].join(" ").toLowerCase().includes(search.toLowerCase()));
   const toggle = (name: string) => setSelectedIds((current) => current.includes(name) ? current.filter((id) => id !== name) : [...current, name]);
   const allSelected = filtered.length > 0 && filtered.every((workflow) => selectedIds.includes(workflow.name));
-  const detail = workflowLibrary.find((workflow) => workflow.name === selectedWorkflow);
+  const detail = [...createdWorkflows, ...workflowTemplates].find((workflow) => workflow.name === selectedWorkflow);
   const maintenanceTasks = [
     ["Gmail re-auth", "Inbox watcher", "Assign"],
     ["Crexi selector changed", "Listing scraper", "Retry"],
@@ -1403,9 +1383,14 @@ function Workflows({ go, workflowOutcomes, onWorkflowOutcome, onCreateWorkflowSp
     setRunPanel({ title: outcome.workflow, mode, note: outcome.note });
   };
   const createWorkflow = () => {
+    const next: CactusWorkflowRow = { name: workflowName.trim() || "Untitled workflow", group: workflowType, mode: cadence === "Weekly" || cadence === "When source updates" ? "Ongoing" : "Template", trigger: cadence, output: outputTarget, context: sourceUrl || "Space / Vault context", status: "Draft" };
+    setCreatedWorkflows((current) => current.some((workflow) => workflow.name === next.name) ? current.map((workflow) => workflow.name === next.name ? next : workflow) : [next, ...current]);
     setWorkflowCreated(true);
-    setApprovalState(`${workflowName} created · review before enabling background runs`);
-    setRunState(`${workflowName} created · ${workflowSteps.length} steps`);
+    setNewOpen(false);
+    setWorkflowView("all");
+    setSelectedWorkflow(next.name);
+    setApprovalState(`${next.name} created · review before enabling background runs`);
+    setRunState(`${next.name} created · review before enabling background runs`);
   };
   const updateSearch = (value: string) => {
     setSearch(value);
@@ -1444,8 +1429,9 @@ function Workflows({ go, workflowOutcomes, onWorkflowOutcome, onCreateWorkflowSp
             <div className="w-28">Status</div>
             <div className="w-8" />
           </div>
+          {filtered.length === 0 && <div className="grid h-72 place-items-center text-center"><div><h2 className="font-serif text-2xl tracking-[-0.04em] text-neutral-950">No workflows yet</h2><p className="mt-2 text-sm text-neutral-500">Create one from Workflows, Assistant, or a Space. Templates are available in the Templates tab.</p><button onClick={() => { setWorkflowCreated(false); setNewOpen(true); }} className="mt-5 rounded-md bg-neutral-950 px-4 py-2 text-sm font-medium text-white">New workflow</button></div></div>}
           {filtered.map((workflow) => {
-            const status = workflowStatusFor(workflow.name);
+            const status = workflow.status ?? workflowStatusFor(workflow.name);
             return (
             <div key={workflow.name} className="group flex h-12 items-center border-b border-neutral-50 pr-8 text-sm hover:bg-neutral-50">
               <div className="grid w-8 place-items-center"><input type="checkbox" checked={selectedIds.includes(workflow.name)} onChange={() => toggle(workflow.name)} className="h-2.5 w-2.5 accent-black" /></div>
@@ -1513,7 +1499,7 @@ function Workflows({ go, workflowOutcomes, onWorkflowOutcome, onCreateWorkflowSp
                 <div><p className="text-sm font-medium">Create workflow</p><p className="mt-1 text-xs text-neutral-500">Pick start → type → source → skills → output.</p></div>
                 <button onClick={() => setNewOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
               </div>
-              <input value={workflowName} onChange={(event) => { setWorkflowName(event.target.value); setWorkflowCreated(false); }} className="mt-5 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-950" />
+              <label className="mt-5 block text-xs font-medium text-neutral-500">Workflow name<input aria-label="Workflow name" value={workflowName} onChange={(event) => { setWorkflowName(event.target.value); setWorkflowCreated(false); }} className="mt-2 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-950 outline-none focus:border-neutral-950" /></label>
 
               <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">1 · Start</p>
               <div className="mt-2 space-y-2 text-sm">
