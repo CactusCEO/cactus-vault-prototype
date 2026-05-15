@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/*.test.ts"
+    "test": "tsx --test src/lib/*.test.ts",
+    "supabase:a1": "tsx scripts/supabase-a1.ts",
+    "supabase:verify": "tsx scripts/verify-supabase-a1.ts"
   },
   "dependencies": {
     "next": "16.2.5",
