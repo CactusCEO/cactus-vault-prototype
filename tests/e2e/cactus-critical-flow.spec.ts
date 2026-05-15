@@ -45,15 +45,20 @@ test("full user loop creates a source-linked Space output that can download and 
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByRole("heading", { name: "Create your corporate account" })).toBeVisible();
 
+  await page.getByPlaceholder("Your company name").fill("QA Capital Partners");
+  await page.getByLabel("Currency").selectOption("EUR");
+  await page.getByLabel("Measurement").selectOption("$/unit");
   await page.getByRole("button", { name: "Continue to team access" }).click();
+  await page.getByPlaceholder("teammate@company.com").fill("analyst@qacapital.com");
+  await page.getByRole("button", { name: "+ Add member" }).click();
+  await expect(page.getByText("analyst@qacapital.com")).toBeVisible();
   await page.getByRole("button", { name: "Continue to asset classes" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.getByRole("heading", { name: "Brief your Cactus analyst" })).toBeVisible();
+  await page.getByRole("button", { name: "Industrial" }).click();
+  await page.getByRole("button", { name: "Continue to data setup" }).click();
+  await expect(page.getByRole("heading", { name: "Start your proprietary database" })).toBeVisible();
 
-  await page.getByRole("button", { name: /Upload documents/i }).click();
-  await expect(page.getByText("First job")).toBeVisible();
-  await page.getByRole("button", { name: /Opportunity Finder/i }).click();
-  await page.getByRole("button", { name: "Continue to Vault setup" }).click();
+  await page.getByRole("button", { name: /Add property documents/i }).click();
+  await page.getByRole("button", { name: "Continue to add documents" }).click();
 
   await expect(page.getByRole("heading", { name: "No data yet" })).toBeVisible();
   await page.getByRole("button", { name: "Add Data" }).click();

@@ -10,13 +10,13 @@ import { appendWorkflowOutcome, createWorkflowOutcome, createWorkflowSpaceDraft,
 
 const sourceCards = [
   {
-    title: "Upload documents",
-    badge: "Best first source",
+    title: "Add property documents",
+    badge: "Start here",
     note: "OMs, T12s, rent rolls, models.",
-    next: "Cactus reads the files you approve and creates the first Vault records.",
+    next: "Cactus extracts source-linked facts into your proprietary database.",
   },
   {
-    title: "Connect email or drive",
+    title: "Connect email or drive later",
     badge: "Broker flow + folders",
     note: "Approved senders and folders only.",
     next: "Cactus watches only those senders/folders and queues new packages for review.",
@@ -28,7 +28,7 @@ const sourceCards = [
     next: "Cactus turns rows into searchable properties, comps, assumptions, and map pins.",
   },
   {
-    title: "Use demo Vault",
+    title: "Use demo database",
     badge: "Explore first",
     note: "Sample data only.",
     next: "Cactus loads a realistic demo so you can see the workflow immediately.",
@@ -39,7 +39,7 @@ const sourceRunLabels = [
   "7 uploaded documents extracting",
   "Approved Drive/email scope extracting",
   "Imported list/comps extracting",
-  "Demo Vault loaded",
+  "Demo database loaded",
 ];
 
 const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as const;
@@ -470,8 +470,7 @@ function ThemeToggle({ theme, setTheme }: { theme: "light" | "dark"; setTheme: (
 function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { go: (screenIndex: number) => void; theme: "light" | "dark"; initialMode?: "signup" | "signin"; onAuthenticate: (input: { email: string; provider: "email" | "google" | "microsoft"; displayName?: string }) => Promise<boolean> }) {
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [emailSent, setEmailSent] = useState(false);
-  const [dataSourcePrompt, setDataSourcePrompt] = useState<"Gmail" | "Outlook" | null>(null);
-  const [workEmail, setWorkEmail] = useState("tyler@cactuscre.com");
+  const [workEmail, setWorkEmail] = useState("");
   const [authMessage, setAuthMessage] = useState("");
   const isSignup = mode === "signup";
   const isDark = theme === "dark";
@@ -488,6 +487,9 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
   const primaryCta = isDark
     ? "bg-[#f4f1ea] text-neutral-950 shadow-[0_16px_44px_rgba(244,241,234,0.16)] hover:bg-white"
     : "bg-neutral-950 text-white shadow-[0_16px_40px_rgba(0,0,0,0.14)] hover:bg-neutral-800";
+  const showOauthNotConnected = (provider: "Google" | "Microsoft") => {
+    setAuthMessage(`${provider} OAuth is not connected yet. Use work email for this demo account.`);
+  };
   const authenticate = async (provider: "email" | "google" | "microsoft", email = workEmail) => {
     setAuthMessage("");
     const ok = await onAuthenticate({ email, provider, displayName: email.split("@")[0] });
@@ -495,7 +497,7 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
       if (isSignup) go(2);
       else setEmailSent(true);
     } else {
-      setAuthMessage("Use a valid work email to create your Cactus session.");
+      setAuthMessage("Enter your real work email to create a Cactus demo account.");
     }
   };
 
@@ -525,24 +527,15 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
 
         <div className="mx-auto mt-7 max-w-md">
           <div className="space-y-3">
-            <button onClick={() => isSignup ? setDataSourcePrompt("Gmail") : void authenticate("google", "tyler@cactuscre.com")} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
-              <span className="text-base">G</span>{isSignup ? "Sign up with Google" : "Sign in with Google"}
+            <button onClick={() => showOauthNotConnected("Google")} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+              <span className="text-base">G</span>{isSignup ? "Continue with Google" : "Sign in with Google"}<span className={`text-xs font-normal ${muted}`}>Not connected</span>
             </button>
-            <button onClick={() => isSignup ? setDataSourcePrompt("Outlook") : void authenticate("microsoft", "tyler@cactuscre.com")} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
+            <button onClick={() => showOauthNotConnected("Microsoft")} className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${authButton}`}>
               <span className="grid grid-cols-2 gap-0.5">
                 <span className="h-2 w-2 bg-[#f25022]" /><span className="h-2 w-2 bg-[#7fba00]" /><span className="h-2 w-2 bg-[#00a4ef]" /><span className="h-2 w-2 bg-[#ffb900]" />
-              </span>{isSignup ? "Sign up with Microsoft" : "Sign in with Microsoft"}
+              </span>{isSignup ? "Continue with Microsoft" : "Sign in with Microsoft"}<span className={`text-xs font-normal ${muted}`}>Not connected</span>
             </button>
           </div>
-          {isSignup && dataSourcePrompt && (
-            <div className={`mt-3 rounded-xl border p-3 text-left ${isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-neutral-50"}`}>
-              <p className="text-sm font-medium">Use {dataSourcePrompt} to fill your Vault?</p>
-              <div className="mt-3 flex gap-2">
-                <button onClick={() => void authenticate(dataSourcePrompt === "Gmail" ? "google" : "microsoft", dataSourcePrompt === "Gmail" ? "tyler@cactuscre.com" : "tyler@cactuscre.com")} className={`rounded-md px-3 py-2 text-xs font-medium ${primaryCta}`}>Choose folders</button>
-                <button onClick={() => void authenticate(dataSourcePrompt === "Gmail" ? "google" : "microsoft", dataSourcePrompt === "Gmail" ? "tyler@cactuscre.com" : "tyler@cactuscre.com")} className={`rounded-md border px-3 py-2 text-xs ${isDark ? "border-white/10 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>Not now</button>
-              </div>
-            </div>
-          )}
 
           <div className={`my-5 flex items-center gap-3 text-xs ${muted}`}><div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} />or use work email<div className={`h-px flex-1 ${isDark ? "bg-white/10" : "bg-neutral-200"}`} /></div>
           <label className={`text-xs font-medium ${muted}`}>Work email</label>
@@ -571,19 +564,27 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
 }
 
 function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme: "light" | "dark" }) {
-  const [helpOpen, setHelpOpen] = useState(false);
   const [setupStage, setSetupStage] = useState(1);
+  const [companyName, setCompanyName] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [measurement, setMeasurement] = useState("$/sq.ft");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [memberNotice, setMemberNotice] = useState("");
+  const [teamMembers, setTeamMembers] = useState([
+    { id: "owner", name: "Account owner", email: "", role: "Owner", access: "All data" },
+  ]);
+  const [assetClasses, setAssetClasses] = useState<string[]>(["Multifamily"]);
   const isDark = theme === "dark";
   const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
   const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
   const surface = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white";
-  const soft = isDark ? "border-white/10 bg-white/[0.04]" : "border-neutral-200 bg-neutral-50";
   const field = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100" : "border-neutral-300 bg-gradient-to-b from-white to-neutral-50 text-neutral-700";
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
   const label = isDark ? "text-neutral-300" : "text-neutral-700";
   const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
   const summary = isDark ? "border-white/10 bg-white/[0.03] text-neutral-300" : "border-neutral-200 bg-neutral-50 text-neutral-600";
-  const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue";
+  const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to data setup";
+  const canContinue = setupStage !== 1 || companyName.trim().length > 1;
 
   const goBack = () => {
     if (setupStage > 1) setSetupStage(setupStage - 1);
@@ -591,8 +592,34 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   };
 
   const goForward = () => {
+    if (!canContinue) return;
     if (setupStage < 3) setSetupStage(setupStage + 1);
     else go(3);
+  };
+
+  const addMember = () => {
+    const email = newMemberEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      setMemberNotice("Enter a teammate email first.");
+      return;
+    }
+    if (teamMembers.some((member) => member.email === email)) {
+      setMemberNotice("That teammate is already added.");
+      return;
+    }
+    const prefix = email.split("@")[0].replace(/[._-]+/g, " ");
+    const name = prefix.replace(/\b\w/g, (letter) => letter.toUpperCase()) || "New teammate";
+    setTeamMembers((members) => [...members, { id: email, name, email, role: "Team member", access: "Review only" }]);
+    setNewMemberEmail("");
+    setMemberNotice("Member added. You can change role and access below.");
+  };
+
+  const updateMember = (id: string, key: "role" | "access", value: string) => {
+    setTeamMembers((members) => members.map((member) => member.id === id ? { ...member, [key]: value } : member));
+  };
+
+  const toggleAssetClass = (item: string) => {
+    setAssetClasses((current) => current.includes(item) ? current.filter((value) => value !== item) : [...current, item]);
   };
 
   return (
@@ -603,67 +630,72 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
             <h2 className="text-2xl font-semibold tracking-[-0.03em]">Create your corporate account</h2>
             <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
           </div>
-          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Add one layer at a time. Cactus uses these defaults to create a secure company Vault.</p>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set the basics for your company workspace.</p>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <section>
             {setupStage > 1 && (
               <div className={`mb-3 flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm ${summary}`}>
-                <div><span className="font-medium">Company details:</span> Cactus Capital Partners · USD · $ / sq.ft</div>
+                <div><span className="font-medium">Company:</span> {companyName || "Not set"} · {currency} · {measurement}</div>
                 <button onClick={() => setSetupStage(1)} className={`rounded-md border px-2.5 py-1 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-white"}`}>Edit</button>
               </div>
             )}
 
             {setupStage === 1 && (
               <div className="grid grid-cols-[1fr_130px_150px] gap-3">
-                {[
-                  ["Company legal name", "Cactus Capital Partners", ""],
-                  ["Currency", "USD", "⌄"],
-                  ["Measurement", "$ / sq.ft", "⌄"],
-                ].map(([fieldLabel, placeholder, icon]) => (
-                  <label key={fieldLabel} className={`text-sm font-medium ${label}`}>{fieldLabel}
-                    <div className={`mt-2 flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm shadow-sm ${field}`}>
-                      <span>{placeholder}</span>
-                      {icon && <span className="text-neutral-400">{icon}</span>}
-                    </div>
-                  </label>
-                ))}
+                <label className={`text-sm font-medium ${label}`}>Company legal name
+                  <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`} placeholder="Your company name" />
+                </label>
+                <label className={`text-sm font-medium ${label}`}>Currency
+                  <select value={currency} onChange={(event) => setCurrency(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`}>
+                    {['USD','EUR','GBP','CAD','AUD'].map((item) => <option key={item}>{item}</option>)}
+                  </select>
+                </label>
+                <label className={`text-sm font-medium ${label}`}>Measurement
+                  <select value={measurement} onChange={(event) => setMeasurement(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`}>
+                    {['$/sq.ft','$/sq.m','$/unit','€/sq.m','£/sq.ft'].map((item) => <option key={item}>{item}</option>)}
+                  </select>
+                </label>
               </div>
             )}
 
             {setupStage > 2 && (
               <div className={`mb-3 flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm ${summary}`}>
-                <div><span className="font-medium">Team access saved:</span> 3 members · owner, editor, viewer</div>
+                <div><span className="font-medium">Team:</span> {teamMembers.length} member{teamMembers.length === 1 ? "" : "s"}</div>
                 <button onClick={() => setSetupStage(2)} className={`rounded-md border px-2.5 py-1 text-xs font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-white"}`}>Edit team access</button>
               </div>
             )}
 
             {setupStage === 2 && (
-              <div className={`rounded-xl border p-3 ${soft}`}>
-                <div className="flex items-center justify-between">
+              <div className={`rounded-xl border p-3 ${surface}`}>
+                <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">Team access</p>
-                    <p className={`mt-1 text-xs ${muted}`}>Set who can review, edit, and use each part of the Vault.</p>
+                    <p className={`mt-1 text-xs ${muted}`}>Invite the people who should help review, edit, or view work.</p>
                   </div>
-                  <button className={`rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm ${surface} ${label}`}>+ Add member</button>
+                  <div className="flex min-w-[330px] gap-2">
+                    <input value={newMemberEmail} onChange={(event) => setNewMemberEmail(event.target.value)} className={`h-9 flex-1 rounded-lg border px-3 text-xs outline-none ${field}`} placeholder="teammate@company.com" />
+                    <button onClick={addMember} className={`rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm ${surface} ${label}`}>+ Add member</button>
+                  </div>
                 </div>
-                <div className="mt-2.5 grid grid-cols-[1.2fr_0.65fr_0.85fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+                {memberNotice && <p className={`mt-2 text-xs ${memberNotice.includes("added") ? "text-emerald-600" : "text-amber-600"}`}>{memberNotice}</p>}
+                <div className="mt-3 grid grid-cols-[1.2fr_0.75fr_0.85fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
                   <span>Member</span><span>Role</span><span>Access</span>
                 </div>
                 <div className={`mt-2 overflow-hidden rounded-xl border ${surface}`}>
-                  {[
-                    ["Tyler Sellars", "tyler@company.com", "Owner", "All Vaults"],
-                    ["Acquisitions Analyst", "analyst@company.com", "Editor", "Deals + comps"],
-                    ["Asset Manager", "assetmanager@company.com", "Viewer", "Portfolio only"],
-                  ].map(([name, email, role, access]) => (
-                    <div key={email} className={`grid grid-cols-[1.2fr_0.65fr_0.85fr] items-center gap-3 border-b px-3.5 py-2 last:border-b-0 ${isDark ? "border-white/10" : "border-neutral-100"}`}>
+                  {teamMembers.map((member) => (
+                    <div key={member.id} className={`grid grid-cols-[1.2fr_0.75fr_0.85fr] items-center gap-3 border-b px-3.5 py-2 last:border-b-0 ${isDark ? "border-white/10" : "border-neutral-100"}`}>
                       <div>
-                        <p className="text-sm font-medium leading-5">{name}</p>
-                        <p className={`text-xs ${muted}`}>{email}</p>
+                        <p className="text-sm font-medium leading-5">{member.name}</p>
+                        <p className={`text-xs ${muted}`}>{member.email || "Account creator"}</p>
                       </div>
-                      <button className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}><span>{role}</span><span className="text-neutral-400">⌄</span></button>
-                      <button className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}><span>{access}</span><span className="text-neutral-400">⌄</span></button>
+                      <select value={member.role} onChange={(event) => updateMember(member.id, "role", event.target.value)} className={`rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}>
+                        {['Owner','Partner','Acquisitions','Asset Management','Analyst','External advisor','Lender','Broker','Team member'].map((item) => <option key={item}>{item}</option>)}
+                      </select>
+                      <select value={member.access} onChange={(event) => updateMember(member.id, "access", event.target.value)} className={`rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}>
+                        {['All data','Deals + comps','Portfolio only','Review only','View only'].map((item) => <option key={item}>{item}</option>)}
+                      </select>
                     </div>
                   ))}
                 </div>
@@ -672,21 +704,20 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 
             {setupStage === 3 && (
               <div>
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-sm font-semibold">Asset classes</p>
-                    <p className={`mt-1 text-xs ${muted}`}>Choose the markets this organization works with.</p>
-                  </div>
-                  <button onClick={() => setHelpOpen(!helpOpen)} className={`text-xs font-medium underline-offset-4 hover:underline ${label}`}>{helpOpen ? "Hide help" : "Need help?"}</button>
+                <div>
+                  <p className="text-sm font-semibold">Asset classes</p>
+                  <p className={`mt-1 text-xs ${muted}`}>Choose every property type your team works on.</p>
                 </div>
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
-                  {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item, index) => (
-                    <button key={item} className={`rounded-lg border px-3 py-2 text-left text-sm font-medium shadow-sm ${surface} ${label}`}>
-                      <span className="flex items-center gap-2"><span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${index < 3 ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-700 bg-neutral-900 text-white" : "border-neutral-300 text-transparent"}`}>{index < 3 ? "✓" : ""}</span>{item}</span>
-                    </button>
-                  ))}
+                  {["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].map((item) => {
+                    const selected = assetClasses.includes(item);
+                    return (
+                      <button key={item} onClick={() => toggleAssetClass(item)} className={`rounded-lg border px-3 py-2 text-left text-sm font-medium shadow-sm ${selected ? isDark ? "border-white bg-white text-neutral-950" : "border-neutral-950 bg-neutral-950 text-white" : `${surface} ${label}`}`}>
+                        <span className="flex items-center gap-2"><span aria-hidden="true" className={`grid h-4 w-4 place-items-center rounded border text-[10px] ${selected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-white bg-white text-neutral-950" : "border-neutral-300 text-transparent"}`}>{selected ? "✓" : ""}</span>{item}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                {helpOpen && <div className="mt-4 rounded-xl bg-neutral-950 p-3 text-xs leading-5 text-neutral-300">Tip: start broad. You can change asset classes after the first Vault is built.</div>}
               </div>
             )}
           </section>
@@ -695,7 +726,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
             <button onClick={goBack} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
             <div className="flex items-center gap-4">
               <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>These defaults can be edited later.</span>
-              <button onClick={goForward} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>{continueCopy}</button>
+              <button disabled={!canContinue} onClick={goForward} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-40 ${cta}`}>{continueCopy}</button>
             </div>
           </div>
         </div>
@@ -705,11 +736,9 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 }
 
 function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) => void; theme: "light" | "dark"; onChooseSource: (sourceIndex: number) => void }) {
-  const [selectedSource, setSelectedSource] = useState<number | null>(null);
-  const [selectedSystem, setSelectedSystem] = useState(0);
+  const [selectedSource, setSelectedSource] = useState(0);
   const isDark = theme === "dark";
-  const source = selectedSource === null ? null : sourceCards[selectedSource];
-  const system = systemCards[selectedSystem];
+  const source = sourceCards[selectedSource];
   const page = isDark ? "bg-neutral-950 text-white" : "bg-[#f7f4ee] text-neutral-950";
   const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white/90";
   const card = isDark ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]" : "border-neutral-200 bg-white text-neutral-950 hover:border-neutral-400";
@@ -722,68 +751,42 @@ function VaultSetup({ go, theme, onChooseSource }: { go: (screenIndex: number) =
     <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
       <div className="w-full max-w-4xl">
         <div className="mb-5 flex items-baseline gap-3">
-          <h2 className="text-2xl font-semibold tracking-[-0.03em]">Brief your Cactus analyst</h2>
-          <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 · trial setup</span>
+          <h2 className="text-2xl font-semibold tracking-[-0.03em]">Start your proprietary database</h2>
+          <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 3 of 4</span>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
           <section className={`rounded-2xl border p-4 ${isDark ? "border-white/10 bg-neutral-950/60" : "border-neutral-200 bg-[#fbfaf7]"}`}>
-            <p className="text-sm font-semibold">Start with one source, then one job.</p>
-            <p className={`mt-1 text-sm ${muted}`}>You can add more sources and workflows later.</p>
+            <p className="text-sm font-semibold">Add documents for one property first.</p>
+            <p className={`mt-1 text-sm ${muted}`}>Cactus extracts facts into your company database, then combines them with Cactus market/source data with citations.</p>
           </section>
 
-          <div className="mt-5 grid gap-5 md:grid-cols-2">
-            <div>
-              <p className="text-sm font-semibold">First source</p>
-              <div className="mt-2 space-y-2">
-                {sourceCards.map((item, index) => {
-                  const isSelected = selectedSource === index;
-                  return (
-                    <button key={item.title} onClick={() => setSelectedSource(index)} className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left transition ${isSelected ? selectedCard : card}`}>
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold tracking-[-0.02em]">{item.title}</h3>
-                        <p className={`mt-1 truncate text-xs ${isSelected && isDark ? "text-neutral-600" : isSelected ? "text-neutral-600" : muted}`}>{item.note}</p>
-                      </div>
-                      <span aria-hidden="true" className={`grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="mt-5">
+            <p className="text-sm font-semibold">Start with</p>
+            <div className="mt-2 grid gap-2 md:grid-cols-2">
+              {sourceCards.map((item, index) => {
+                const isSelected = selectedSource === index;
+                return (
+                  <button key={item.title} onClick={() => setSelectedSource(index)} className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left transition ${isSelected ? selectedCard : card}`}>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold tracking-[-0.02em]">{item.title}</h3>
+                      <p className={`mt-1 truncate text-xs ${isSelected ? "text-neutral-600" : muted}`}>{item.note}</p>
+                    </div>
+                    <span aria-hidden="true" className={`grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${isSelected ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
+                  </button>
+                );
+              })}
             </div>
-
-            {selectedSource !== null ? (
-            <div>
-              <p className="text-sm font-semibold">First job</p>
-              <div className="mt-2 space-y-2">
-                {systemCards.map((item, index) => {
-                  const isSelected = selectedSystem === index;
-                  return (
-                    <button key={item.title} onClick={() => setSelectedSystem(index)} className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left transition ${isSelected ? selectedCard : card}`}>
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold tracking-[-0.02em]">{item.title}</h3>
-                        <p className={`mt-1 truncate text-xs ${isSelected && isDark ? "text-neutral-600" : isSelected ? "text-neutral-600" : muted}`}>{item.note}</p>
-                      </div>
-                      <span aria-hidden="true" className={`grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${isSelected ? isDark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-300 text-transparent"}`}>{isSelected ? "✓" : ""}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            ) : (
-              <div className={`flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed p-6 text-center ${isDark ? "border-white/10 text-neutral-500" : "border-neutral-200 text-neutral-400"}`}>
-                <p className="text-sm font-medium">Choose a source to continue.</p>
-              </div>
-            )}
           </div>
 
           <div className={`mt-5 flex items-center justify-between rounded-2xl border px-4 py-3 ${soft}`}>
-            <p className="text-sm"><span className={muted}>Path:</span> <strong>{source?.title ?? "Choose first source"}</strong>{source && <> → <strong>{system.title}</strong></>}</p>
-            <span className={`hidden text-xs md:block ${muted}`}>Multiple sources can connect to this company Vault during trial.</span>
+            <p className="text-sm"><span className={muted}>Next:</span> <strong>{source.title}</strong> → <strong>extract facts into your database</strong></p>
+            <span className={`hidden text-xs md:block ${muted}`}>More sources and Cactus datasets are available after setup.</span>
           </div>
 
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={() => go(2)} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
-            <button disabled={selectedSource === null} onClick={() => { if (selectedSource !== null) { onChooseSource(selectedSource); go(6); } }} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-40 ${cta}`}>Continue to Vault setup</button>
+            <button onClick={() => { onChooseSource(selectedSource); go(6); }} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm ${cta}`}>Continue to add documents</button>
           </div>
         </div>
       </div>
