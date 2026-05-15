@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type VaultGridRow } from "@/lib/cactus-extraction";
 import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
+import { addAuditApproval, createAiConnectionFromKey, type CactusAiConnection, type VaultAuditApproval } from "@/lib/cactus-settings";
 
 const sourceCards = [
   {
@@ -40,20 +41,26 @@ const sourceRunLabels = [
 
 const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as const;
 const CACTUS_WORKING_STATE_KEY = "cactus-working-app-state-v1";
+const emptyAiConnection: CactusAiConnection = { status: "not_connected", provider: "OpenAI", label: "Connect OpenAI", fingerprint: "" };
 
-function loadWorkingState(): { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[] } {
-  if (typeof window === "undefined") return { hasIntake: false, sourceIndex: 0, extractedRows: [] };
+type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[] };
+const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [] });
+
+function loadWorkingState(): CactusWorkingState {
+  if (typeof window === "undefined") return emptyWorkingState();
   try {
     const saved = window.localStorage.getItem(CACTUS_WORKING_STATE_KEY);
-    if (!saved) return { hasIntake: false, sourceIndex: 0, extractedRows: [] };
-    const parsed = JSON.parse(saved) as { hasIntake?: boolean; sourceIndex?: number; extractedRows?: VaultGridRow[] };
+    if (!saved) return emptyWorkingState();
+    const parsed = JSON.parse(saved) as Partial<CactusWorkingState>;
     return {
       hasIntake: Boolean(parsed.hasIntake),
       sourceIndex: typeof parsed.sourceIndex === "number" ? parsed.sourceIndex : 0,
       extractedRows: Array.isArray(parsed.extractedRows) ? parsed.extractedRows : [],
+      aiConnection: parsed.aiConnection?.status ? parsed.aiConnection : emptyAiConnection,
+      auditApprovals: Array.isArray(parsed.auditApprovals) ? parsed.auditApprovals : [],
     };
   } catch {
-    return { hasIntake: false, sourceIndex: 0, extractedRows: [] };
+    return emptyWorkingState();
   }
 }
 
@@ -1481,7 +1488,7 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onExtractDeal, onCreateSpaceFromRows }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onExtractDeal: (row: VaultGridRow) => void; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onExtractDeal, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onExtractDeal: (row: VaultGridRow) => void; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
@@ -1523,6 +1530,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
   const selectedCount = selectedRows.length;
   const sourceRun = sourceRunLabels[sourceIndex];
   const sourceTitle = sourceCards[sourceIndex].title;
+  const auditApprovalCount = auditApprovals.length;
   const toggleRow = (id: string) => setSelectedRows((current) => current.includes(id) ? current.filter((row) => row !== id) : [...current, id]);
   const vaultSetupModes = [
     {
@@ -1754,7 +1762,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
           </TopBar>
 
           <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
-            {microVault} · {sourceRun} · {aiSearch ? `${filteredVaultRows.length}/${vaultRows.length} rows` : "property, market, benchmark, provider-report rows"}
+            {microVault} · {sourceRun} · {auditApprovalCount ? `${auditApprovalCount} approved facts` : "review queue open"} · {aiSearch ? `${filteredVaultRows.length}/${vaultRows.length} rows` : "property, market, benchmark, provider-report rows"}
           </div>
 
           {vaultView === "table" ? (
@@ -1943,7 +1951,8 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
                   </button>
                 ))}
               </div>
-              <button onClick={() => setAuditOpen(false)} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Approve reviewed facts</button>
+              <button onClick={() => { if (auditFocus) onApproveAudit({ row: auditFocus.row, field: auditFocus.field, value: auditFocus.value }); setAuditOpen(false); }} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Approve reviewed facts</button>
+              {auditApprovalCount > 0 && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-center text-xs text-emerald-700">{auditApprovalCount} facts approved in this Vault.</p>}
             </div>
           </div>
         </aside>
@@ -2209,20 +2218,36 @@ export default function Home() {
   const [sourceIndex, setSourceIndex] = useState(initialWorkingState.sourceIndex);
   const [extractedRows, setExtractedRows] = useState<VaultGridRow[]>(initialWorkingState.extractedRows);
   const [activeSpaceDraft, setActiveSpaceDraft] = useState<CactusSpaceDraft | null>(null);
+  const [aiConnection, setAiConnection] = useState<CactusAiConnection>(initialWorkingState.aiConnection);
+  const [auditApprovals, setAuditApprovals] = useState<VaultAuditApproval[]>(initialWorkingState.auditApprovals);
+  const [aiSetupOpen, setAiSetupOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [apiKeyMessage, setApiKeyMessage] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
   useEffect(() => {
-    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows }));
-  }, [hasIntake, sourceIndex, extractedRows]);
+    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals }));
+  }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals]);
   const addExtractedRow = (row: VaultGridRow) => setExtractedRows((current) => mergeVaultRows(current, row));
+  const approveAudit = (approval: Omit<VaultAuditApproval, "approvedAt">) => setAuditApprovals((current) => addAuditApproval(current, approval));
+  const connectOpenAi = () => {
+    const next = createAiConnectionFromKey(apiKeyInput);
+    if (next.status !== "connected") {
+      setApiKeyMessage("Paste a valid OpenAI key shape. Cactus stores only a fingerprint in this local demo.");
+      return;
+    }
+    setAiConnection(next);
+    setApiKeyInput("");
+    setApiKeyMessage(`${next.label} · ${next.fingerprint}`);
+  };
   const createSpaceFromRows = (rows: VaultGridRow[], request = "Review this deal") => {
     setActiveSpaceDraft(createSpaceDraftFromVaultRows(rows, request));
     setActive(7);
   };
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} onCreateSpaceFromRows={createSpaceFromRows} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
     if (active === 7) return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
     if (active === 8) return <Workflows go={setActive} />;
     if (active === 9) return <TasksActivity go={setActive} />;
@@ -2290,6 +2315,7 @@ export default function Home() {
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Workspace actions</p>
                 </div>
                 <button onClick={() => { setActive(6); setAccountOpen(false); }} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Manage integrations in Vault</span><span className="text-neutral-400">▣</span></button>
+                <button onClick={() => { setAiSetupOpen(true); setAccountOpen(false); }} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>{aiConnection.status === "connected" ? `OpenAI · ${aiConnection.fingerprint}` : "Connect OpenAI key"}</span><span className="text-neutral-400">AI</span></button>
                 <button onClick={() => { setActive(9); setAccountOpen(false); }} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Team + tasks</span><span className="text-neutral-400">✓</span></button>
                 <button onClick={() => window.open("/billing", "_blank")} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Billing</span><span className="text-neutral-400">↗</span></button>
                 <button onClick={() => window.open("/privacy-security", "_blank")} className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-neutral-700 hover:bg-neutral-50"><span>Privacy + security</span><span className="text-neutral-400">↗</span></button>
@@ -2303,6 +2329,24 @@ export default function Home() {
           </div>
         </aside>
         {accountOpen && <button aria-label="Close account menu" onClick={() => setAccountOpen(false)} className="fixed inset-0 z-30 cursor-default bg-transparent" />}
+        {aiSetupOpen && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-neutral-950/20 p-6" onClick={() => setAiSetupOpen(false)}>
+            <section onClick={(event) => event.stopPropagation()} className="w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-5 text-neutral-950 shadow-2xl">
+              <div className="flex items-start justify-between gap-4">
+                <div><p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">Assistant connection</p><h2 className="mt-1 text-xl font-semibold tracking-[-0.04em]">Connect OpenAI for live responses.</h2></div>
+                <button onClick={() => setAiSetupOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-neutral-500">For this local prototype, Cactus validates the key shape and stores only a redacted fingerprint. Do not paste production credentials unless the backend vault is added.</p>
+              <label className="mt-5 block text-xs font-semibold text-neutral-700">OpenAI API key</label>
+              <input value={apiKeyInput} onChange={(event) => setApiKeyInput(event.target.value)} type="password" placeholder="sk-proj-…" className="mt-1 h-10 w-full rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950" />
+              {apiKeyMessage && <p className={`mt-3 rounded-md px-3 py-2 text-xs ${aiConnection.status === "connected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{apiKeyMessage}</p>}
+              <div className="mt-5 flex items-center justify-between">
+                <span className="text-xs text-neutral-400">Current: {aiConnection.status === "connected" ? aiConnection.fingerprint : "deterministic fallback"}</span>
+                <button onClick={connectOpenAi} className="rounded-md bg-neutral-950 px-4 py-2 text-sm font-medium text-white">Connect</button>
+              </div>
+            </section>
+          </div>
+        )}
         <section className="min-w-0 flex-1 overflow-hidden">
           {renderAppScreen()}
         </section>
