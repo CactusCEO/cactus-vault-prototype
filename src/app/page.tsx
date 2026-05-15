@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type VaultGridRow } from "@/lib/cactus-extraction";
+import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
 
 const sourceCards = [
   {
@@ -928,14 +929,15 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource, onExtractDeal }
     </div>
   );
 }
-function Spaces({ go }: { go: (screenIndex: number) => void }) {
+function Spaces({ go, spaceDraft, onClearSpaceDraft }: { go: (screenIndex: number) => void; spaceDraft?: CactusSpaceDraft | null; onClearSpaceDraft?: () => void }) {
   const [search, setSearch] = useState("");
   const [selectedWorkspace, setSelectedWorkspace] = useState<(typeof workspaceLibrary)[number] | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [divider, setDivider] = useState(52);
   const [spaceCreated, setSpaceCreated] = useState(false);
   const [assistantSpaceTitle, setAssistantSpaceTitle] = useState("Assistant-created Space");
-  const [artifact, setArtifact] = useState("Canvas empty");
+  const [artifact, setArtifact] = useState(spaceDraft?.artifactBody ?? "Canvas empty");
+  const [shareNotice, setShareNotice] = useState("");
   const [teamMembers, setTeamMembers] = useState(teamDirectorySeed);
   const [teamOpen, setTeamOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -953,6 +955,27 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
   };
   const filteredSpaces = search ? workspaceLibrary.filter((workspace) => [workspace.title, workspace.market, workspace.type].join(" ").toLowerCase().includes(search.toLowerCase())) : [];
   const currentTeam = selectedWorkspace?.team ?? ["TS", "AK", "MR"];
+  const activeDraft = spaceDraft ?? null;
+  const downloadSpaceOutput = () => {
+    const text = activeDraft?.downloadText ?? `Cactus Space Output\n${assistantSpaceTitle}\n\n${artifact}`;
+    const url = window.URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${(activeDraft?.title ?? assistantSpaceTitle).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "cactus-space-output"}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+  const shareSpaceOutput = async () => {
+    const text = activeDraft?.shareText ?? `${assistantSpaceTitle} ready to share.`;
+    try {
+      await navigator.clipboard?.writeText(text);
+      setShareNotice("Share summary copied");
+    } catch {
+      setShareNotice(text);
+    }
+  };
   const startAssistantSpace = (label = "Help me start a Space") => {
     setAssistantSpaceTitle(label);
     setArtifact(`Cactus is setting up: ${label}`);
@@ -960,12 +983,12 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
     setNewOpen(false);
   };
 
-  if (selectedWorkspace || spaceCreated) {
-    const title = selectedWorkspace?.title ?? assistantSpaceTitle;
+  if (selectedWorkspace || spaceCreated || activeDraft) {
+    const title = activeDraft?.title ?? selectedWorkspace?.title ?? assistantSpaceTitle;
     return (
       <div className="relative flex h-screen flex-col bg-[#f8f7f4] text-neutral-950">
         <TopBar title={title} search={search} onSearch={setSearch} searchPlaceholder="Search this Space…" cta="Share" onCta={() => setTeamOpen(true)}>
-          <button onClick={() => { setSelectedWorkspace(null); setSpaceCreated(false); }} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">← Spaces</button>
+          <button onClick={() => { setSelectedWorkspace(null); setSpaceCreated(false); onClearSpaceDraft?.(); }} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">← Spaces</button>
           <AvatarStack team={currentTeam} onPersonClick={openSpaceMember} />
         </TopBar>
         <main className="grid min-h-0 flex-1 overflow-hidden" style={{ gridTemplateColumns: `${divider}% 8px 1fr` }}>
@@ -986,8 +1009,15 @@ function Spaces({ go }: { go: (screenIndex: number) => void }) {
           <aside className="min-h-0 overflow-auto bg-[linear-gradient(180deg,#fbfaf7,#f3f0ea)] p-6">
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between"><p className="text-sm font-medium">Output Canvas</p><span className="text-xs text-neutral-400">{Math.round(100 - divider)}%</span></div>
-              <div className="mt-24 grid min-h-[300px] place-items-center rounded-xl border border-dashed border-neutral-200 bg-neutral-50 text-center text-sm text-neutral-500">
-                <div><p className="font-medium text-neutral-900">{artifact}</p><button onClick={() => setArtifact("IC memo block started")} className="mt-4 rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Start artifact</button></div>
+              <div className="mt-8 min-h-[300px] rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
+                <p className="font-medium text-neutral-900">{activeDraft?.artifactTitle ?? artifact}</p>
+                <pre className="mt-4 whitespace-pre-wrap font-sans text-xs leading-6 text-neutral-600">{activeDraft?.artifactBody ?? artifact}</pre>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button onClick={() => setArtifact("IC memo block started")} className="rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Start artifact</button>
+                  <button onClick={downloadSpaceOutput} className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Download</button>
+                  <button onClick={shareSpaceOutput} className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700">Share</button>
+                </div>
+                {shareNotice && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{shareNotice}</p>}
               </div>
             </div>
           </aside>
@@ -1451,7 +1481,7 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onExtractDeal }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onExtractDeal: (row: VaultGridRow) => void }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onExtractDeal, onCreateSpaceFromRows }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onExtractDeal: (row: VaultGridRow) => void; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
@@ -1934,7 +1964,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
             placeholder={`Ask about ${selectedCount === 1 ? "this selected property" : `${selectedCount} selected properties`}…`}
             context={[selectedContextLabel, vaultContextLabel, "Skills", "Web", "Create folder"]}
             contextActions={{ "Create folder": () => setMicroVault("Selected rows folder") }}
-            onSend={() => go(7)}
+            onSend={() => onCreateSpaceFromRows(vaultRows.filter((row) => selectedRows.includes(row.id)), `Review ${selectedCount === 1 ? "this selected property" : `${selectedCount} selected properties`}`)}
           />
         </div>
       )}
@@ -2178,6 +2208,7 @@ export default function Home() {
   const [hasIntake, setHasIntake] = useState(initialWorkingState.hasIntake);
   const [sourceIndex, setSourceIndex] = useState(initialWorkingState.sourceIndex);
   const [extractedRows, setExtractedRows] = useState<VaultGridRow[]>(initialWorkingState.extractedRows);
+  const [activeSpaceDraft, setActiveSpaceDraft] = useState<CactusSpaceDraft | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
@@ -2185,13 +2216,17 @@ export default function Home() {
     window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows }));
   }, [hasIntake, sourceIndex, extractedRows]);
   const addExtractedRow = (row: VaultGridRow) => setExtractedRows((current) => mergeVaultRows(current, row));
+  const createSpaceFromRows = (rows: VaultGridRow[], request = "Review this deal") => {
+    setActiveSpaceDraft(createSpaceDraftFromVaultRows(rows, request));
+    setActive(7);
+  };
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} />;
-    if (active === 7) return <Spaces go={setActive} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onExtractDeal={addExtractedRow} onCreateSpaceFromRows={createSpaceFromRows} />;
+    if (active === 7) return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
     if (active === 8) return <Workflows go={setActive} />;
     if (active === 9) return <TasksActivity go={setActive} />;
-    return <Spaces go={setActive} />;
+    return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
   };
 
   if (active === 0) return <><ThemeToggle theme={theme} setTheme={setTheme} /><Homepage onSignup={() => { setAuthMode("signup"); setActive(1); }} onSignin={() => { setAuthMode("signin"); setActive(1); }} /></>;
