@@ -46,14 +46,21 @@ test("full user loop creates a source-linked Space output that can download and 
   await expect(page.getByRole("heading", { name: "Create your corporate account" })).toBeVisible();
 
   await page.getByPlaceholder("Your company name").fill("QA Capital Partners");
-  await page.getByLabel("Currency").selectOption("EUR");
-  await page.getByLabel("Measurement").selectOption("$/unit");
+  await page.getByRole("button", { name: "Currency" }).click();
+  await page.getByRole("button", { name: /EUR/ }).click();
+  await page.getByRole("button", { name: "Measurement" }).click();
+  await page.getByRole("button", { name: /miles/ }).click();
   await page.getByRole("button", { name: "Continue to team access" }).click();
   await page.getByPlaceholder("teammate@company.com").fill("analyst@qacapital.com");
   await page.getByRole("button", { name: "+ Add member" }).click();
   await expect(page.getByText("analyst@qacapital.com")).toBeVisible();
+  await page.getByRole("button", { name: /Data sharing analyst@qacapital.com|Data sharing analyst/i }).click();
+  await page.getByRole("button", { name: /Space — this deal\/workroom only/i }).click();
   await page.getByRole("button", { name: "Continue to asset classes" }).click();
   await page.getByRole("button", { name: "Industrial" }).click();
+  await page.getByPlaceholder("Other asset class").fill("Hospitality");
+  await page.getByRole("button", { name: "Add other" }).click();
+  await expect(page.getByText("Hospitality ×")).toBeVisible();
   await page.getByRole("button", { name: "Continue to data setup" }).click();
   await expect(page.getByRole("heading", { name: "Start your proprietary database" })).toBeVisible();
 

@@ -521,7 +521,7 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
           </div>
           <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.06em]">{isSignup ? "Create your company Vault." : "Log back into Cactus."}</h1>
           <p className={`mx-auto mt-4 max-w-sm text-sm leading-6 ${muted}`}>
-            {isSignup ? "Start a new company workspace and free trial. Setup comes next; no payment step before you build the first Vault." : "Use your existing workspace, org settings, Vaults, Spaces, and saved workflows."}
+            {isSignup ? "Start a new company workspace and free trial. Setup comes next; no payment step before you build the first Vault." : "Enter your work email to continue."}
           </p>
         </div>
 
@@ -549,7 +549,7 @@ function SignupScreen({ go, theme, initialMode = "signup", onAuthenticate }: { g
           )}
 
           <p className={`mt-4 text-center text-xs leading-5 ${muted}`}>
-            {isSignup ? "Free 50-document trial · No payment before setup · Add more sources during trial" : "Returning workspace · SSO and org login later"}
+            {isSignup ? "Free 50-document trial · No payment before setup · Add more sources during trial" : ""}
           </p>
           <p className={`mt-3 text-center text-xs ${muted}`}>
             {isSignup ? "Already have an account? " : "New to Cactus? "}
@@ -567,24 +567,57 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
   const [setupStage, setSetupStage] = useState(1);
   const [companyName, setCompanyName] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [measurement, setMeasurement] = useState("$/sq.ft");
+  const [measurement, setMeasurement] = useState("sq.ft");
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [memberNotice, setMemberNotice] = useState("");
   const [teamMembers, setTeamMembers] = useState([
-    { id: "owner", name: "Account owner", email: "", role: "Owner", access: "All data" },
+    { id: "owner", name: "Account owner", email: "", role: "Owner", access: "Main Vault — all company data" },
   ]);
   const [assetClasses, setAssetClasses] = useState<string[]>(["Multifamily"]);
+  const [otherAssetClass, setOtherAssetClass] = useState("");
   const isDark = theme === "dark";
   const page = isDark ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-950";
   const panel = isDark ? "border-white/10 bg-white/[0.05]" : "border-white/80 bg-white/88";
   const surface = isDark ? "border-white/10 bg-white/[0.05]" : "border-neutral-200 bg-white";
   const field = isDark ? "border-white/10 bg-white/[0.06] text-neutral-100" : "border-neutral-300 bg-gradient-to-b from-white to-neutral-50 text-neutral-700";
+  const menu = isDark ? "border-white/10 bg-neutral-900 text-neutral-100 shadow-[0_18px_60px_rgba(0,0,0,0.45)]" : "border-neutral-200 bg-white text-neutral-900 shadow-[0_18px_60px_rgba(15,23,42,0.18)]";
   const muted = isDark ? "text-neutral-400" : "text-neutral-500";
   const label = isDark ? "text-neutral-300" : "text-neutral-700";
   const cta = isDark ? "bg-[#f6f0e6] text-neutral-950" : "bg-neutral-950 text-white";
   const summary = isDark ? "border-white/10 bg-white/[0.03] text-neutral-300" : "border-neutral-200 bg-neutral-50 text-neutral-600";
   const continueCopy = setupStage === 1 ? "Continue to team access" : setupStage === 2 ? "Continue to asset classes" : "Continue to data setup";
   const canContinue = setupStage !== 1 || companyName.trim().length > 1;
+  const currencies = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF", "JPY", "SGD", "HKD", "AED", "MXN", "BRL"];
+  const measurements = ["sq.ft", "sq.m", "miles", "kilometers", "acres", "hectares", "units", "beds"];
+  const roles = ["Owner", "Partner", "Acquisitions", "Asset Management", "Analyst", "External advisor", "Lender", "Broker", "Team member"];
+  const accessOptions = [
+    "Main Vault — all company data",
+    "Micro-Vault — selected folder only",
+    "Space — this deal/workroom only",
+    "Deal files — selected documents only",
+    "Review only — can comment/approve",
+    "View only — no edits",
+  ];
+
+  const renderDropdown = ({ id, value, options, onChange, className = "" }: { id: string; value: string; options: string[]; onChange: (value: string) => void; className?: string }) => (
+    <div className={`relative ${className}`}>
+      <button type="button" aria-label={id} onClick={() => setOpenDropdown((current) => current === id ? null : id)} className={`mt-2 flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm transition ${field}`}>
+        <span className="truncate">{value}</span>
+        <span className={`ml-3 text-xs ${muted}`}>⌄</span>
+      </button>
+      {openDropdown === id && (
+        <div className={`absolute left-0 right-0 top-[calc(100%+6px)] z-30 max-h-64 overflow-auto rounded-xl border p-1.5 ${menu}`}>
+          {options.map((option) => (
+            <button key={option} type="button" onClick={() => { onChange(option); setOpenDropdown(null); }} className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition ${option === value ? isDark ? "bg-white text-neutral-950" : "bg-neutral-950 text-white" : isDark ? "hover:bg-white/10" : "hover:bg-neutral-100"}`}>
+              <span className="w-4 text-center text-xs">{option === value ? "✓" : ""}</span>
+              <span className="truncate">{option}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   const goBack = () => {
     if (setupStage > 1) setSetupStage(setupStage - 1);
@@ -593,6 +626,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
 
   const goForward = () => {
     if (!canContinue) return;
+    setOpenDropdown(null);
     if (setupStage < 3) setSetupStage(setupStage + 1);
     else go(3);
   };
@@ -609,9 +643,9 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
     }
     const prefix = email.split("@")[0].replace(/[._-]+/g, " ");
     const name = prefix.replace(/\b\w/g, (letter) => letter.toUpperCase()) || "New teammate";
-    setTeamMembers((members) => [...members, { id: email, name, email, role: "Team member", access: "Review only" }]);
+    setTeamMembers((members) => [...members, { id: email, name, email, role: "Team member", access: "Space — this deal/workroom only" }]);
     setNewMemberEmail("");
-    setMemberNotice("Member added. You can change role and access below.");
+    setMemberNotice("Member added. You can change role and data sharing below.");
   };
 
   const updateMember = (id: string, key: "role" | "access", value: string) => {
@@ -622,15 +656,22 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
     setAssetClasses((current) => current.includes(item) ? current.filter((value) => value !== item) : [...current, item]);
   };
 
+  const addOtherAssetClass = () => {
+    const clean = otherAssetClass.trim();
+    if (!clean) return;
+    setAssetClasses((current) => current.includes(clean) ? current : [...current, clean]);
+    setOtherAssetClass("");
+  };
+
   return (
-    <div className={`flex min-h-screen items-center justify-center p-6 ${page}`}>
+    <div className={`flex min-h-screen items-center justify-center p-6 ${page}`} onClick={(event) => { if (event.target === event.currentTarget) setOpenDropdown(null); }}>
       <div className="w-full max-w-4xl">
         <div className="mb-4">
           <div className="flex items-baseline gap-3">
             <h2 className="text-2xl font-semibold tracking-[-0.03em]">Create your corporate account</h2>
             <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">Step 2 of 4</span>
           </div>
-          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set the basics for your company workspace.</p>
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${muted}`}>Set company defaults. You can change currency, units, and access per deal later.</p>
         </div>
 
         <div className={`rounded-[1.6rem] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur ${panel}`}>
@@ -643,20 +684,19 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
             )}
 
             {setupStage === 1 && (
-              <div className="grid grid-cols-[1fr_130px_150px] gap-3">
-                <label className={`text-sm font-medium ${label}`}>Company legal name
-                  <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`} placeholder="Your company name" />
-                </label>
-                <label className={`text-sm font-medium ${label}`}>Currency
-                  <select value={currency} onChange={(event) => setCurrency(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`}>
-                    {['USD','EUR','GBP','CAD','AUD'].map((item) => <option key={item}>{item}</option>)}
-                  </select>
-                </label>
-                <label className={`text-sm font-medium ${label}`}>Measurement
-                  <select value={measurement} onChange={(event) => setMeasurement(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`}>
-                    {['$/sq.ft','$/sq.m','$/unit','€/sq.m','£/sq.ft'].map((item) => <option key={item}>{item}</option>)}
-                  </select>
-                </label>
+              <div>
+                <div className="grid grid-cols-[1fr_150px_170px] gap-3">
+                  <label className={`text-sm font-medium ${label}`}>Company legal name
+                    <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-sm outline-none shadow-sm ${field}`} placeholder="Your company name" />
+                  </label>
+                  <label className={`text-sm font-medium ${label}`}>Currency
+                    {renderDropdown({ id: "Currency", value: currency, options: currencies, onChange: setCurrency })}
+                  </label>
+                  <label className={`text-sm font-medium ${label}`}>Measurement
+                    {renderDropdown({ id: "Measurement", value: measurement, options: measurements, onChange: setMeasurement })}
+                  </label>
+                </div>
+                <p className={`mt-3 text-xs ${muted}`}>These are workspace defaults; every deal, Space, and shared output can override them.</p>
               </div>
             )}
 
@@ -672,7 +712,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">Team access</p>
-                    <p className={`mt-1 text-xs ${muted}`}>Invite the people who should help review, edit, or view work.</p>
+                    <p className={`mt-1 text-xs ${muted}`}>Share the full company database, a micro-vault, or just one Space/deal.</p>
                   </div>
                   <div className="flex min-w-[330px] gap-2">
                     <input value={newMemberEmail} onChange={(event) => setNewMemberEmail(event.target.value)} className={`h-9 flex-1 rounded-lg border px-3 text-xs outline-none ${field}`} placeholder="teammate@company.com" />
@@ -680,22 +720,18 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                   </div>
                 </div>
                 {memberNotice && <p className={`mt-2 text-xs ${memberNotice.includes("added") ? "text-emerald-600" : "text-amber-600"}`}>{memberNotice}</p>}
-                <div className="mt-3 grid grid-cols-[1.2fr_0.75fr_0.85fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
-                  <span>Member</span><span>Role</span><span>Access</span>
+                <div className="mt-3 grid grid-cols-[1.1fr_0.75fr_1.15fr] gap-3 px-3.5 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+                  <span>Member</span><span>Role</span><span>Data sharing</span>
                 </div>
-                <div className={`mt-2 overflow-hidden rounded-xl border ${surface}`}>
+                <div className={`mt-2 overflow-visible rounded-xl border ${surface}`}>
                   {teamMembers.map((member) => (
-                    <div key={member.id} className={`grid grid-cols-[1.2fr_0.75fr_0.85fr] items-center gap-3 border-b px-3.5 py-2 last:border-b-0 ${isDark ? "border-white/10" : "border-neutral-100"}`}>
+                    <div key={member.id} className={`grid grid-cols-[1.1fr_0.75fr_1.15fr] items-center gap-3 border-b px-3.5 py-2 last:border-b-0 ${isDark ? "border-white/10" : "border-neutral-100"}`}>
                       <div>
                         <p className="text-sm font-medium leading-5">{member.name}</p>
                         <p className={`text-xs ${muted}`}>{member.email || "Account creator"}</p>
                       </div>
-                      <select value={member.role} onChange={(event) => updateMember(member.id, "role", event.target.value)} className={`rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}>
-                        {['Owner','Partner','Acquisitions','Asset Management','Analyst','External advisor','Lender','Broker','Team member'].map((item) => <option key={item}>{item}</option>)}
-                      </select>
-                      <select value={member.access} onChange={(event) => updateMember(member.id, "access", event.target.value)} className={`rounded-md border px-2.5 py-1.5 text-left text-xs font-medium shadow-sm ${field}`}>
-                        {['All data','Deals + comps','Portfolio only','Review only','View only'].map((item) => <option key={item}>{item}</option>)}
-                      </select>
+                      {renderDropdown({ id: `Role ${member.id}`, value: member.role, options: roles, onChange: (value) => updateMember(member.id, "role", value) })}
+                      {renderDropdown({ id: `Data sharing ${member.id}`, value: member.access, options: accessOptions, onChange: (value) => updateMember(member.id, "access", value) })}
                     </div>
                   ))}
                 </div>
@@ -718,6 +754,17 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
                     );
                   })}
                 </div>
+                <div className="mt-3 flex gap-2">
+                  <input value={otherAssetClass} onChange={(event) => setOtherAssetClass(event.target.value)} className={`h-10 flex-1 rounded-lg border px-3 text-sm outline-none ${field}`} placeholder="Other asset class" />
+                  <button onClick={addOtherAssetClass} className={`rounded-lg border px-3 text-sm font-medium shadow-sm ${surface} ${label}`}>Add other</button>
+                </div>
+                {assetClasses.some((item) => !["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].includes(item)) && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {assetClasses.filter((item) => !["Multifamily", "Affordable housing", "Self storage", "Industrial", "Retail", "Office"].includes(item)).map((item) => (
+                      <button key={item} onClick={() => toggleAssetClass(item)} className={`rounded-full border px-2.5 py-1 text-xs ${isDark ? "border-white/10 bg-white/10 text-neutral-200" : "border-neutral-200 bg-neutral-50 text-neutral-700"}`}>{item} ×</button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -725,7 +772,7 @@ function AccountSetup({ go, theme }: { go: (screenIndex: number) => void; theme:
           <div className={`mt-5 flex items-center justify-between border-t pt-4 ${isDark ? "border-white/10" : "border-neutral-200"}`}>
             <button onClick={goBack} className={`rounded-lg border px-4 py-2 text-sm font-medium ${isDark ? "border-white/10 text-neutral-300 hover:bg-white/10" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Back</button>
             <div className="flex items-center gap-4">
-              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>These defaults can be edited later.</span>
+              <span className={`text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>Defaults only — editable per deal.</span>
               <button disabled={!canContinue} onClick={goForward} className={`rounded-xl px-5 py-3 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-40 ${cta}`}>{continueCopy}</button>
             </div>
           </div>
