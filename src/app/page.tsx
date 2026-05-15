@@ -5,7 +5,7 @@ import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type
 import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
 import { addAuditApproval, createAiConnectionFromKey, type CactusAiConnection, type VaultAuditApproval } from "@/lib/cactus-settings";
 import { postCactusResource } from "@/lib/cactus-api";
-import type { CactusAuthSession } from "@/lib/cactus-backend";
+import type { CactusAuthSession, CactusBackendState, CactusVaultFact } from "@/lib/cactus-backend";
 import { appendWorkflowOutcome, createWorkflowOutcome, createWorkflowSpaceDraft, type WorkflowActionMode, type WorkflowOutcome } from "@/lib/cactus-workflows";
 
 const sourceCards = [
@@ -47,6 +47,15 @@ const CACTUS_WORKING_STATE_KEY = "cactus-working-app-state-v1";
 const emptyAiConnection: CactusAiConnection = { status: "not_connected", provider: "OpenAI", label: "Connect OpenAI", fingerprint: "" };
 
 type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[]; workflowOutcomes: WorkflowOutcome[]; authSession: CactusAuthSession | null };
+type ReviewQueueItem = {
+  row: VaultGridRow;
+  document?: CactusBackendState["documents"][number];
+  facts: CactusVaultFact[];
+  sourcePreview: string;
+  reviewCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+};
 const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [], workflowOutcomes: [], authSession: null });
 
 function loadWorkingState(): CactusWorkingState {
@@ -1514,7 +1523,7 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onUploadFile, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onUploadFile: (file: File, source?: string) => Promise<VaultGridRow | null>; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onUploadFile, reviewQueue, onReviewFactAction, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onUploadFile: (file: File, source?: string) => Promise<VaultGridRow | null>; reviewQueue: ReviewQueueItem[]; onReviewFactAction: (factId: string, action: "approve" | "reject" | "edit", value?: string) => Promise<void>; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
@@ -1652,6 +1661,10 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
     ? Array.from(new Set(vaultRows.map((row) => String(row[activeFilterColumnDef.key as keyof typeof row] || "Blank"))))
       .map((value) => ({ value, count: vaultRows.filter((row) => String(row[activeFilterColumnDef.key as keyof typeof row] || "Blank") === value).length }))
     : [];
+  const activeReviewItem = reviewQueue[0];
+  const activeReviewFacts = activeReviewItem?.facts ?? [];
+  const activeReviewDocument = activeReviewItem?.document;
+  const activeReviewSource = activeReviewItem?.sourcePreview ?? "Upload a deal package to see source evidence beside extracted facts.";
   const sourceSetupModal = (
     <div className="fixed inset-0 z-50 bg-white text-neutral-950" onClick={() => setSourceCenterOpen(false)}>
       <section onClick={(event) => event.stopPropagation()} className="flex h-full flex-col">
@@ -1797,7 +1810,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
               <button onClick={() => setVaultView("table")} className={`rounded px-3 py-1.5 text-xs font-medium ${vaultView === "table" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}>Table</button>
               <button onClick={() => setVaultView("map")} className={`rounded px-3 py-1.5 text-xs font-medium ${vaultView === "map" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}>Map</button>
             </div>
-            <button onClick={() => setAuditOpen(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Audit</button>
+            <button onClick={() => setAuditOpen(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Audit{reviewQueue.length ? ` · ${reviewQueue.reduce((sum, item) => sum + item.reviewCount, 0)}` : ""}</button>
           </TopBar>
 
           <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
@@ -1950,48 +1963,33 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
             <div><p className="text-sm font-semibold">Verify extracted facts{auditFocus ? ` · ${auditFocus.field}` : ""}</p><p className="text-xs text-neutral-500">{auditFocus ? `${auditFocus.row} · current value: ${auditFocus.value}` : "Original source on the left. Facts, citations, and approval controls on the right."}</p></div>
             <button onClick={() => setAuditOpen(false)} className="rounded-md px-2 py-1 text-neutral-400 hover:bg-neutral-100">×</button>
           </div>
-          <div className="grid h-[calc(100%-56px)] grid-cols-[1fr_380px]">
+          <div className="grid h-[calc(100%-56px)] grid-cols-[1fr_420px]">
             <div className="overflow-auto bg-neutral-100 p-6">
-              <div className="mx-auto w-[520px] rounded-sm bg-white p-8 shadow-xl ring-1 ring-neutral-200">
+              <div className="mx-auto min-h-[620px] w-[560px] rounded-sm bg-white p-8 shadow-xl ring-1 ring-neutral-200">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-200 pb-3 text-xs text-neutral-500">
-                  <span>16 Enviro Drive - Final.pdf</span><span>Page 4 / original PDF view</span>
+                  <span>{activeReviewDocument?.name ?? "No uploaded source selected"}</span><span>{activeReviewDocument?.kind?.toUpperCase() ?? "SOURCE"} · visual evidence</span>
                 </div>
-                <h3 className="text-xl font-semibold text-neutral-950">Property Summary</h3>
-                <div className="mt-5 space-y-4 text-sm leading-7 text-neutral-700">
-                  <p>The property located at <mark className="rounded bg-yellow-200 px-1">16 Enviro Drive, Moncton, New Brunswick</mark> is a self-storage facility serving the Moncton market.</p>
-                  <p>Total rentable square footage is <mark className="rounded bg-blue-100 px-1">18,000</mark>. The improvements were built in <mark className="rounded bg-emerald-100 px-1">2021</mark> with stabilized operating history provided in the package.</p>
-                  <div className="mt-5 rounded border border-neutral-300 p-3">
-                    <div className="grid grid-cols-2 border-b border-neutral-200 py-1"><span>Total Units</span><mark className="bg-yellow-200 px-1 text-right">136</mark></div>
-                    <div className="grid grid-cols-2 border-b border-neutral-200 py-1"><span>Property Valuation</span><mark className="bg-blue-100 px-1 text-right">$2,159,000</mark></div>
-                    <div className="grid grid-cols-2 py-1"><span>NOI Growth</span><mark className="bg-emerald-100 px-1 text-right">3.4%</mark></div>
-                  </div>
-                </div>
+                <h3 className="text-xl font-semibold text-neutral-950">{activeReviewItem?.row.location.split("\n")[0] ?? "Extraction source"}</h3>
+                <pre className="mt-5 whitespace-pre-wrap rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm leading-7 text-neutral-700">{activeReviewSource}</pre>
               </div>
             </div>
             <div className="border-l border-neutral-200 bg-white p-5">
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm font-semibold">Extracted fields</p>
-                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">6 extracted</span>
+                <div><p className="text-sm font-semibold">Extracted fields</p><p className="mt-1 text-xs text-neutral-500">Approve, edit, or reject before trusting the Vault.</p></div>
+                <span className="rounded-md bg-neutral-100 px-2 py-1 text-[11px] text-neutral-500">{activeReviewFacts.length} extracted</span>
               </div>
-              <div className="space-y-2">
-                {[
-                  [auditFocus?.field ?? "Total Units", auditFocus?.value ?? "136", "Selected Vault cell · source citation", "96%"],
-                  ["Address", "16 Enviro Drive, Moncton", "PDF · page 4", "99%"],
-                  ["Property Type", "Self-storage facility", "PDF · page 4", "95%"],
-                  ["Year Built", "2021", "PDF · page 4", "97%"],
-                  ["Rentable Square Feet", "18,000", "PDF · page 4", "97%"],
-                  ["Property Valuation", "$2,159,000", "PDF · page 4", "94%"],
-                ].map(([field, value, source, confidence], index) => (
-                  <button key={field} className={`w-full rounded-xl border p-3 text-left hover:bg-neutral-50 ${index === 0 ? "border-neutral-950 bg-neutral-50" : "border-neutral-200"}`}>
-                    <div className="flex items-start justify-between gap-3"><span className="text-sm font-medium text-neutral-950">{field}</span><span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] text-emerald-700">{confidence}</span></div>
-                    <p className="mt-1 text-sm text-neutral-700">{value}</p>
-                    <p className="mt-1 text-xs text-neutral-400">{source} · click to highlight in source</p>
-                    <div className="mt-3 flex gap-2"><span className="rounded-md bg-neutral-950 px-2 py-1 text-[11px] text-white">Approve</span><span className="rounded-md border border-neutral-200 px-2 py-1 text-[11px] text-neutral-600">Edit</span><span className="rounded-md border border-neutral-200 px-2 py-1 text-[11px] text-neutral-600">Reject</span></div>
-                  </button>
-                ))}
+              {reviewQueue.length > 1 && <div className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">{reviewQueue.length} source rows in review queue. Showing highest-priority row.</div>}
+              <div className="max-h-[calc(100vh-190px)] space-y-2 overflow-auto pr-1">
+                {activeReviewFacts.length ? activeReviewFacts.map((fact) => (
+                  <div key={fact.id} className={`w-full rounded-xl border p-3 text-left ${fact.status === "rejected" ? "border-red-200 bg-red-50" : fact.status === "approved" ? "border-emerald-200 bg-emerald-50/40" : "border-neutral-200 bg-white"}`}>
+                    <div className="flex items-start justify-between gap-3"><span className="text-sm font-medium text-neutral-950">{fact.field}</span><span className={`rounded-full px-2 py-1 text-[11px] ${fact.status === "approved" ? "bg-emerald-100 text-emerald-700" : fact.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{Math.round(fact.confidence * 100)}% · {fact.status.replace("_", " ")}</span></div>
+                    <input defaultValue={fact.value} onBlur={(event) => { if (event.currentTarget.value !== fact.value) void onReviewFactAction(fact.id, "edit", event.currentTarget.value); }} className="mt-2 w-full rounded-md border border-neutral-200 px-2 py-1.5 text-sm text-neutral-800 outline-none focus:border-neutral-950" />
+                    <p className="mt-2 text-xs leading-5 text-neutral-500">{fact.evidence}</p>
+                    <div className="mt-3 flex gap-2"><button onClick={() => void onReviewFactAction(fact.id, "approve")} className="rounded-md bg-neutral-950 px-2 py-1 text-[11px] text-white">Approve</button><button onClick={() => void onReviewFactAction(fact.id, "edit", fact.value)} className="rounded-md border border-neutral-200 px-2 py-1 text-[11px] text-neutral-600">Keep in review</button><button onClick={() => void onReviewFactAction(fact.id, "reject")} className="rounded-md border border-red-200 px-2 py-1 text-[11px] text-red-600">Reject</button></div>
+                  </div>
+                )) : <div className="rounded-xl border border-dashed border-neutral-200 p-5 text-sm text-neutral-500">No extracted facts yet. Upload a deal package from Add Data to populate this queue.</div>}
               </div>
-              <button onClick={() => { if (auditFocus) onApproveAudit({ row: auditFocus.row, field: auditFocus.field, value: auditFocus.value }); setAuditOpen(false); }} className="mt-5 w-full rounded-md bg-neutral-950 px-3 py-2 text-xs font-medium text-white">Approve reviewed facts</button>
-              {auditApprovalCount > 0 && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-center text-xs text-emerald-700">{auditApprovalCount} facts approved in this Vault.</p>}
+              {auditApprovalCount > 0 && <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-center text-xs text-emerald-700">{auditApprovalCount} legacy cell approvals in this Vault.</p>}
             </div>
           </div>
         </aside>
@@ -2261,6 +2259,7 @@ export default function Home() {
   const [auditApprovals, setAuditApprovals] = useState<VaultAuditApproval[]>(initialWorkingState.auditApprovals);
   const [workflowOutcomes, setWorkflowOutcomes] = useState<WorkflowOutcome[]>(initialWorkingState.workflowOutcomes);
   const [authSession, setAuthSession] = useState<CactusAuthSession | null>(initialWorkingState.authSession);
+  const [reviewQueue, setReviewQueue] = useState<ReviewQueueItem[]>([]);
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyMessage, setApiKeyMessage] = useState("");
@@ -2270,6 +2269,33 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes, authSession }));
   }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes, authSession]);
+  const refreshReviewQueue = async () => {
+    try {
+      const payload = await fetch("/api/cactus/state").then((response) => response.json());
+      const state = payload?.state as CactusBackendState | undefined;
+      if (!state) return;
+      const items = state.vaultRows.map((row) => {
+        const facts = state.vaultFacts.filter((fact) => fact.vaultRowId === row.id);
+        const document = state.documents.find((candidate) => candidate.id === facts[0]?.sourceDocumentId);
+        return {
+          row,
+          document,
+          facts,
+          sourcePreview: document?.textPreview ?? "No source preview captured for this row.",
+          reviewCount: facts.filter((fact) => fact.status === "needs_review").length,
+          approvedCount: facts.filter((fact) => fact.status === "approved").length,
+          rejectedCount: facts.filter((fact) => fact.status === "rejected").length,
+        };
+      }).filter((item) => item.facts.length > 0).sort((a, b) => b.reviewCount - a.reviewCount);
+      setReviewQueue(items);
+    } catch {
+      setReviewQueue([]);
+    }
+  };
+  useEffect(() => {
+    const id = window.setTimeout(() => { void refreshReviewQueue(); }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
   const authenticate = async (input: { email: string; provider: "email" | "google" | "microsoft"; displayName?: string }) => {
     const response = await postCactusResource<CactusAuthSession>("auth", { ...input, companyName: "Cactus Capital Partners" });
     if (!response?.email) return false;
@@ -2278,7 +2304,7 @@ export default function Home() {
   };
   const addExtractedRow = (row: VaultGridRow) => {
     setExtractedRows((current) => mergeVaultRows(current, row));
-    void postCactusResource("documents", { name: "Ocean Drive OM.pdf", kind: "pdf", source: "refined Vault source setup", text: sampleDealDocument, rowId: row.id });
+    void postCactusResource("documents", { name: "Ocean Drive OM.pdf", kind: "pdf", source: "refined Vault source setup", text: sampleDealDocument, rowId: row.id }).then(() => refreshReviewQueue());
   };
   const uploadFileToVault = async (file: File, source = "direct file upload") => {
     const form = new FormData();
@@ -2290,10 +2316,15 @@ export default function Home() {
       const row = payload?.result?.row as VaultGridRow | undefined;
       if (!response.ok || !row?.id) return null;
       setExtractedRows((current) => mergeVaultRows(current, row));
+      await refreshReviewQueue();
       return row;
     } catch {
       return null;
     }
+  };
+  const reviewFactAction = async (factId: string, action: "approve" | "reject" | "edit", value?: string) => {
+    await postCactusResource("vault-facts", action === "approve" ? { factId } : action === "reject" ? { factId, action, reason: "Rejected in visual extraction review" } : { factId, action, value, evidence: "Edited in visual extraction review" });
+    await refreshReviewQueue();
   };
   const approveAudit = (approval: Omit<VaultAuditApproval, "approvedAt">) => {
     setAuditApprovals((current) => addAuditApproval(current, approval));
@@ -2325,7 +2356,7 @@ export default function Home() {
   };
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onUploadFile={uploadFileToVault} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onUploadFile={uploadFileToVault} reviewQueue={reviewQueue} onReviewFactAction={reviewFactAction} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
     if (active === 7) return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
     if (active === 8) return <Workflows go={setActive} workflowOutcomes={workflowOutcomes} onWorkflowOutcome={recordWorkflowOutcome} onCreateWorkflowSpace={createWorkflowSpace} />;
     if (active === 9) return <TasksActivity go={setActive} />;

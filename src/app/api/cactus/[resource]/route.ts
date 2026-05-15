@@ -10,6 +10,7 @@ import {
 } from "@/lib/cactus-backend";
 import { bootstrapAuthSession } from "@/lib/cactus-auth";
 import { buildUploadedDocumentInput } from "@/lib/cactus-file-intake";
+import { editVaultFact, rejectVaultFact } from "@/lib/cactus-review";
 import { loadCactusBackendState, updateCactusBackendState, activePersistenceProvider } from "@/lib/cactus-persistence";
 
 export const runtime = "nodejs";
@@ -54,6 +55,8 @@ export async function POST(request: Request, context: RouteContext) {
           return ingestDocument(draft, { name: body.name ?? "Uploaded CRE source", text: body.text ?? "", kind: body.kind, source: body.source, rowId: body.rowId });
         case "vault-facts":
           if (!body.factId) throw new Error("factId is required");
+          if (body.action === "edit") return editVaultFact(draft, body.factId, body.value ?? "", body.evidence ?? "Edited during extraction review");
+          if (body.action === "reject") return rejectVaultFact(draft, body.factId, body.reason ?? "Rejected during extraction review");
           return approveVaultFact(draft, body.factId);
         case "spaces":
           return createBackendSpaceFromRows(draft, body.vaultRowIds ?? []);
