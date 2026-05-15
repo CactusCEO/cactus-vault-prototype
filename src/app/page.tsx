@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState, type MouseEvent as ReactMouseEvent, type
 import { extractDealDocumentToVaultRow, mergeVaultRows, sampleDealDocument, type VaultGridRow } from "@/lib/cactus-extraction";
 import { createSpaceDraftFromVaultRows, type CactusSpaceDraft } from "@/lib/cactus-space";
 import { addAuditApproval, createAiConnectionFromKey, type CactusAiConnection, type VaultAuditApproval } from "@/lib/cactus-settings";
+import { postCactusResource } from "@/lib/cactus-api";
 import { appendWorkflowOutcome, createWorkflowOutcome, createWorkflowSpaceDraft, type WorkflowActionMode, type WorkflowOutcome } from "@/lib/cactus-workflows";
 
 const sourceCards = [
@@ -2240,8 +2241,14 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes }));
   }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes]);
-  const addExtractedRow = (row: VaultGridRow) => setExtractedRows((current) => mergeVaultRows(current, row));
-  const approveAudit = (approval: Omit<VaultAuditApproval, "approvedAt">) => setAuditApprovals((current) => addAuditApproval(current, approval));
+  const addExtractedRow = (row: VaultGridRow) => {
+    setExtractedRows((current) => mergeVaultRows(current, row));
+    void postCactusResource("documents", { name: "Ocean Drive OM.pdf", kind: "pdf", source: "refined Vault source setup", text: sampleDealDocument, rowId: row.id });
+  };
+  const approveAudit = (approval: Omit<VaultAuditApproval, "approvedAt">) => {
+    setAuditApprovals((current) => addAuditApproval(current, approval));
+    void postCactusResource("sources", { name: `Audit approval: ${approval.row} ${approval.field}`, direction: "Read to Vault" });
+  };
   const connectOpenAi = () => {
     const next = createAiConnectionFromKey(apiKeyInput);
     if (next.status !== "connected") {
@@ -2254,11 +2261,16 @@ export default function Home() {
   };
   const createSpaceFromRows = (rows: VaultGridRow[], request = "Review this deal") => {
     setActiveSpaceDraft(createSpaceDraftFromVaultRows(rows, request));
+    void postCactusResource("spaces", { vaultRowIds: rows.map((row) => row.id), request });
     setActive(7);
   };
-  const recordWorkflowOutcome = (outcome: WorkflowOutcome) => setWorkflowOutcomes((current) => appendWorkflowOutcome(current, outcome));
+  const recordWorkflowOutcome = (outcome: WorkflowOutcome) => {
+    setWorkflowOutcomes((current) => appendWorkflowOutcome(current, outcome));
+    void postCactusResource("workflows", { workflow: outcome.workflow, mode: outcome.mode });
+  };
   const createWorkflowSpace = (workflow: string) => {
     setActiveSpaceDraft(createWorkflowSpaceDraft(workflow));
+    void postCactusResource("workflows", { workflow, mode: "Open Space" });
     setActive(7);
   };
   const renderAppScreen = () => {

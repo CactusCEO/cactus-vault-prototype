@@ -35,7 +35,7 @@ export function createAiConnectionFromKey(key: string): CactusAiConnection {
 
 export function redactPotentialSecrets(value: string): string {
   return value
-    .replace(/sk-(?:proj-)?[A-Za-z0-9_-]{12,}/g, "[REDACTED]")
+    .replace(/sk-(?:proj-)?[A-Za-z0-9_-]{6,}/g, "[REDACTED]")
     .replace(/\b(?:secret|token|api[_-]?key|password)[\w-]*\s*[:=]\s*[^\s,;]+/gi, "[REDACTED]");
 }
 
