@@ -46,7 +46,7 @@ const sourceSetupKeyByIndex = ["deal", "connected", "portfolio", "deal"] as cons
 const CACTUS_WORKING_STATE_KEY = "cactus-working-app-state-v1";
 const emptyAiConnection: CactusAiConnection = { status: "not_connected", provider: "OpenAI", label: "Connect OpenAI", fingerprint: "" };
 
-type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[]; workflowOutcomes: WorkflowOutcome[]; authSession: CactusAuthSession | null };
+type CactusWorkingState = { hasIntake: boolean; sourceIndex: number; extractedRows: VaultGridRow[]; deletedRowIds: string[]; aiConnection: CactusAiConnection; auditApprovals: VaultAuditApproval[]; workflowOutcomes: WorkflowOutcome[]; authSession: CactusAuthSession | null };
 type ReviewQueueItem = {
   row: VaultGridRow;
   document?: CactusBackendState["documents"][number];
@@ -56,7 +56,7 @@ type ReviewQueueItem = {
   approvedCount: number;
   rejectedCount: number;
 };
-const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], aiConnection: emptyAiConnection, auditApprovals: [], workflowOutcomes: [], authSession: null });
+const emptyWorkingState = (): CactusWorkingState => ({ hasIntake: false, sourceIndex: 0, extractedRows: [], deletedRowIds: [], aiConnection: emptyAiConnection, auditApprovals: [], workflowOutcomes: [], authSession: null });
 
 function loadWorkingState(): CactusWorkingState {
   if (typeof window === "undefined") return emptyWorkingState();
@@ -68,6 +68,7 @@ function loadWorkingState(): CactusWorkingState {
       hasIntake: Boolean(parsed.hasIntake),
       sourceIndex: typeof parsed.sourceIndex === "number" ? parsed.sourceIndex : 0,
       extractedRows: Array.isArray(parsed.extractedRows) ? parsed.extractedRows : [],
+      deletedRowIds: Array.isArray(parsed.deletedRowIds) ? parsed.deletedRowIds : [],
       aiConnection: parsed.aiConnection?.status ? parsed.aiConnection : emptyAiConnection,
       auditApprovals: Array.isArray(parsed.auditApprovals) ? parsed.auditApprovals : [],
       workflowOutcomes: Array.isArray(parsed.workflowOutcomes) ? parsed.workflowOutcomes : [],
@@ -223,14 +224,40 @@ function TopBar({ title, search, onSearch, searchPlaceholder = "Search…", cta,
 
 function SharedComposer({ placeholder, context = [], contextActions = {}, onSend, disabled = false, compact = false }: { placeholder: string; context?: string[]; contextActions?: Record<string, () => void>; onSend?: () => void; disabled?: boolean; compact?: boolean }) {
   const [listening, setListening] = useState(false);
+  const examplePrompts = [
+    "Add + a T-12, rent roll, OM, or existing Vault row",
+    "Workflow: monitor this market weekly and flag changes",
+    "Enhance: turn my rough ask into an IC memo prompt",
+    "@Selected rows: compare downside risks and what must change",
+  ];
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3 shadow-[0_18px_55px_rgba(15,23,42,0.16)] transition ${listening ? "shadow-[0_22px_70px_rgba(180,101,39,0.24)]" : ""} ${disabled ? "opacity-60" : ""}`}>
-      <textarea disabled={disabled} className={`${compact ? "h-16" : "h-28"} w-full resize-none px-2 py-2 text-sm outline-none placeholder:text-neutral-400 disabled:bg-white`} placeholder={placeholder} />
+      <style jsx global>{`
+        @keyframes cactusPromptCarousel {
+          0%, 18% { opacity: 1; transform: translateY(0); }
+          24%, 100% { opacity: 0; transform: translateY(-10px); }
+        }
+      `}</style>
+      <textarea disabled={disabled} className={`${compact ? "h-16" : "h-24"} w-full resize-none px-2 py-2 text-sm outline-none placeholder:text-neutral-400 disabled:bg-white`} placeholder={placeholder} />
+      {!compact && (
+        <div className="relative mx-2 mb-2 h-6 overflow-hidden text-xs text-neutral-400" aria-label="Assistant prompt examples">
+          {examplePrompts.map((example, index) => (
+            <span key={example} className="absolute inset-x-0 top-0 opacity-0" style={{ animation: `cactusPromptCarousel 12s infinite`, animationDelay: `${index * 3}s` }}>
+              Try: {example}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-1 pt-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {context.map((chip) => contextActions[chip]
-            ? <button key={chip} onClick={contextActions[chip]} className="rounded-md border border-neutral-200 px-2.5 py-1.5 text-neutral-600 hover:bg-neutral-50">{chip}</button>
-            : <span key={chip} className="rounded-md border border-neutral-200 px-2.5 py-1.5 text-neutral-600">{chip}</span>)}
+          {context.map((chip) => {
+            const isEnhance = chip === "Enhance prompt" || chip === "✦";
+            const label = isEnhance ? "Enhance prompt" : chip;
+            const body = isEnhance ? <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2.75 11.55 7 15.75 8.55 11.55 10.1 10 14.25 8.45 10.1 4.25 8.55 8.45 7 10 2.75Z" /><path d="M15.5 13.25 16.1 14.9 17.75 15.5 16.1 16.1 15.5 17.75 14.9 16.1 13.25 15.5 14.9 14.9 15.5 13.25Z" /></svg> : chip;
+            return contextActions[chip]
+              ? <button key={chip} onClick={contextActions[chip]} aria-label={label} title={label} className={`${isEnhance ? "grid h-8 w-8 place-items-center rounded-full" : "rounded-md px-2.5 py-1.5"} border border-neutral-200 text-neutral-600 hover:bg-neutral-50`}>{body}</button>
+              : <span key={chip} aria-label={label} title={label} className={`${isEnhance ? "grid h-8 w-8 place-items-center rounded-full" : "rounded-md px-2.5 py-1.5"} border border-neutral-200 text-neutral-600`}>{body}</span>;
+          })}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setListening((value) => !value)} aria-label="Talk to Cactus" className={`relative z-10 grid h-9 w-9 place-items-center rounded-full border transition ${listening ? "border-amber-200 bg-amber-50 text-amber-900 shadow-[0_0_0_4px_rgba(251,191,36,0.14)]" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>
@@ -938,12 +965,11 @@ function Opportunities({ go, onSubmit, hasIntake, initialSource, onExtractDeal }
 
           <SharedComposer
             placeholder={promptText}
-            context={[filesAdded ? "7 files" : "Add +", "Sources", "Create", "Workflow"]}
+            context={[filesAdded ? "7 files" : "Add +", "Workflow", "Enhance prompt"]}
             contextActions={{
               [filesAdded ? "7 files" : "Add +"]: openAdd,
-              Sources: () => openComposerTool("context"),
-              Create: () => go(7),
               Workflow: () => openComposerTool("workflow"),
+              "Enhance prompt": () => setAsked(true),
             }}
             onSend={() => { setAsked(true); go(7); }}
           />
@@ -1086,7 +1112,7 @@ function Spaces({ go, spaceDraft, onClearSpaceDraft }: { go: (screenIndex: numbe
               </div>
             </div>
             <div className="border-t border-neutral-200 bg-white p-4">
-              <SharedComposer compact placeholder="Ask Cactus, @mention someone, or type /task, /draft, /map, /workflow…" context={["Space", "Vault context", "Tasks"]} onSend={() => setArtifact("Draft artifact created from chat")} />
+              <SharedComposer compact placeholder="Ask Cactus, @mention someone, or type /task, /draft, /map, /workflow…" context={["Add +", "Workflow", "Enhance prompt"]} onSend={() => setArtifact("Draft artifact created from chat")} />
             </div>
           </section>
           <button aria-label="Drag divider" onClick={() => setDivider((value) => value === 52 ? 64 : value === 64 ? 42 : 52)} className="h-full cursor-col-resize border-x border-neutral-200 bg-neutral-100 hover:bg-neutral-200" />
@@ -1122,7 +1148,7 @@ function Spaces({ go, spaceDraft, onClearSpaceDraft }: { go: (screenIndex: numbe
                 <p className="font-serif text-2xl tracking-[-0.04em] text-neutral-950">What are we working on?</p>
                 <p className="mt-2 text-sm text-neutral-500">Ask Cactus. It will create the Space.</p>
               </div>
-              <SharedComposer placeholder="How can I help? Use @ to add context…" context={["Sources", "Create", "Workflow"]} contextActions={{ Create: () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8) }} onSend={() => startAssistantSpace("Assistant-created Space")} />
+              <SharedComposer placeholder="How can I help? Use @ to add context…" context={["Add +", "Workflow", "Enhance prompt"]} contextActions={{ "Add +": () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8), "Enhance prompt": () => startAssistantSpace("Enhanced prompt Space") }} onSend={() => startAssistantSpace("Assistant-created Space")} />
 
             </div>
           </div>
@@ -1136,7 +1162,7 @@ function Spaces({ go, spaceDraft, onClearSpaceDraft }: { go: (screenIndex: numbe
         )}
       </main>
       {teamOpen && <TeamMemberDrawer member={selectedMember} members={teamMembers} notice={teamNotice} onClose={() => setTeamOpen(false)} onAdd={addSpaceMember} onRemove={removeSpaceMember} />}
-      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="How can I help? Use @ to add context…" context={["Sources", "Create", "Workflow"]} contextActions={{ Create: () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8) }} onSend={() => startAssistantSpace("Assistant-created Space")} /></div></div>}
+      {newOpen && <div onClick={() => setNewOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/25 p-4"><div onClick={(event) => event.stopPropagation()} className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl"><div className="mb-4 flex justify-between"><div><p className="text-sm font-medium">Ask Cactus</p><p className="mt-1 text-xs text-neutral-500">Describe the work. Cactus creates the Space.</p></div><button onClick={() => setNewOpen(false)}>×</button></div><SharedComposer compact placeholder="How can I help? Use @ to add context…" context={["Add +", "Workflow", "Enhance prompt"]} contextActions={{ "Add +": () => startAssistantSpace("New Cactus Space"), Workflow: () => go(8), "Enhance prompt": () => startAssistantSpace("Enhanced prompt Space") }} onSend={() => startAssistantSpace("Assistant-created Space")} /></div></div>}
     </div>
   );
 }
@@ -1573,7 +1599,7 @@ function Agents() {
   );
 }
 
-function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, onUploadFile, reviewQueue, onReviewFactAction, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; onUploadFile: (file: File, source?: string) => Promise<VaultGridRow | null>; reviewQueue: ReviewQueueItem[]; onReviewFactAction: (factId: string, action: "approve" | "reject" | "edit", value?: string) => Promise<void>; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
+function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRows, deletedRowIds, onDeleteRows, onUploadFile, reviewQueue, onReviewFactAction, onCreateSpaceFromRows, auditApprovals, onApproveAudit }: { hasIntake: boolean; go: (screenIndex: number) => void; sourceIndex: number; onCompleteIntake: (sourceIndex: number) => void; extractedRows: VaultGridRow[]; deletedRowIds: string[]; onDeleteRows: (rowIds: string[]) => void; onUploadFile: (file: File, source?: string) => Promise<VaultGridRow | null>; reviewQueue: ReviewQueueItem[]; onReviewFactAction: (factId: string, action: "approve" | "reject" | "edit", value?: string) => Promise<void>; onCreateSpaceFromRows: (rows: VaultGridRow[], request?: string) => void; auditApprovals: VaultAuditApproval[]; onApproveAudit: (approval: Omit<VaultAuditApproval, "approvedAt">) => void }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showColumnBuilder, setShowColumnBuilder] = useState(false);
   const [vaultView, setVaultView] = useState<"table" | "map">("table");
@@ -1605,7 +1631,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
     { id: "msa", kind: "Market", location: "Nashville MSA", yr1Noi: "", entryCap: "", marketCap: "5.6%", oneBedEffectiveRent: "$1,505", oneBedMarketRent: "$1,590", noiGrowth: "2.6%", owner: "" },
     { id: "provider-report", kind: "Report", location: "Green Street\nSoutheast MF", yr1Noi: "", entryCap: "", marketCap: "5.7%", oneBedEffectiveRent: "", oneBedMarketRent: "$1,620", noiGrowth: "2.8%", owner: "" },
   ];
-  const vaultRows = [...extractedRows, ...baseVaultRows];
+  const vaultRows = [...extractedRows, ...baseVaultRows].filter((row) => !deletedRowIds.includes(row.id));
   const normalizedSearch = aiSearch.trim().toLowerCase();
   const filteredVaultRows = normalizedSearch
     ? vaultRows.filter((row) => Object.values(row).join(" ").toLowerCase().includes(normalizedSearch))
@@ -1616,9 +1642,13 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
   };
   const selectedCount = selectedRows.length;
   const sourceRun = sourceRunLabels[sourceIndex];
-  const sourceTitle = sourceCards[sourceIndex].title;
   const auditApprovalCount = auditApprovals.length;
   const toggleRow = (id: string) => setSelectedRows((current) => current.includes(id) ? current.filter((row) => row !== id) : [...current, id]);
+  const deleteSelectedRows = () => {
+    if (!selectedRows.length) return;
+    onDeleteRows(selectedRows);
+    setSelectedRows([]);
+  };
   const vaultSetupModes = [
     {
       key: "deal" as const,
@@ -1803,10 +1833,6 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
       <div className="flex h-screen flex-col bg-white text-neutral-950">
         <TopBar title="Vault" search={aiSearch} onSearch={setAiSearch} searchPlaceholder="Search Vault…" />
 
-        <div className="flex h-10 items-center border-b border-neutral-100 px-6 text-xs text-neutral-500">
-          <span>Selected in onboarding: <strong className="font-medium text-neutral-800">{sourceTitle}</strong></span>
-        </div>
-
         <main className="flex min-h-0 flex-1 flex-col p-6">
           <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
             <div className="grid h-10 min-w-[1050px] grid-cols-[240px_150px_150px_160px_175px_175px] border-b border-neutral-200 bg-neutral-50 px-3 text-xs font-semibold text-neutral-500">
@@ -1860,6 +1886,7 @@ function VaultTable({ hasIntake, go, sourceIndex, onCompleteIntake, extractedRow
               <button onClick={() => setVaultView("table")} className={`rounded px-3 py-1.5 text-xs font-medium ${vaultView === "table" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}>Table</button>
               <button onClick={() => setVaultView("map")} className={`rounded px-3 py-1.5 text-xs font-medium ${vaultView === "map" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}>Map</button>
             </div>
+            {selectedCount > 0 && <button onClick={deleteSelectedRows} className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">Delete {selectedCount}</button>}
             <button onClick={() => setAuditOpen(true)} className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Audit{reviewQueue.length ? ` · ${reviewQueue.reduce((sum, item) => sum + item.reviewCount, 0)}` : ""}</button>
           </TopBar>
 
@@ -2304,6 +2331,7 @@ export default function Home() {
   const [hasIntake, setHasIntake] = useState(initialWorkingState.hasIntake);
   const [sourceIndex, setSourceIndex] = useState(initialWorkingState.sourceIndex);
   const [extractedRows, setExtractedRows] = useState<VaultGridRow[]>(initialWorkingState.extractedRows);
+  const [deletedRowIds, setDeletedRowIds] = useState<string[]>(initialWorkingState.deletedRowIds);
   const [activeSpaceDraft, setActiveSpaceDraft] = useState<CactusSpaceDraft | null>(null);
   const [aiConnection, setAiConnection] = useState<CactusAiConnection>(initialWorkingState.aiConnection);
   const [auditApprovals, setAuditApprovals] = useState<VaultAuditApproval[]>(initialWorkingState.auditApprovals);
@@ -2317,8 +2345,8 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isDark = theme === "dark";
   useEffect(() => {
-    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes, authSession }));
-  }, [hasIntake, sourceIndex, extractedRows, aiConnection, auditApprovals, workflowOutcomes, authSession]);
+    window.localStorage.setItem(CACTUS_WORKING_STATE_KEY, JSON.stringify({ hasIntake, sourceIndex, extractedRows, deletedRowIds, aiConnection, auditApprovals, workflowOutcomes, authSession }));
+  }, [hasIntake, sourceIndex, extractedRows, deletedRowIds, aiConnection, auditApprovals, workflowOutcomes, authSession]);
   const refreshReviewQueue = async () => {
     try {
       const payload = await fetch("/api/cactus/state").then((response) => response.json());
@@ -2353,8 +2381,13 @@ export default function Home() {
     return true;
   };
   const addExtractedRow = (row: VaultGridRow) => {
+    setDeletedRowIds((current) => current.filter((rowId) => rowId !== row.id));
     setExtractedRows((current) => mergeVaultRows(current, row));
     void postCactusResource("documents", { name: "Ocean Drive OM.pdf", kind: "pdf", source: "refined Vault source setup", text: sampleDealDocument, rowId: row.id }).then(() => refreshReviewQueue());
+  };
+  const deleteVaultRows = (rowIds: string[]) => {
+    setDeletedRowIds((current) => Array.from(new Set([...current, ...rowIds])));
+    setExtractedRows((current) => current.filter((row) => !rowIds.includes(row.id)));
   };
   const uploadFileToVault = async (file: File, source = "direct file upload") => {
     const form = new FormData();
@@ -2406,7 +2439,7 @@ export default function Home() {
   };
   const renderAppScreen = () => {
     if (active === 5) return <Opportunities go={setActive} onSubmit={(index) => { setSourceIndex(index); setHasIntake(true); }} hasIntake={hasIntake} initialSource={sourceIndex} onSourceSelect={setSourceIndex} onExtractDeal={addExtractedRow} />;
-    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} onUploadFile={uploadFileToVault} reviewQueue={reviewQueue} onReviewFactAction={reviewFactAction} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
+    if (active === 6) return <VaultTable go={setActive} hasIntake={hasIntake} sourceIndex={sourceIndex} onCompleteIntake={(index) => { setSourceIndex(index); setHasIntake(true); }} extractedRows={extractedRows} deletedRowIds={deletedRowIds} onDeleteRows={deleteVaultRows} onUploadFile={uploadFileToVault} reviewQueue={reviewQueue} onReviewFactAction={reviewFactAction} onCreateSpaceFromRows={createSpaceFromRows} auditApprovals={auditApprovals} onApproveAudit={approveAudit} />;
     if (active === 7) return <Spaces go={setActive} spaceDraft={activeSpaceDraft} onClearSpaceDraft={() => setActiveSpaceDraft(null)} />;
     if (active === 8) return <Workflows go={setActive} workflowOutcomes={workflowOutcomes} onWorkflowOutcome={recordWorkflowOutcome} onCreateWorkflowSpace={createWorkflowSpace} />;
     if (active === 9) return <TasksActivity go={setActive} />;

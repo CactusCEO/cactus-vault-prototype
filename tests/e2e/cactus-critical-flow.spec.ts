@@ -68,6 +68,14 @@ test("full user loop creates a source-linked Space output that can download and 
   await page.getByRole("button", { name: "Continue to add documents" }).click();
 
   await expect(page.getByRole("heading", { name: "No data yet" })).toBeVisible();
+  await expect(page.getByText(/Selected in onboarding/i)).toHaveCount(0);
+  await page.getByRole("button", { name: "Assistant" }).click();
+  await expect(page.getByRole("button", { name: "Add +" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Workflow" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Enhance prompt" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sources" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Create" })).toHaveCount(0);
+  await page.getByTitle("Vault").click();
   await page.getByRole("button", { name: "Add Data" }).click();
   await expect(page.getByRole("heading", { name: "Add deal files." })).toBeVisible();
   await page.setInputFiles("input[type='file']", {
@@ -98,6 +106,11 @@ test("full user loop creates a source-linked Space output that can download and 
 
   await page.getByRole("button", { name: "Share" }).nth(1).click();
   await expect(page.getByText(/1450 Ocean Drive Deal Review: 1450 Ocean Drive · IC memo starter ready for review/i)).toBeVisible();
+
+  await page.getByTitle("Vault").click();
+  await page.getByLabel(/select 16 Enviro Dr/i).check();
+  await page.getByRole("button", { name: "Delete 1" }).click();
+  await expect(page.getByText(/16 Enviro Dr/i)).toHaveCount(0);
   expect(consoleErrors).toEqual([]);
 });
 
